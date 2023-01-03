@@ -1,0 +1,16 @@
+A_ruzIcon ICON "Bitmaps/ProgIcons/RUZmBi_i.ico"
+
+buttonDelete_normal_ico ICON "Bitmaps/Buttons/buttonDelete_normal.ico"
+buttonDelete_current_ico ICON "Bitmaps/Buttons/buttonDelete_current.ico"
+buttonDelete_pressed_ico ICON "Bitmaps/Buttons/buttonDelete_pressed.ico"
+buttonEdit_current_ico ICON "Bitmaps/Buttons/buttonEdit_current.ico"
+buttonEdit_normal_ico ICON "Bitmaps/Buttons/buttonEdit_normal.ico"
+buttonEdit_pressed_ico ICON "Bitmaps/Buttons/buttonEdit_pressed.ico"
+buttonVisibleOff_current_ico ICON "Bitmaps/Buttons/buttonVisibleOff_current.ico"
+buttonVisibleOff_normal_ico ICON "Bitmaps/Buttons/buttonVisibleOff_normal.ico"
+buttonVisibleOff_pressed_ico ICON "Bitmaps/Buttons/buttonVisibleOff_pressed.ico"
+buttonVisibleOn_current_ico ICON "Bitmaps/Buttons/buttonVisibleOn_current.ico"
+buttonVisibleOn_normal_ico ICON "Bitmaps/Buttons/buttonVisibleOn_normal.ico"
+buttonVisibleOn_pressed_ico ICON "Bitmaps/Buttons/buttonVisibleOn_pressed.ico"
+
+#include "wx/msw/wx.rc"

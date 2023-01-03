@@ -1,0 +1,1 @@
+"D:\Cplusplus\Zeitnahme\source\Zeitnahme.exe" "D:\CodeBlocks_Projekte\PunktZuNetz\Zeit_PunktZuNetz.csv"

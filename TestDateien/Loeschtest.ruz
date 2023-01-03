@@ -1,0 +1,1435 @@
+  0
+  L
+STANDARD
+  0
+POINT
+  X
+292.000000000000000
+  Y
+-571.000000000000000
+  Z
+0.200000000000000
+  @
+0x2db4de8
+  0
+POINT
+  X
+301.000000000000000
+  Y
+-262.000000000000000
+  Z
+0.000000000000000
+  @
+0x2db4538
+  0
+POINT
+  X
+465.527912984277464
+  Y
+-304.864856310955588
+  Z
+0.220000000000000
+  @
+0x2db4ff0
+  0
+POINT
+  X
+470.982458438822903
+  Y
+-502.137583583683579
+  Z
+0.220000000000000
+  @
+0x2db4aa8
+  0
+POINT
+  X
+479.336291527679577
+  Y
+-492.618272017326376
+  Z
+0.168131503632571
+  @
+0x2dce698
+  0
+POINT
+  X
+480.068830213520357
+  Y
+-475.989449096283806
+  Z
+0.160954568121761
+  @
+0x2dce8a0
+  0
+POINT
+  X
+481.857904673427356
+  Y
+-453.307890334654644
+  Z
+0.146410663670554
+  @
+0x2dce5c8
+  0
+POINT
+  X
+484.734020777054980
+  Y
+-416.845016445611975
+  Z
+0.123029882859504
+  @
+0x2dce908
+  0
+POINT
+  X
+487.536274346030950
+  Y
+-381.318558260626332
+  Z
+0.100249551985318
+  @
+0x2dce838
+  0
+POINT
+  X
+493.231329992548581
+  Y
+-332.642136280660054
+  Z
+0.069261989852491
+  @
+0x2dcea40
+  0
+POINT
+  X
+509.636363636363740
+  Y
+-349.090909090910316
+  Z
+-0.020000000000000
+  @
+0x2db5128
+  0
+POINT
+  X
+509.636363636363740
+  Y
+-458.090909090910657
+  Z
+-0.020000000000000
+  @
+0x2db4e50
+  0
+POINT
+  X
+512.115349069570129
+  Y
+-496.127940467294707
+  Z
+0.169997435507926
+  @
+0x2dce7d0
+  0
+POINT
+  X
+588.070181872495482
+  Y
+-334.193369631954738
+  Z
+0.081761629375777
+  @
+0x2dcec48
+  0
+POINT
+  X
+664.636363636363512
+  Y
+-348.090909090910316
+  Z
+-0.050000000000000
+  @
+0x2db4f88
+  0
+POINT
+  X
+676.636363636363512
+  Y
+-472.090909090910657
+  Z
+-0.030000000000000
+  @
+0x2db4b10
+  0
+POINT
+  X
+680.229275760381256
+  Y
+-330.338318956580224
+  Z
+0.090418314331201
+  @
+0x2dce220
+  0
+POINT
+  X
+686.828815739432002
+  Y
+-371.536307619525701
+  Z
+0.118028619569668
+  @
+0x2dce3c0
+  0
+POINT
+  X
+687.764280587726716
+  Y
+-378.648056976969940
+  Z
+0.121111338522260
+  @
+0x2dce1b8
+  0
+POINT
+  X
+689.093787147816442
+  Y
+-388.755456994908570
+  Z
+0.125492577515744
+  @
+0x2dceb78
+  0
+POINT
+  X
+694.618822075186245
+  Y
+-313.955765401864767
+  Z
+0.220000000000000
+  @
+0x2db4eb8
+  0
+POINT
+  X
+700.487994690806659
+  Y
+-475.378432000499629
+  Z
+0.163040904004511
+  @
+0x2dce560
+  0
+POINT
+  X
+704.037603042702699
+  Y
+-502.673728817789538
+  Z
+0.174872119327158
+  @
+0x2dce490
+  0
+POINT
+  X
+710.073367529731740
+  Y
+-509.410310856410888
+  Z
+0.220000000000000
+  @
+0x2db4d80
+  0
+POINT
+  X
+870.000000000000000
+  Y
+-279.000000000000000
+  Z
+0.080000000000000
+  @
+0x2db4408
+  0
+POINT
+  X
+871.000000000000000
+  Y
+-603.000000000000000
+  Z
+0.220000000000000
+  @
+0x2db50c0
+  0
+LINE
+ P0
+0x2db4de8
+ P1
+0x2db4538
+  @
+0x2da7cf8
+  0
+LINE
+ P0
+0x2db4408
+ P1
+0x2db50c0
+  @
+0x2da7f78
+  0
+LINE
+ P0
+0x2db4538
+ P1
+0x2db4408
+  @
+0x2da7d48
+  0
+LINE
+ P0
+0x2db4de8
+ P1
+0x2db50c0
+  @
+0x2da7e88
+  0
+LINE
+ P0
+0x2db5128
+ P1
+0x2db4f88
+  @
+0x2da7d20
+  0
+LINE
+ P0
+0x2db4f88
+ P1
+0x2db4b10
+  @
+0x2da7d70
+  0
+LINE
+ P0
+0x2db4b10
+ P1
+0x2db4e50
+  @
+0x2da7eb0
+  0
+LINE
+ P0
+0x2db4e50
+ P1
+0x2db5128
+  @
+0x2da7d98
+  0
+LINE
+ P0
+0x2db5128
+ P1
+0x2db4b10
+  @
+0x2da7f00
+  0
+LINE
+ P0
+0x2db4ff0
+ P1
+0x2db4eb8
+  @
+0x2dc7830
+  0
+LINE
+ P0
+0x2db4eb8
+ P1
+0x2db4d80
+  @
+0x2dc7a38
+  0
+LINE
+ P0
+0x2db4d80
+ P1
+0x2db4aa8
+  @
+0x2dc76a0
+  0
+LINE
+ P0
+0x2db4aa8
+ P1
+0x2db4ff0
+  @
+0x2dc7a10
+  0
+LINE
+ P0
+0x2dce7d0
+ P1
+0x2db50c0
+  @
+0x2da7f28
+  0
+LINE
+ P0
+0x2dce7d0
+ P1
+0x2db4de8
+  @
+0x2da7be0
+  0
+LINE
+ P0
+0x2dce7d0
+ P1
+0x2db4aa8
+  @
+0x2dc7d58
+  0
+LINE
+ P0
+0x2dce7d0
+ P1
+0x2db4b10
+  @
+0x2dc7b00
+  0
+LINE
+ P0
+0x2dce7d0
+ P1
+0x2db4d80
+  @
+0x2dc7ce0
+  0
+LINE
+ P0
+0x2dce7d0
+ P1
+0x2db4e50
+  @
+0x2dc7ad8
+  0
+LINE
+ P0
+0x2dce698
+ P1
+0x2db4ff0
+  @
+0x2dc7bf0
+  0
+LINE
+ P0
+0x2dce698
+ P1
+0x2db4e50
+  @
+0x2dc7d08
+  0
+LINE
+ P0
+0x2dce698
+ P1
+0x2db4aa8
+  @
+0x2dc7c18
+  0
+LINE
+ P0
+0x2dce698
+ P1
+0x2dce7d0
+  @
+0x2dc7b28
+  0
+LINE
+ P0
+0x2dce698
+ P1
+0x2db4de8
+  @
+0x2dc7b50
+  0
+LINE
+ P0
+0x2dcec48
+ P1
+0x2db4408
+  @
+0x2dc77b8
+  0
+LINE
+ P0
+0x2dcec48
+ P1
+0x2db4538
+  @
+0x2dc7948
+  0
+LINE
+ P0
+0x2dcec48
+ P1
+0x2db4f88
+  @
+0x2dc78f8
+  0
+LINE
+ P0
+0x2dcec48
+ P1
+0x2db5128
+  @
+0x2dc78d0
+  0
+LINE
+ P0
+0x2dcec48
+ P1
+0x2db4eb8
+  @
+0x2dc7a88
+  0
+LINE
+ P0
+0x2dcec48
+ P1
+0x2db4ff0
+  @
+0x2dad678
+  0
+LINE
+ P0
+0x2dce220
+ P1
+0x2db4d80
+  @
+0x2dad588
+  0
+LINE
+ P0
+0x2dce220
+ P1
+0x2dcec48
+  @
+0x2dad6c8
+  0
+LINE
+ P0
+0x2dce220
+ P1
+0x2db4408
+  @
+0x2dad790
+  0
+LINE
+ P0
+0x2dcea40
+ P1
+0x2db4ff0
+  @
+0x2dad8d0
+  0
+LINE
+ P0
+0x2dcea40
+ P1
+0x2db5128
+  @
+0x2dad808
+  0
+LINE
+ P0
+0x2dcea40
+ P1
+0x2db4e50
+  @
+0x2dad6a0
+  0
+LINE
+ P0
+0x2dcea40
+ P1
+0x2dcec48
+  @
+0x2dad920
+  0
+LINE
+ P0
+0x2dcea40
+ P1
+0x2db4de8
+  @
+0x2dad538
+  0
+LINE
+ P0
+0x2dcea40
+ P1
+0x2db4538
+  @
+0x2dad970
+  0
+LINE
+ P0
+0x2dce838
+ P1
+0x2dce698
+  @
+0x2dad718
+  0
+LINE
+ P0
+0x2dce838
+ P1
+0x2db4ff0
+  @
+0x2dad7b8
+  0
+LINE
+ P0
+0x2dce838
+ P1
+0x2db4e50
+  @
+0x2dad7e0
+  0
+LINE
+ P0
+0x2dce838
+ P1
+0x2dcea40
+  @
+0x2dad830
+  0
+LINE
+ P0
+0x2dce838
+ P1
+0x2dcec48
+  @
+0x2dad5b0
+  0
+LINE
+ P0
+0x2dce838
+ P1
+0x2db4de8
+  @
+0x2dad998
+  0
+LINE
+ P0
+0x2dce8a0
+ P1
+0x2dce698
+  @
+0x2dadc90
+  0
+LINE
+ P0
+0x2dce8a0
+ P1
+0x2db4de8
+  @
+0x2dadbc8
+  0
+LINE
+ P0
+0x2dce8a0
+ P1
+0x2dce220
+  @
+0x2dada60
+  0
+LINE
+ P0
+0x2dce8a0
+ P1
+0x2dce838
+  @
+0x2dadc18
+  0
+LINE
+ P0
+0x2dce8a0
+ P1
+0x2db4ff0
+  @
+0x2dadab0
+  0
+LINE
+ P0
+0x2dcec48
+ P1
+0x2dce908
+  @
+0x2dadc40
+  0
+LINE
+ P0
+0x2dce908
+ P1
+0x2db4de8
+  @
+0x2dadad8
+  0
+LINE
+ P0
+0x2dce908
+ P1
+0x2dce220
+  @
+0x2dadb00
+  0
+LINE
+ P0
+0x2dce908
+ P1
+0x2dce838
+  @
+0x2dadb50
+  0
+LINE
+ P0
+0x2dce220
+ P1
+0x2dce5c8
+  @
+0x2dadb78
+  0
+LINE
+ P0
+0x2dce5c8
+ P1
+0x2db4de8
+  @
+0x2dadba0
+  0
+LINE
+ P0
+0x2dce5c8
+ P1
+0x2dce8a0
+  @
+0x2dadc68
+  0
+LINE
+ P0
+0x2dce5c8
+ P1
+0x2dce908
+  @
+0x2dada10
+  0
+LINE
+ P0
+0x2dce560
+ P1
+0x2db4b10
+  @
+0x2dd57c0
+  0
+LINE
+ P0
+0x2dce560
+ P1
+0x2dce7d0
+  @
+0x2dd55b8
+  0
+LINE
+ P0
+0x2dce560
+ P1
+0x2db4408
+  @
+0x2dd5608
+  0
+LINE
+ P0
+0x2dce560
+ P1
+0x2db50c0
+  @
+0x2dd5770
+  0
+LINE
+ P0
+0x2dce560
+ P1
+0x2dce220
+  @
+0x2dd5630
+  0
+LINE
+ P0
+0x2dce490
+ P1
+0x2dce7d0
+  @
+0x2dd5680
+  0
+LINE
+ P0
+0x2dce490
+ P1
+0x2dce560
+  @
+0x2dd56a8
+  0
+LINE
+ P0
+0x2dce490
+ P1
+0x2db50c0
+  @
+0x2dd5400
+  0
+LINE
+ P0
+0x2dce3c0
+ P1
+0x2dce698
+  @
+0x2dd53b0
+  0
+LINE
+ P0
+0x2dce3c0
+ P1
+0x2dce220
+  @
+0x2dd5270
+  0
+LINE
+ P0
+0x2dce3c0
+ P1
+0x2dce560
+  @
+0x2dd51d0
+  0
+LINE
+ P0
+0x2dce3c0
+ P1
+0x2db4d80
+  @
+0x2dd5388
+  0
+LINE
+ P0
+0x2db4f88
+ P1
+0x2dce560
+  @
+0x2dd5478
+  0
+LINE
+ P0
+0x2dce560
+ P1
+0x2db4d80
+  @
+0x2dd52c0
+  0
+LINE
+ P0
+0x2dce7d0
+ P1
+0x2dceb78
+  @
+0x2dd51f8
+  0
+LINE
+ P0
+0x2dceb78
+ P1
+0x2db4408
+  @
+0x2dd52e8
+  0
+LINE
+ P0
+0x2dceb78
+ P1
+0x2dce698
+  @
+0x2dd5310
+  0
+LINE
+ P0
+0x2dceb78
+ P1
+0x2dce560
+  @
+0x2dd54a0
+  0
+LINE
+ P0
+0x2dce698
+ P1
+0x2dce1b8
+  @
+0x2dd5040
+  0
+LINE
+ P0
+0x2dce1b8
+ P1
+0x2db4408
+  @
+0x2dd5068
+  0
+LINE
+ P0
+0x2dce1b8
+ P1
+0x2dce3c0
+  @
+0x2dd5090
+  0
+LINE
+ P0
+0x2dce1b8
+ P1
+0x2dceb78
+  @
+0x2dd50b8
+  0
+LINE
+ P0
+0x2db4eb8
+ P1
+0x2dce220
+  @
+0x2dd50e0
+  0
+LINE
+ P0
+0x2dce220
+ P1
+0x2db4f88
+  @
+0x2dd5130
+  0
+LINE
+ P0
+0x2dce8a0
+ P1
+0x2dce3c0
+  @
+0x2dadbf0
+  0
+LINE
+ P0
+0x2dce3c0
+ P1
+0x2db4408
+  @
+0x2da7ca8
+  0
+LINE
+ P0
+0x2db4d80
+ P1
+0x2dce490
+  @
+0x2dd7ff8
+  0
+LINE
+ P0
+0x2dce490
+ P1
+0x2db4b10
+  @
+0x2dd7d50
+  0
+TRIANGLE
+ L0
+0x2da7d98
+ L1
+0x2da7f00
+ L2
+0x2da7eb0
+  0
+TRIANGLE
+ L0
+0x2da7f00
+ L1
+0x2da7d20
+ L2
+0x2da7d70
+  0
+TRIANGLE
+ L0
+0x2da7f28
+ L1
+0x2da7e88
+ L2
+0x2da7be0
+  0
+TRIANGLE
+ L0
+0x2dc7ce0
+ L1
+0x2dc76a0
+ L2
+0x2dc7d58
+  0
+TRIANGLE
+ L0
+0x2dc7ad8
+ L1
+0x2da7eb0
+ L2
+0x2dc7b00
+  0
+TRIANGLE
+ L0
+0x2dc7c18
+ L1
+0x2dc7a10
+ L2
+0x2dc7bf0
+  0
+TRIANGLE
+ L0
+0x2dc7b28
+ L1
+0x2da7be0
+ L2
+0x2dc7b50
+  0
+TRIANGLE
+ L0
+0x2dc7b28
+ L1
+0x2dc7d58
+ L2
+0x2dc7c18
+  0
+TRIANGLE
+ L0
+0x2dc7d08
+ L1
+0x2dc7ad8
+ L2
+0x2dc7b28
+  0
+TRIANGLE
+ L0
+0x2dc7948
+ L1
+0x2da7d48
+ L2
+0x2dc77b8
+  0
+TRIANGLE
+ L0
+0x2dc78f8
+ L1
+0x2da7d20
+ L2
+0x2dc78d0
+  0
+TRIANGLE
+ L0
+0x2dad678
+ L1
+0x2dc7830
+ L2
+0x2dc7a88
+  0
+TRIANGLE
+ L0
+0x2dd50e0
+ L1
+0x2dc7a38
+ L2
+0x2dad588
+  0
+TRIANGLE
+ L0
+0x2dad6c8
+ L1
+0x2dc77b8
+ L2
+0x2dad790
+  0
+TRIANGLE
+ L0
+0x2dad6c8
+ L1
+0x2dc7a88
+ L2
+0x2dd50e0
+  0
+TRIANGLE
+ L0
+0x2dd5130
+ L1
+0x2dc78f8
+ L2
+0x2dad6c8
+  0
+TRIANGLE
+ L0
+0x2dad808
+ L1
+0x2da7d98
+ L2
+0x2dad6a0
+  0
+TRIANGLE
+ L0
+0x2dad538
+ L1
+0x2da7cf8
+ L2
+0x2dad970
+  0
+TRIANGLE
+ L0
+0x2dad970
+ L1
+0x2dc7948
+ L2
+0x2dad920
+  0
+TRIANGLE
+ L0
+0x2dad920
+ L1
+0x2dc78d0
+ L2
+0x2dad808
+  0
+TRIANGLE
+ L0
+0x2dad8d0
+ L1
+0x2dad678
+ L2
+0x2dad920
+  0
+TRIANGLE
+ L0
+0x2dad7e0
+ L1
+0x2dc7d08
+ L2
+0x2dad718
+  0
+TRIANGLE
+ L0
+0x2dad830
+ L1
+0x2dad6a0
+ L2
+0x2dad7e0
+  0
+TRIANGLE
+ L0
+0x2dad7b8
+ L1
+0x2dad8d0
+ L2
+0x2dad830
+  0
+TRIANGLE
+ L0
+0x2dad830
+ L1
+0x2dad920
+ L2
+0x2dad5b0
+  0
+TRIANGLE
+ L0
+0x2dad998
+ L1
+0x2dad538
+ L2
+0x2dad830
+  0
+TRIANGLE
+ L0
+0x2dadc90
+ L1
+0x2dc7b50
+ L2
+0x2dadbc8
+  0
+TRIANGLE
+ L0
+0x2dadc18
+ L1
+0x2dad718
+ L2
+0x2dadc90
+  0
+TRIANGLE
+ L0
+0x2dadc90
+ L1
+0x2dc7bf0
+ L2
+0x2dadab0
+  0
+TRIANGLE
+ L0
+0x2dadab0
+ L1
+0x2dad7b8
+ L2
+0x2dadc18
+  0
+TRIANGLE
+ L0
+0x2dad6c8
+ L1
+0x2dadc40
+ L2
+0x2dadb00
+  0
+TRIANGLE
+ L0
+0x2dad5b0
+ L1
+0x2dadc40
+ L2
+0x2dadb50
+  0
+TRIANGLE
+ L0
+0x2dad998
+ L1
+0x2dadad8
+ L2
+0x2dadb50
+  0
+TRIANGLE
+ L0
+0x2dadbc8
+ L1
+0x2dadba0
+ L2
+0x2dadc68
+  0
+TRIANGLE
+ L0
+0x2dada60
+ L1
+0x2dadb78
+ L2
+0x2dadc68
+  0
+TRIANGLE
+ L0
+0x2dadad8
+ L1
+0x2dadba0
+ L2
+0x2dada10
+  0
+TRIANGLE
+ L0
+0x2dadb00
+ L1
+0x2dadb78
+ L2
+0x2dada10
+  0
+TRIANGLE
+ L0
+0x2dd57c0
+ L1
+0x2da7d70
+ L2
+0x2dd5478
+  0
+TRIANGLE
+ L0
+0x2dd5608
+ L1
+0x2da7f78
+ L2
+0x2dd5770
+  0
+TRIANGLE
+ L0
+0x2dd5478
+ L1
+0x2dd5130
+ L2
+0x2dd5630
+  0
+TRIANGLE
+ L0
+0x2dd5680
+ L1
+0x2dc7b00
+ L2
+0x2dd7d50
+  0
+TRIANGLE
+ L0
+0x2dd7ff8
+ L1
+0x2dc7ce0
+ L2
+0x2dd5680
+  0
+TRIANGLE
+ L0
+0x2dd56a8
+ L1
+0x2dd52c0
+ L2
+0x2dd7ff8
+  0
+TRIANGLE
+ L0
+0x2dd7d50
+ L1
+0x2dd57c0
+ L2
+0x2dd56a8
+  0
+TRIANGLE
+ L0
+0x2dd56a8
+ L1
+0x2dd5770
+ L2
+0x2dd5400
+  0
+TRIANGLE
+ L0
+0x2dd5400
+ L1
+0x2da7f28
+ L2
+0x2dd5680
+  0
+TRIANGLE
+ L0
+0x2dd5680
+ L1
+0x2dd55b8
+ L2
+0x2dd56a8
+  0
+TRIANGLE
+ L0
+0x2dd53b0
+ L1
+0x2dadc90
+ L2
+0x2dadbf0
+  0
+TRIANGLE
+ L0
+0x2dadbf0
+ L1
+0x2dada60
+ L2
+0x2dd5270
+  0
+TRIANGLE
+ L0
+0x2dd5270
+ L1
+0x2dad790
+ L2
+0x2da7ca8
+  0
+TRIANGLE
+ L0
+0x2dd51d0
+ L1
+0x2dd5630
+ L2
+0x2dd5270
+  0
+TRIANGLE
+ L0
+0x2dd5270
+ L1
+0x2dad588
+ L2
+0x2dd5388
+  0
+TRIANGLE
+ L0
+0x2dd5388
+ L1
+0x2dd52c0
+ L2
+0x2dd51d0
+  0
+TRIANGLE
+ L0
+0x2dc7b28
+ L1
+0x2dd51f8
+ L2
+0x2dd5310
+  0
+TRIANGLE
+ L0
+0x2dd55b8
+ L1
+0x2dd51f8
+ L2
+0x2dd54a0
+  0
+TRIANGLE
+ L0
+0x2dd5608
+ L1
+0x2dd52e8
+ L2
+0x2dd54a0
+  0
+TRIANGLE
+ L0
+0x2da7ca8
+ L1
+0x2dd5068
+ L2
+0x2dd5090
+  0
+TRIANGLE
+ L0
+0x2dd53b0
+ L1
+0x2dd5040
+ L2
+0x2dd5090
+  0
+TRIANGLE
+ L0
+0x2dd52e8
+ L1
+0x2dd5068
+ L2
+0x2dd50b8
+  0
+TRIANGLE
+ L0
+0x2dd5310
+ L1
+0x2dd5040
+ L2
+0x2dd50b8
+  0
+ HG
+  0
+EOF

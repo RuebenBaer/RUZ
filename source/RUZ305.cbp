@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="RUZ" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Release">
+				<Option output="../RUZ" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="../../RUZ" />
+				<Option object_output="obj/" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Option projectLinkerOptionsRelation="2" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-std=c++11" />
+					<Add directory="D:/wxWidgets-3.0.5/lib/gcc_lib/mswu" />
+				</Compiler>
+				<ResourceCompiler>
+					<Add directory="D:/wxWidgets-3.0.5/lib/gcc_lib/mswu" />
+				</ResourceCompiler>
+				<Linker>
+					<Add option="-s" />
+					<Add library="libwxmsw30u.a" />
+					<Add library="libwxpng.a" />
+					<Add library="libwxjpeg.a" />
+					<Add library="libwxtiff.a" />
+					<Add library="libwxzlib.a" />
+					<Add directory="D:/wxWidgets-3.0.5/lib/gcc_lib" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="-std=c++11" />
+			<Add option="-pipe" />
+			<Add option="-mthreads" />
+			<Add option="-D__GNUWIN32__" />
+			<Add option="-D__WXMSW__" />
+			<Add option="-DwxUSE_UNICODE" />
+			<Add directory="D:/wxWidgets-3.0.5/include" />
+		</Compiler>
+		<ResourceCompiler>
+			<Add directory="D:/wxWidgets-3.0.5/include" />
+		</ResourceCompiler>
+		<Linker>
+			<Add option="-mthreads" />
+			<Add library="libkernel32.a" />
+			<Add library="libuser32.a" />
+			<Add library="libgdi32.a" />
+			<Add library="libwinspool.a" />
+			<Add library="libcomdlg32.a" />
+			<Add library="libadvapi32.a" />
+			<Add library="libshell32.a" />
+			<Add library="libole32.a" />
+			<Add library="liboleaut32.a" />
+			<Add library="libuuid.a" />
+			<Add library="libcomctl32.a" />
+			<Add library="libwsock32.a" />
+			<Add library="libodbc32.a" />
+		</Linker>
+		<Unit filename="DXF/DXF_Handler.cpp" />
+		<Unit filename="DXF/DXF_Handler.h" />
+		<Unit filename="Dbl_Eingabe/Dbl_Eingabe.cpp" />
+		<Unit filename="Dbl_Eingabe/Dbl_Eingabe.h" />
+		<Unit filename="Kamera/Kamera_3D.cpp" />
+		<Unit filename="Kamera/Kamera_3D.h" />
+		<Unit filename="Liste/Verkettete_Liste.h" />
+		<Unit filename="Matrix/Matrix.cpp" />
+		<Unit filename="Matrix/Matrix.h" />
+		<Unit filename="RUZ/RUZObjekte.cpp" />
+		<Unit filename="RUZ/RUZObjekte.h" />
+		<Unit filename="RUZ/RUZVerwaltung.cpp" />
+		<Unit filename="RUZ/RUZVerwaltung.h" />
+		<Unit filename="RUZmBIApp.cpp" />
+		<Unit filename="RUZmBIApp.h" />
+		<Unit filename="RUZmBIMain.cpp" />
+		<Unit filename="RUZmBIMain.h" />
+		<Unit filename="Vektor/Vektor.cpp" />
+		<Unit filename="Vektor/Vektor.h" />
+		<Unit filename="aruIntegral/aruIntegral.cpp" />
+		<Unit filename="aruIntegral/aruIntegral.h" />
+		<Unit filename="aruZeichner/aruZeichner.cpp" />
+		<Unit filename="aruZeichner/aruZeichner.h" />
+		<Unit filename="resource.rc">
+			<Option compilerVar="WINDRES" />
+		</Unit>
+		<Extensions>
+			<lib_finder disable_auto="1" />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
