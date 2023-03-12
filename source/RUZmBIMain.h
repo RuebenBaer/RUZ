@@ -34,21 +34,30 @@
     #include <wx/wx.h>
 #endif
 
-#include <iostream>
+#include <cmath>
+#include <cstdlib>
 #include <fstream>
+#include <iomanip>
+#include <iostream>
 #include <thread>
+#include <stdio.h>
+#include <cstring>
 
+#include <wx/colordlg.h>
+#include <wx/dcbuffer.h>
 #include <wx/listctrl.h>
+#include <wx/process.h>
 #include <wx/sizer.h>
-#include "Dbl_Eingabe\Dbl_Eingabe.h"
 
-#include "Vektor\Vektor.h"
+#include "aruIntegral/aruIntegral.h"
+#include "Dbl_Eingabe/Dbl_Eingabe.h"
+#include "DXF\DXF_Handler.h"
+#include "Liste\Verkettete_Liste.h"
 #include "RUZmBIApp.h"
 #include "RUZ\RUZObjekte.h"
 #include "RUZ\RUZVerwaltung.h"
-#include "Liste\Verkettete_Liste.h"
-#include "DXF\DXF_Handler.h"
-
+#include "RUZThreadCtrl.h"
+#include "Vektor\Vektor.h"
 
 using namespace std;
 
@@ -177,6 +186,25 @@ struct Leinwand
         unsigned char* ucLeinwand;
 };
 
+struct MassstabsBalken
+{
+	int iLaenge1, iLaenge2;
+	double dWert1, dWert2;
+	int iRes;
+	void MassstabErmitteln(double skalierFkt)
+	{
+		if(!skalierFkt)return;
+		double result = log10(skalierFkt);
+		iRes = result - (result < 0);
+		result -= iRes;
+		dWert1 = 10 / pow(10, iRes);
+		dWert2 = dWert1 * 10;
+		iLaenge1 = dWert1 * skalierFkt; //pow(10, result) * 10;
+		iLaenge2 = iLaenge1 * 10;
+		return;
+	};
+};
+
 class RUZmBIFrame: public wxFrame
 {
     public:
@@ -203,7 +231,7 @@ class RUZmBIFrame: public wxFrame
             idMenuLayerVerschneiden, idMenuLayerInSichVerschneiden, idMenuFlaechenVerschneiden, idMenuLayerRandabschneiden, idMenuPunktVereinigen,
             idVolumenZwischenLayern_Kons, idVolumenZwischenLayern_Integral, idMenuSchnittPunktLinie, idMenuSchnittPunktFlaeche, idMenuFangpunkteFinden, idMenuFangpunkteLoeschen,
             idMenuHoehenMarkeZeichnen, idMenuStreckeMessen, idMenuEinstellungen, idMenuLayerinhaltAnzeigen, idMenuLizenz,
-            idMenuGesamtansicht, idMenuPunkteSkalieren, idMenuLayerSkalieren, idMenuHintergrundSkalieren, idMenuAllesSkalieren, idTimer,
+            idMenuGesamtansicht, idMenuPunkteSkalieren, idMenuLayerSkalieren, idMenuHintergrundSkalieren, idMenuAllesSkalieren, idMenuSkalierFaktor, idTimer,
             idMenuZeigeWaehle, idMenuEntferneTieferes, idMenuEntferneHoeheres, idMenuUeberlappungFinden,
             idZeigePunkt, idZeigeHoehe, idZeigeLinie, idZeigeFlaeche, idZeigeHoehenmarke, idZeigeStrich, idZeigeBogen, idZeigeKreis, idZeigeFangpunkt,
             idWaehlePunkt, idWaehleLinie, idWaehleFlaeche, idWaehleHoehenmarke, idWaehleStrich, idWaehleBogen, idWaehleKreis, idWaehleFangpunkt
@@ -295,6 +323,7 @@ class RUZmBIFrame: public wxFrame
         void OnAnsichtswechsel(wxCommandEvent &event);
         void OnToggleHintergrund(wxCommandEvent &event);
         void OnAusdehnungFinden(wxCommandEvent &event);
+        void OnSkalierfaktor(wxCommandEvent &event);
         void OnKantenWandeln(wxCommandEvent &event);
         void OnPunkteVernetzen(wxCommandEvent &event);
         void OnDreieckeFinden(wxCommandEvent &event);
@@ -394,6 +423,8 @@ class RUZmBIFrame: public wxFrame
 
         /*Objekte und Parameter der Ansicht*/
         Leinwand lwBild;
+		MassstabsBalken mbSkalierung;
+		void SkalierungSetzen(double t_skal);
 
         double m_skalierung, m_pseudoSchattenFkt;
         double dc_Offset[2];

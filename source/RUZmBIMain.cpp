@@ -17,26 +17,7 @@
 
 #define PI 3.14159265358979
 
-#include <wx/dcbuffer.h>
-#include <wx/sizer.h>
-#include <wx/colordlg.h>
-#include <wx/process.h>
-
 #include "RUZmBIMain.h"
-#include "RUZ/RUZObjekte.h"
-#include "RUZ/RUZVerwaltung.h"
-#include "Liste/Verkettete_Liste.h"
-#include "DXF/DXF_Handler.h"
-#include "Dbl_Eingabe/Dbl_Eingabe.h"
-#include "aruIntegral/aruIntegral.h"
-#include "RUZThreadCtrl.h"
-
-#include <iomanip>
-#include <fstream>
-#include <stdio.h>
-#include <cstdlib>
-#include <cmath>
-#include <string>
 
 using namespace std;
 
@@ -78,7 +59,7 @@ BEGIN_EVENT_TABLE(RUZmBIFrame, wxFrame)
     EVT_MENU(idMenuExportPrismen, RUZmBIFrame::OnSaveFile)
     EVT_MENU(idMenuExportPunkte, RUZmBIFrame::OnSaveFile)
     //EVT_MENU(idMenuDeleteLayer, RUZmBIFrame::OnLoescheLayer)
-		EVT_MENU(idMenuStricheLoeschen, RUZmBIFrame::OnLoescheStriche)
+	EVT_MENU(idMenuStricheLoeschen, RUZmBIFrame::OnLoescheStriche)
     EVT_MENU(idMenuLayerKopieren, RUZmBIFrame::OnLayerKopieren)
     EVT_MENU(idMenuLayerAuswahl, RUZmBIFrame::OnLayerAuswahl)
     EVT_MENU(idMenuKantenWandeln, RUZmBIFrame::OnKantenWandeln)
@@ -137,6 +118,7 @@ BEGIN_EVENT_TABLE(RUZmBIFrame, wxFrame)
     EVT_MENU(ansicht_ID_hoehenkarte, RUZmBIFrame::OnAnsichtswechsel)
     EVT_MENU(idMenuGesamtansicht, RUZmBIFrame::OnAusdehnungFinden)
     EVT_MENU(idMenuHintergrundMalen, RUZmBIFrame::OnToggleHintergrund)
+	EVT_MENU(idMenuSkalierFaktor, RUZmBIFrame::OnSkalierfaktor)
 
     EVT_MENU(idMenuZeigeWaehle, RUZmBIFrame::OnZeigeWaehle)
     EVT_CHECKBOX(idZeigeBogen, RUZmBIFrame::OnObjekteZeigen)
@@ -394,6 +376,7 @@ RUZmBIFrame::RUZmBIFrame(wxFrame *frame, const wxString& title, const wxPoint &p
     viewMenu->AppendSeparator();
     viewMenu->Append(idMenuSonnenstand, wxT("Sonnenstand"), wxT("Stellt den Sonnenstand ein"));
     viewMenu->AppendSeparator();
+	viewMenu->Append(idMenuSkalierFaktor, wxT("Anzeigeskalierung\tF11"), wxT("Öffnet einen Dialog zur Eingabe der gewünschten Anzeigeskalierung"));
     viewMenu->Append(idMenuGesamtansicht, wxT("Zeige alles\tF12"), wxT("Sucht die Ausdehnung der sichtbaren Objekte und zeigt alles"));
     aktuelleAnsicht = ansicht_ID_normal;
     /*ENDE Menu: Ansicht*/
@@ -430,118 +413,6 @@ RUZmBIFrame::RUZmBIFrame(wxFrame *frame, const wxString& title, const wxPoint &p
     Maximize(true);
 }
 
-void RUZmBIFrame::ParamIni(void)
-{
-    /*Paint*/
-    dc_Offset[0] = dc_Offset[1] = 0;
-    m_skalierung = 1.0;
-    m_hintergrundMalen = true;
-    anzeigeSkalieren = false;
-    /*ENDE Paint*/
-
-    /*Schalter*/
-    hlAnzeigen = false;
-    gefaelleAnzeigen = false;
-    m_markierungsRechteck = false;
-    m_kreuzen = false;
-    m_markierModus = false;
-
-    m_zeigeFlaeche = true;
-    m_zeigeHoehe = true;
-    m_zeigeHoehenmarke = true;
-    m_zeigeLinie = true;
-    m_zeigePunkt = true;
-    m_zeigeStrich = true;
-    m_zeigeBogen = true;
-    m_zeigeKreis = true;
-    m_zeigeFangpunkt = true;
-
-    m_waehlePunkt = true;
-    m_waehleLinie = true;
-    m_waehleFlaeche = true;
-    m_waehleHoehenmarke = true;
-    m_waehleStrich = true;
-    m_waehleBogen = true;
-    m_waehleKreis = true;
-    m_waehleFangpunkt = true;
-    /*ENDE Schalter*/
-
-    m_sonnenRichtung = Vektor(-0.577, -0.577, 0.577);
-    m_aktGefaelle = Vektor(0, 0, 0);
-    m_vktSchnittPkt1 = NULL_VEKTOR;
-    m_vktSchnittPkt2 = NULL_VEKTOR;
-
-    wertFkt = 1;
-    aktBefehl = bef_ID_nichts;
-
-    aktProjX = x;
-    aktProjY = y;
-    aktProjZ = z;
-
-    hoehenSchritt = hlParameterDlg->HoleWert(IDhoehenSchritt);
-    suchRadius = hlParameterDlg->HoleWert(IDsuchRadius);
-    startHoehe = hlParameterDlg->HoleWert(IDstartHoehe);
-
-    m_verschubWeite = peEinstellungenDlg->HoleWert(IDverschubWeite);
-    m_lnWandelGenauigkeit = peEinstellungenDlg->HoleWert(IDlnWandelGenauigkeit);
-    m_pseudoSchattenFkt = peEinstellungenDlg->HoleWert(IDpseudoSchattenFkt);
-    m_gefaelleRaster = peEinstellungenDlg->HoleWert(IDgefaelleRasterGroesse);
-    m_flaechenRaster = peEinstellungenDlg->HoleWert(IDflaechenRasterGroesse);
-    m_anzeigeGenauigkeit = (int)(peEinstellungenDlg->HoleWert(IDanzeigeGenauigkeit));
-        if(m_anzeigeGenauigkeit < 0)m_anzeigeGenauigkeit = 0;
-    pxSuchEntfernung = (int)(peEinstellungenDlg->HoleWert(IDpxSuchEntfernung));
-        if(pxSuchEntfernung < 1)pxSuchEntfernung = 1;
-
-    col_Pkt_Ln = peEinstellungenDlg->HoleFarbe(IDFarbePktLn);
-    col_Strich = peEinstellungenDlg->HoleFarbe(IDFarbeStrich);
-    col_HoehenMarke = peEinstellungenDlg->HoleFarbe(IDFarbeHoehenMarke);
-    col_Hoehenlinie = peEinstellungenDlg->HoleFarbe(IDFarbeHoehenlinie);
-    col_markiert_Obj = peEinstellungenDlg->HoleFarbe(IDFarbeMarkiertesObjekt);
-    col_ausgewaehlt_Obj = peEinstellungenDlg->HoleFarbe(IDFarbeAusgewaehltesObjekt);
-    col_HintergrundLayer = peEinstellungenDlg->HoleFarbe(IDFarbeHintergrundLayer);
-    col_ZeichenHintergrund = peEinstellungenDlg->HoleFarbe(IDFarbeZeichenHintergrund);
-    col_AuswahlRechteck = peEinstellungenDlg->HoleFarbe(IDFarbeAuswahlRechteck);
-    col_Flaeche_darueber = peEinstellungenDlg->HoleFarbe(IDFarbeFlaecheDarueber);
-    col_Flaeche_darunter = peEinstellungenDlg->HoleFarbe(IDFarbeFlaecheDarunter);
-    col_Gefaelle = peEinstellungenDlg->HoleFarbe(IDFarbeGefaelle);
-    col_Fangpunkt = peEinstellungenDlg->HoleFarbe(IDFarbeFangpunkt);
-
-    /*Drehung*/
-    m_drehungAuswahlOrte = new Liste<Vektor>();
-    if(!m_drehungAuswahlOrte)
-    {
-        logSchreiben("m_drehungAuswahlOrte wurde nicht initialisiert\nProgrammabbruch!");
-        this->Destroy();
-    }
-    m_drehungDrPkt = m_drehungRichtung1 = m_drehungRichtung2 = NULL;
-    /*ENDE Drehung*/
-
-    /*Verschieben*/
-    vVerschubStart = NULL;
-    m_verschubAuswahlOrte = new Liste<PunktSpeicher>();
-    if(!m_verschubAuswahlOrte)
-    {
-        logSchreiben("m_drehungAuswahlOrte wurde nicht initialisiert\nProgrammabbruch!");
-        this->Destroy();
-    }
-    /*ENDE Verschieben*/
-
-    /*Schnittpunkt*/
-    m_schP_OrgPkt = NULL;
-    m_schP_Ln = NULL;
-    m_schP_Dr = NULL;
-    m_schP_Obj = NULL;
-    m_schP_Richtung_1 = NULL;
-    m_schP_Richtung_2 = NULL;
-    /*ENDE Schnittpunkt*/
-
-    /*Fangpunkte*/
-    objFang1 = objFang2 = NULL;
-    /*ENDE Fangpunkte*/
-
-    return;
-}
-
 RUZmBIFrame::~RUZmBIFrame()
 {
     m_auswahl->ListeLeeren("RUZ");
@@ -567,292 +438,1737 @@ RUZmBIFrame::~RUZmBIFrame()
     delete m_verschubAuswahlOrte;
 }
 
-void RUZmBIFrame::OnClose(wxCloseEvent &event)
+void RUZmBIFrame::AnfangMessen(double x, double y)
 {
-    Destroy();
+    messAnfang.x = x;
+    messAnfang.y = y;
+
+    SetStatusText(wxString::Format("Messpunkt: %.3f, %.3f", messAnfang.x, messAnfang.y), 1);
+    Messen = &RUZmBIFrame::EndeMessen;
+    return;
 }
 
-void RUZmBIFrame::OnQuit(wxCommandEvent &event)
+void RUZmBIFrame::AusdehnungFinden(void)
 {
-    Destroy();
-}
+    //if(aktLayer == NULL)return;
+    wxClientDC cl_dc(this);
+    double abmessungCL_dc_X = cl_dc.GetSize().GetWidth();
+    double abmessungCL_dc_Y = cl_dc.GetSize().GetHeight();
 
-void RUZmBIFrame::OnAbout(wxCommandEvent &event)
-{
-	//wxProcess::Open("/../../HTML/RUZ-Handbuch/start.bat");
-	return;
-}
+    double max_x, max_y, min_x, min_y;
+    max_x = max_y = min_x = min_y = 0.0;
+    RUZ_Layer* lokAktLayer;
+    Punkt *tempPkt;
+    HoehenMarke *tempHM;
+    Kreis *tempKr;
+    double tempRadius;
+    Fangpunkt *tempFP;
 
-void RUZmBIFrame::OnSize(wxSizeEvent& event)
-{
-    Refresh();
-}
+    lokAktLayer = m_layer->GetErstesElement();
+    if(lokAktLayer == NULL)return;
 
-void RUZmBIFrame::OnOpenFile(wxCommandEvent &event)
-{
-    if(event.GetId() == idMenuRuzImport)
+    bool ersterSichtbarerLayer = true;
+    for(Listenelement<RUZ_Layer>* aktLayer_LE = m_layer->GetErstesListenelement(); aktLayer_LE != NULL; aktLayer_LE = aktLayer_LE->GetNachfolger())
     {
-        FileOpener->SetWildcard(wxT("RUZ-Datei (*.ruz)|*.ruz"));
-    }else if(event.GetId() == idMenuD45Import)
-    {
-        FileOpener->SetWildcard(wxT("D45-Datei (*.d45)|*.d45"));
-    }else if(event.GetId() == idMenuD58Import)
-    {
-        FileOpener->SetWildcard(wxT("D58-Datei (*.d58)|*.d58"));
-    }else{
-
-        FileOpener->SetWildcard(wxT("DXF-Datei (*.dxf)|*.dxf"));
+        lokAktLayer = aktLayer_LE->GetElement();
+        if(lokAktLayer == NULL)continue;
+        if(!(lokAktLayer->IstSichtbar()))continue;
+        if(ersterSichtbarerLayer)
+        {
+            tempPkt = lokAktLayer->HolePunkte()->GetErstesElement();
+            tempHM = lokAktLayer->HoleHoehenMarken()->GetErstesElement();
+            tempKr = lokAktLayer->HoleKreise()->GetErstesElement();
+            tempFP = lokAktLayer->HoleFangpunkte()->GetErstesElement();
+            if(tempPkt != NULL)
+            {
+                max_x = min_x = tempPkt->HolePosition().GetKoordinaten(aktProjX);
+                max_y = min_y = tempPkt->HolePosition().GetKoordinaten(aktProjY);
+                ersterSichtbarerLayer = false;
+            }
+            if(tempHM != NULL)
+            {
+                max_x = min_x = tempHM->HolePosition().GetKoordinaten(aktProjX);
+                max_y = min_y = tempHM->HolePosition().GetKoordinaten(aktProjY);
+                ersterSichtbarerLayer = false;
+            }
+            if(tempKr != NULL)
+            {
+                max_x = min_x = tempKr->HolePosition().GetKoordinaten(aktProjX);
+                max_y = min_y = tempKr->HolePosition().GetKoordinaten(aktProjY);
+                ersterSichtbarerLayer = false;
+            }
+            if(tempFP != NULL)
+            {
+                max_x = min_x = tempFP->HolePosition().GetKoordinaten(aktProjX);
+                max_y = min_y = tempFP->HolePosition().GetKoordinaten(aktProjY);
+                ersterSichtbarerLayer = false;
+            }
+        }
+        for(tempPkt = lokAktLayer->HolePunkte()->GetErstesElement(); tempPkt != NULL; tempPkt = lokAktLayer->HolePunkte()->GetNaechstesElement())
+        {
+            if(tempPkt->HolePosition().GetKoordinaten(aktProjX) < min_x)min_x = tempPkt->HolePosition().GetKoordinaten(aktProjX);
+            if(tempPkt->HolePosition().GetKoordinaten(aktProjX) > max_x)max_x = tempPkt->HolePosition().GetKoordinaten(aktProjX);
+            if(tempPkt->HolePosition().GetKoordinaten(aktProjY) < min_y)min_y = tempPkt->HolePosition().GetKoordinaten(aktProjY);
+            if(tempPkt->HolePosition().GetKoordinaten(aktProjY) > max_y)max_y = tempPkt->HolePosition().GetKoordinaten(aktProjY);
+        }
+        for(tempHM = lokAktLayer->HoleHoehenMarken()->GetErstesElement(); tempHM != NULL; tempHM = lokAktLayer->HoleHoehenMarken()->GetNaechstesElement())
+        {
+            if(tempHM->HolePosition().GetKoordinaten(aktProjX) < min_x)min_x = tempHM->HolePosition().GetKoordinaten(aktProjX);
+            if(tempHM->HolePosition().GetKoordinaten(aktProjX) > max_x)max_x = tempHM->HolePosition().GetKoordinaten(aktProjX);
+            if(tempHM->HolePosition().GetKoordinaten(aktProjY) < min_y)min_y = tempHM->HolePosition().GetKoordinaten(aktProjY);
+            if(tempHM->HolePosition().GetKoordinaten(aktProjY) > max_y)max_y = tempHM->HolePosition().GetKoordinaten(aktProjY);
+        }
+        for(tempKr = lokAktLayer->HoleKreise()->GetErstesElement(); tempKr != NULL; tempKr = lokAktLayer->HoleKreise()->GetNaechstesElement())
+        {
+            tempRadius = tempKr->HoleRadius();
+            if((tempKr->HolePosition().GetKoordinaten(aktProjX) - tempRadius) < min_x)min_x = tempKr->HolePosition().GetKoordinaten(aktProjX) - tempRadius;
+            if((tempKr->HolePosition().GetKoordinaten(aktProjX) + tempRadius) > max_x)max_x = tempKr->HolePosition().GetKoordinaten(aktProjX) + tempRadius;
+            if((tempKr->HolePosition().GetKoordinaten(aktProjY) - tempRadius) < min_y)min_y = tempKr->HolePosition().GetKoordinaten(aktProjY) - tempRadius;
+            if((tempKr->HolePosition().GetKoordinaten(aktProjY) + tempRadius) > max_y)max_y = tempKr->HolePosition().GetKoordinaten(aktProjY) + tempRadius;
+        }
+        for(tempFP = lokAktLayer->HoleFangpunkte()->GetErstesElement(); tempFP != NULL; tempFP = lokAktLayer->HoleFangpunkte()->GetNaechstesElement())
+        {
+            if(tempFP->HolePosition().GetKoordinaten(aktProjX) < min_x)min_x = tempFP->HolePosition().GetKoordinaten(aktProjX);
+            if(tempFP->HolePosition().GetKoordinaten(aktProjX) > max_x)max_x = tempFP->HolePosition().GetKoordinaten(aktProjX);
+            if(tempFP->HolePosition().GetKoordinaten(aktProjY) < min_y)min_y = tempFP->HolePosition().GetKoordinaten(aktProjY);
+            if(tempFP->HolePosition().GetKoordinaten(aktProjY) > max_y)max_y = tempFP->HolePosition().GetKoordinaten(aktProjY);
+        }
     }
-    int Rueckgabe = FileOpener->ShowModal();
-    if(Rueckgabe==wxID_CANCEL)return;
-    SetStatusText(FileOpener->GetPath(), 1);
-
-    /*DXF Einlesen*/
-    if((FileOpener->GetPath()).EndsWith(wxT("f"))||(FileOpener->GetPath()).EndsWith(wxT("F")))/*Wenn dxf ausgewählt wurde*/
+    lokAktLayer = m_hintergrundLayer;
+    Strich* tempStrich = lokAktLayer->HoleStriche()->GetErstesElement();
+    if(tempStrich != NULL)
     {
-        Rueckgabe = dxfParameterDlg->ShowModal();
+        if(min_x == 0)min_x = tempStrich->Xa();
+        if(max_x == 0)max_x = tempStrich->Xa();
+        if(min_y == 0)min_y = tempStrich->Ya();
+        if(max_y == 0)max_y = tempStrich->Ya();
+    }
+    for(; tempStrich != NULL; tempStrich = lokAktLayer->HoleStriche()->GetNaechstesElement())
+    {
+        if(tempStrich->Xa() < min_x)min_x = tempStrich->Xa();
+        if(tempStrich->Xa() > max_x)max_x = tempStrich->Xa();
+        if(tempStrich->Ya() < min_y)min_y = tempStrich->Ya();
+        if(tempStrich->Ya() > max_y)max_y = tempStrich->Ya();
 
-        //abteil = NULL;
-        char x_kennung[64], y_kennung[64], z_kennung[64], sw_kennung[64];
-        dxfParameterDlg->HoleKennung(x_kennung, IDpktXKenn);
-        dxfParameterDlg->HoleKennung(y_kennung, IDpktYKenn);
-        dxfParameterDlg->HoleKennung(z_kennung, IDpktZKenn);
-        dxfParameterDlg->HoleKennung(sw_kennung, IDpktSW);
+        if(tempStrich->Xe() < min_x)min_x = tempStrich->Xe();
+        if(tempStrich->Xe() > max_x)max_x = tempStrich->Xe();
+        if(tempStrich->Ye() < min_y)min_y = tempStrich->Ye();
+        if(tempStrich->Ye() > max_y)max_y = tempStrich->Ye();
+    }
+    if((max_x == min_x)||(max_y == min_y))
+    {
+		SkalierungSetzen(1.0);
+    }else{
+        double t_skal = ((abmessungCL_dc_X/(max_x - min_x)) < (abmessungCL_dc_Y/(max_y - min_y))) ?
+                            (abmessungCL_dc_X/(max_x - min_x)) : (abmessungCL_dc_Y/(max_y - min_y));
+		SkalierungSetzen(t_skal * 0.9);
+    }
+    dc_Offset[0] = 0.5 * ((min_x + max_x) - abmessungCL_dc_X / m_skalierung);
+    dc_Offset[1] = 0.5 * ((min_y + max_y) - abmessungCL_dc_Y / m_skalierung);
+    SetStatusText(wxString::Format("Offset x, y: %1.5f, %1.5f - Skalierung: %5.5f", dc_Offset[0], dc_Offset[1], m_skalierung), 1);
+    Refresh();
+    return;
+}
 
-        DXF_Import *dxfImporteur = new DXF_Import((char*)static_cast<const char*>(FileOpener->GetPath().c_str()),
-                                                         x_kennung, y_kennung, z_kennung, sw_kennung);
-        Liste<Char_Speicher>* layerNamenListe = dxfImporteur->HoleLayerNamen();
-        DXF_Import_Auswahl_Dialog(this, layerNamenListe).ShowModal();
-
-        if(event.GetId() == idMenuDxfImp_mitLay_Ln_Pkt)
+void RUZmBIFrame::AuswahlAufPunkteReduzieren(void)
+{
+    for(RUZ_Objekt* obj = m_auswahl->GetErstesElement(); obj != NULL; obj = m_auswahl->GetNaechstesElement())
+    {
+        if(obj->HoleTyp() == RUZ_Linie)
         {
-            if(!dxfImporteur->EinlesenPunkteKanten(m_layer, layerNamenListe))
-            {
-                wxMessageDialog(this, wxString::FromUTF8("Beim Einlesen ist ein Fehler aufgetreten.\nEvtl. wurde nicht alles eingelesen")).ShowModal();
-            }
-            aktLayer = m_layer->GetErstesElement();
+            Linie* ln = static_cast<Linie*>(obj);
+            m_auswahl->Entfernen(obj);
+            m_auswahl->ExklusivHinzufuegen(ln->HolePunkt(0));
+            m_auswahl->ExklusivHinzufuegen(ln->HolePunkt(1));
         }else
-        if(event.GetId() == idMenuDxfImp_mitLay_Pkt)
+        if(obj->HoleTyp() == RUZ_Dreieck)
         {
-            if(!dxfImporteur->EinlesenPunkte(m_layer, layerNamenListe))
-            {
-                wxMessageDialog(this, wxString::FromUTF8("Beim Einlesen ist ein Fehler aufgetreten.\nEvtl. wurde nicht alles eingelesen")).ShowModal();
-            }
-            aktLayer = m_layer->GetErstesElement();
+            Dreieck* drk = static_cast<Dreieck*>(obj);
+            m_auswahl->Entfernen(obj);
+            m_auswahl->ExklusivHinzufuegen(drk->HolePunkt(0));
+            m_auswahl->ExklusivHinzufuegen(drk->HolePunkt(1));
+            m_auswahl->ExklusivHinzufuegen(drk->HolePunkt(2));
         }else
-        if((event.GetId() == idMenuDxfImp_ohneLay_Ln_Pkt)||(event.GetId() == idMenuDxfImp_ohneLay_Pkt))
+        if(obj->HoleTyp() == RUZ_Viereck)
         {
-            wxString t_Pfad = FileOpener->GetPath().c_str();
-            int t_pos = t_Pfad.Find('.', true);
-            t_Pfad = t_Pfad.Left(t_pos);
-            t_pos = t_Pfad.Find('\\', true);
-            t_Pfad = t_Pfad.Right(t_Pfad.Len() - t_pos -1);
+            Viereck* vrk = static_cast<Viereck*>(obj);
+            m_auswahl->Entfernen(obj);
+            m_auswahl->ExklusivHinzufuegen(vrk->HolePunkt(0));
+            m_auswahl->ExklusivHinzufuegen(vrk->HolePunkt(1));
+            m_auswahl->ExklusivHinzufuegen(vrk->HolePunkt(2));
+            m_auswahl->ExklusivHinzufuegen(vrk->HolePunkt(3));
+        }
 
-            aktLayer = NULL;
-            aktLayer = new RUZ_Layer((char*)static_cast<const char*>(t_Pfad));
-            if(aktLayer!=NULL)
+    }
+    return;
+}
+
+void RUZmBIFrame::AuswahlKopieren(void)
+{
+    RUZ_Layer* sel_Layer = aktLayer;
+    if(aktBefehl == bef_ID_kopierenNachLayer)
+    {
+        int layNr = Layer_Auswahl_Dialog(this, m_layer, wxT("Zu kopierenden Layer wählen")).ShowModal();
+        sel_Layer = NULL;
+        for(Listenelement<RUZ_Layer>* layer_LE = m_layer->GetErstesListenelement(); layer_LE; layer_LE = layer_LE->GetNachfolger())
+        {
+            if(layer_LE->Wert() == layNr)
             {
-                m_layer->Hinzufuegen(aktLayer);
-                LayerAuswahl->LayerHinzufuegen(wxString(aktLayer->HoleName()), aktLayer);
+                sel_Layer = layer_LE->GetElement();
+                break;
+            }
+        }
+        if(!sel_Layer)sel_Layer = aktLayer;
+    }
 
-                if(event.GetId() == idMenuDxfImp_ohneLay_Ln_Pkt)
+    m_kopierAuswahl->ListeLeeren("RUZmBIFrame::AuswahlKopieren");
+    Liste<ObjektPaar>* lKopierliste = new Liste<ObjektPaar>;
+    for(RUZ_Objekt *oAktObj = m_auswahl->GetErstesElement(); oAktObj; oAktObj = m_auswahl->GetNaechstesElement())
+    {
+        if(!(oAktObj->Kopieren(m_kopierAuswahl, lKopierliste, sel_Layer)))
+        {
+            logSchreiben("Kopieren von %p fehlgeschlagen\n", oAktObj);
+        }
+    }
+    delete lKopierliste;
+    return;
+}
+
+void RUZmBIFrame::AuswahlLeeren(void)
+{
+    ObjekteNullen();
+    m_auswahl->ListeLeeren("");
+    return;
+}
+
+void RUZmBIFrame::AuswahlLoeschen(void)
+{
+    ObjekteNullen();
+    for(RUZ_Objekt* obj = m_auswahl->GetErstesElement(); obj != NULL; obj = m_auswahl->GetNaechstesElement())
+    {
+        if(obj->HoleTyp() == RUZ_Punkt)
+        {
+            Punkt* pkt = static_cast<Punkt*>(obj);
+            Liste<Linie>* ln_Lst = pkt->HoleLinien();
+            for(Linie* ln = ln_Lst->GetErstesElement(); ln != NULL; ln = ln_Lst->GetNaechstesElement())
+            {
+                m_auswahl->Entfernen(ln);
+                Liste<Flaeche>* fl_Lst = ln->HoleFlaechen();
+                for(Flaeche* fl = fl_Lst->GetErstesElement(); fl != NULL; fl = fl_Lst->GetNaechstesElement())
                 {
-                    if(!dxfImporteur->EinlesenPunkteKanten(aktLayer, layerNamenListe))
-                    {
-                        wxMessageDialog(this, wxString::FromUTF8("Beim Einlesen ist ein Fehler aufgetreten.\nEvtl. wurde nicht alles eingelesen")).ShowModal();
-                    }
-                }else
-                if(event.GetId() == idMenuDxfImp_ohneLay_Pkt)
-                {
-                    if(!dxfImporteur->EinlesenPunkte(aktLayer, layerNamenListe))
-                    {
-                        wxMessageDialog(this, wxString::FromUTF8("Beim Einlesen ist ein Fehler aufgetreten.\nEvtl. wurde nicht alles eingelesen")).ShowModal();
-                    }
+                    m_auswahl->Entfernen(fl);
                 }
             }
         }
-        LayerauswahlAktualisieren();
-        AusdehnungFinden();
-        delete dxfImporteur;
-    }/*ENDE DXF Einlesen*/
-    else if((FileOpener->GetPath()).EndsWith(wxT("45")))/*m_zeigeStrichWenn d45 ausgewählt wurde*/
-    {
-        LeseAusD45((char*)static_cast<const char*>(FileOpener->GetPath().c_str()));
-        if(aktLayer!=NULL)
+        if(obj->HoleTyp() == RUZ_Linie)
         {
-            AusdehnungFinden();
+            Linie* ln = static_cast<Linie*>(obj);
+            Liste<Flaeche>* fl_Lst = ln->HoleFlaechen();
+            for(Flaeche* fl = fl_Lst->GetErstesElement(); fl != NULL; fl = fl_Lst->GetNaechstesElement())
+            {
+                m_auswahl->Entfernen(fl);
+            }
         }
     }
-    else if((FileOpener->GetPath()).EndsWith(wxT("58")))/*Wenn d45 ausgewählt wurde*/
+    for(RUZ_Objekt* obj = m_auswahl->GetErstesElement(); obj != NULL; obj = m_auswahl->GetNaechstesElement())
     {
-        LeseAusD58((char*)static_cast<const char*>(FileOpener->GetPath().c_str()));
-        if(aktLayer!=NULL)
-        {
-            AusdehnungFinden();
-        }
+        m_auswahl->Entfernen(obj);
+        delete obj;
     }
-    else/*Ansonsten ist es eine ruz-datei*/
-    {
-        LeseAusRUZ((char*)static_cast<const char*>(FileOpener->GetPath().c_str()));
-        if(aktLayer!=NULL)
-        {
-            AusdehnungFinden();
-        }
-    }
+    m_auswahl->ListeLeeren("");
+    return;
+}
+
+void RUZmBIFrame::BefehleZuruecksetzen(void)
+{
+    MenuEntmarkieren();
     AuswahlLeeren();
-    markiertesObjekt = NULL;
+
+    /*Verschieben*/
+    if(vVerschubStart)delete vVerschubStart;
+    vVerschubStart = NULL;
+    /*ENDE Verschieben*/
+
+    m_auswahl->ListeLeeren("");
+    if((aktBefehl == bef_ID_kreisZeichnen) && m_aktKreis)
+    {
+        delete m_aktKreis;
+        m_aktKreis = NULL;
+    }
+    if(aktBefehl == bef_ID_kreisRadiusAendern)
+    {
+        if(m_aktKreis)m_aktKreis->SetzeRadius(m_aktRadius);
+        m_aktRadius = -1.0;
+        m_aktKreis = NULL;
+    }
+    if(!std::isnan(m_vktSchnittPkt1.x()))
+        m_vktSchnittPkt1 = NULL_VEKTOR;
+    if(!std::isnan(m_vktSchnittPkt2.x()))
+        m_vktSchnittPkt2 = NULL_VEKTOR;
+
+    aktBefehl = bef_ID_nichts;
+    SetStatusText(wxT("kein aktiver Befehl"), 2);
+    m_markierModus = false;
     Refresh();
     return;
 }
 
-void RUZmBIFrame::OnZeigeWaehle(wxCommandEvent &event)
+void RUZmBIFrame::DoppeltePunkteLoeschen(wxCommandEvent& event)
 {
-    ObjAnzAuswDlg->ShowModal();
+    /*evtl. noch Layerauswahldialog???*/
+    /*for(RUZ_Layer* tempLayer = m_layer->GetErstesElement(); tempLayer; tempLayer = m_layer->GetNaechstesElement())*/
+    AuswahlLeeren();
+    if(aktLayer)aktLayer->LoescheDoppeltePunkte(m_anzeigeGenauigkeit + 2);
     return;
 }
 
-void RUZmBIFrame::OnObjekteZeigen(wxCommandEvent& event)
+void RUZmBIFrame::DreheAuswahl(void)
 {
-    int aktID = event.GetId();
-    switch(aktID)
+    if((!m_drehungDrPkt) || (!m_drehungRichtung1) || (!m_drehungRichtung2))return;
+    if(m_drehungRichtung1 == m_drehungRichtung2)return;
+
+    Vektor vDrehungsRichtung1 = *m_drehungRichtung1 - *m_drehungDrPkt;
+    Vektor vDrehungsRichtung2 = *m_drehungRichtung2 - *m_drehungDrPkt;
+
+    /*if(!freieAnsicht) falls irgendwann freie Ansicht dazu kommt*/
+    vDrehungsRichtung1.SetKoordinaten(aktProjZ, 0.0f);
+    vDrehungsRichtung2.SetKoordinaten(aktProjZ, 0.0f);
+
+    double dL1, dL2;
+    dL1 = vDrehungsRichtung1.Laenge();
+        if(dL1 == 0)return;
+        vDrehungsRichtung1 /= dL1;
+    dL2 = vDrehungsRichtung2.Laenge();
+        if(dL2 == 0)return;
+        vDrehungsRichtung2 /= dL2;
+
+    if(vDrehungsRichtung1 == vDrehungsRichtung2)return;
+    double drCos, drSin;
+
+    drCos = (vDrehungsRichtung1) * (vDrehungsRichtung2); /*Vektoren sind normiert! ansonsten Division durch deren Länge nötig*/
+    drSin = sqrt(1 - drCos * drCos);
+
+    Vektor vDrehAchse;
+    if(drCos == -1)
     {
-    case idZeigeBogen:
-        m_zeigeBogen == false ? m_zeigeBogen = true : m_zeigeBogen = false;
+        vDrehAchse = Vektor(0.0, 0.0, 0.0);
+        vDrehAchse.SetKoordinaten(aktProjZ, 1.0);
+    }
+    else
+    {
+        vDrehAchse = vDrehungsRichtung1.Kreuz(vDrehungsRichtung2);
+    }
+    vDrehAchse /= vDrehAchse.Laenge();
+
+    Vektor *vOrt = m_drehungAuswahlOrte->GetErstesElement();
+    RUZ_Objekt *obj = m_auswahl->GetErstesElement();
+
+    Vektor vAltePos, vNeuePos;
+
+    while(vOrt && obj)
+    {
+        vAltePos = *vOrt;
+        vAltePos -= *m_drehungDrPkt;
+        vNeuePos = vDrehAchse * (vDrehAchse * vAltePos) + (vDrehAchse.Kreuz(vAltePos)).Kreuz(vDrehAchse) * drCos + vDrehAchse.Kreuz(vAltePos) * drSin;
+        vNeuePos += *m_drehungDrPkt;
+
+        if(obj->HoleTyp() == RUZ_Punkt)
+        {
+            Punkt* pkt = static_cast<Punkt*>(obj);
+            pkt->Positionieren(vNeuePos);
+        }else if(obj->HoleTyp() == RUZ_HoehenMarke)
+        {
+            HoehenMarke* hm = static_cast<HoehenMarke*>(obj);
+            hm->Positionieren(vNeuePos);
+        }else if(obj->HoleTyp() == RUZ_Kreis)
+        {
+            Kreis* kr = static_cast<Kreis*>(obj);
+            kr->Positionieren(vNeuePos);
+        }
+        vOrt = m_drehungAuswahlOrte->GetNaechstesElement();
+        obj = m_auswahl->GetNaechstesElement();
+    }
+    return;
+}
+
+/*Drehung*/
+
+void RUZmBIFrame::DrehungAbbruch_0(void)
+{
+    m_drehungAuswahlOrte->ListeLoeschen("");
+    m_auswahl->ListeLeeren("");
+    return;
+}
+void RUZmBIFrame::DrehungAbbruch_1(void)
+{
+    m_drehungAuswahlOrte->ListeLoeschen("");
+    m_auswahl->ListeLeeren("");
+    if(m_drehungDrPkt)delete m_drehungDrPkt;
+    m_drehungDrPkt = NULL;
+    return;
+}
+void RUZmBIFrame::DrehungAbbruch_2(void)
+{
+    m_drehungAuswahlOrte->ListeLoeschen("");
+    m_auswahl->ListeLeeren("");
+    if(m_drehungDrPkt)delete m_drehungDrPkt;
+    if(m_drehungRichtung1)delete m_drehungRichtung1;
+    if(m_drehungRichtung2)delete m_drehungRichtung2;
+    m_drehungDrPkt = m_drehungRichtung1 = m_drehungRichtung2 = NULL;
+    return;
+}
+
+void RUZmBIFrame::DrehungBefehlsketteVor_0(void)
+{
+    m_markierModus = false;
+    DrehungBefehlsketteVor = &RUZmBIFrame::DrehungBefehlsketteVor_1;
+    DrehungBefehlsketteZurueck = &RUZmBIFrame::DrehungBefehlsketteZurueck_1;
+    DrehungPktEingabe = &RUZmBIFrame::DrehungPktEingabe_DrhPkt;
+    DrehungAbbruch = &RUZmBIFrame::DrehungAbbruch_1;
+    DrehungMouseMove = &RUZmBIFrame::DrehungMouseMovePassiv;
+    KoordinatenMaske->Show();
+    SetStatusText(wxT("Festpunkt der Drehung setzen"), 2);
+    return;
+}
+void RUZmBIFrame::DrehungBefehlsketteVor_1(void)
+{
+    DrehungBefehlsketteVor = &RUZmBIFrame::DrehungBefehlsketteVor_2;
+    DrehungBefehlsketteZurueck = &RUZmBIFrame::DrehungBefehlsketteZurueck_2;
+    DrehungPktEingabe = &RUZmBIFrame::DrehungPktEingabe_RP_1;
+    DrehungAbbruch = &RUZmBIFrame::DrehungAbbruch_2;
+    DrehungMouseMove = &RUZmBIFrame::DrehungMouseMovePassiv;
+    DoubleEingabe->ErscheinungAnpassen(wxString("Drehwinkel"), wxEmptyString, aktBefehl);
+    DoubleEingabe->Show();
+    SetStatusText(wxT("1.Richtung der Drehung festlegen"), 2);
+    return;
+}
+void RUZmBIFrame::DrehungBefehlsketteVor_2(void)
+{
+    DrehungBefehlsketteVor = &RUZmBIFrame::DrehungBefehlsketteVor_3;
+    DrehungBefehlsketteZurueck = &RUZmBIFrame::DrehungBefehlsketteZurueck_3;
+    DrehungPktEingabe = &RUZmBIFrame::DrehungPktEingabe_RP_2;
+    DrehungAbbruch = &RUZmBIFrame::DrehungAbbruch_2;
+    DrehungMouseMove = &RUZmBIFrame::DrehungMouseMoveAktiv;
+    SetStatusText(wxT("2. Richtung der Drehung festlegen"), 2);
+    return;
+}
+void RUZmBIFrame::DrehungBefehlsketteVor_3(void)
+{
+    m_markierModus = true;
+    m_drehungAuswahlOrte->ListeLoeschen("");
+    m_auswahl->ListeLeeren("");
+    if(m_drehungDrPkt)delete m_drehungDrPkt;
+    if(m_drehungRichtung1)delete m_drehungRichtung1;
+    if(m_drehungRichtung2)delete m_drehungRichtung2;
+    m_drehungDrPkt = m_drehungRichtung1 = m_drehungRichtung2 = NULL;
+    DrehungBefehlsketteVor = &RUZmBIFrame::DrehungBefehlsketteVor_0;
+    DrehungBefehlsketteZurueck = &RUZmBIFrame::DrehungBefehlsketteZurueck_0;
+    DrehungPktEingabe = &RUZmBIFrame::DrehungPktEingabe_DrhPkt;
+    DrehungAbbruch = &RUZmBIFrame::DrehungAbbruch_0;
+    DrehungMouseMove = &RUZmBIFrame::DrehungMouseMovePassiv;
+    DoubleEingabe->Show(false);
+    KoordinatenMaske->Show(false);
+    SetStatusText(wxT("Objekte zum Drehen wählen"), 2);
+    return;
+}
+
+void RUZmBIFrame::DrehungBefehlsketteZurueck_0(void)
+{
+    (this->*DrehungAbbruch)();
+    BefehleZuruecksetzen();
+    return;
+}
+void RUZmBIFrame::DrehungBefehlsketteZurueck_1(void)
+{
+    m_markierModus = true;
+    m_drehungAuswahlOrte->ListeLoeschen("");
+    DrehungBefehlsketteVor = &RUZmBIFrame::DrehungBefehlsketteVor_0;
+    DrehungBefehlsketteZurueck = &RUZmBIFrame::DrehungBefehlsketteZurueck_0;
+    DrehungPktEingabe = &RUZmBIFrame::DrehungPktEingabe_DrhPkt;
+    DrehungAbbruch = &RUZmBIFrame::DrehungAbbruch_0;
+    DrehungMouseMove = &RUZmBIFrame::DrehungMouseMovePassiv;
+    KoordinatenMaske->Show(false);
+    SetStatusText(wxT("Objekte zu Drehen wählen"), 2);
+    return;
+}
+void RUZmBIFrame::DrehungBefehlsketteZurueck_2(void)
+{
+    if(m_drehungDrPkt)delete m_drehungDrPkt;
+    m_drehungDrPkt = NULL;
+    DrehungBefehlsketteVor = &RUZmBIFrame::DrehungBefehlsketteVor_1;
+    DrehungBefehlsketteZurueck = &RUZmBIFrame::DrehungBefehlsketteZurueck_1;
+    DrehungPktEingabe = &RUZmBIFrame::DrehungPktEingabe_DrhPkt;
+    DrehungAbbruch = &RUZmBIFrame::DrehungAbbruch_1;
+    DrehungMouseMove = &RUZmBIFrame::DrehungMouseMovePassiv;
+    DoubleEingabe->Show(false);
+    SetStatusText(wxT("Festpunkt der Drehung setzen"), 2);
+    return;
+}
+void RUZmBIFrame::DrehungBefehlsketteZurueck_3(void)
+{
+    if(m_drehungRichtung1)delete m_drehungRichtung1;
+    m_drehungRichtung1 = NULL;
+    if(m_drehungRichtung2)delete m_drehungRichtung2;
+    m_drehungRichtung2 = NULL;
+
+    Vektor *vOrt = m_drehungAuswahlOrte->GetErstesElement();
+    RUZ_Objekt *obj = m_auswahl->GetErstesElement();
+    while(vOrt && obj)
+    {
+        if(obj->HoleTyp() == RUZ_Punkt)
+        {
+            Punkt* pkt = static_cast<Punkt*>(obj);
+            pkt->Positionieren(*vOrt);
+        }
+        if(obj->HoleTyp() == RUZ_HoehenMarke)
+        {
+            HoehenMarke* hm = static_cast<HoehenMarke*>(obj);
+            hm->Positionieren(*vOrt);
+        }
+        if(obj->HoleTyp() == RUZ_Kreis)
+        {
+            Kreis* kr = static_cast<Kreis*>(obj);
+            kr->Positionieren(*vOrt);
+        }
+        vOrt = m_drehungAuswahlOrte->GetNaechstesElement();
+        obj = m_auswahl->GetNaechstesElement();
+    }
+
+    DrehungBefehlsketteVor = &RUZmBIFrame::DrehungBefehlsketteVor_2;
+    DrehungBefehlsketteZurueck = &RUZmBIFrame::DrehungBefehlsketteZurueck_2;
+    DrehungPktEingabe = &RUZmBIFrame::DrehungPktEingabe_RP_1;
+    DrehungAbbruch = &RUZmBIFrame::DrehungAbbruch_2;
+    DrehungMouseMove = &RUZmBIFrame::DrehungMouseMovePassiv;
+    SetStatusText(wxT("1.Richtugspunkt der Drehung setzen"), 2);
+    return;
+}
+
+void RUZmBIFrame::DrehungBestaetigung(void)
+{
+    AuswahlAufPunkteReduzieren();
+    for(RUZ_Objekt* obj = m_auswahl->GetErstesElement(); obj; obj = m_auswahl->GetNaechstesElement())
+    {
+        if(obj->HoleTyp() == RUZ_Punkt)
+        {
+            m_drehungAuswahlOrte->Hinzufuegen(new Vektor((static_cast<Punkt*>(obj))->HolePosition()));
+        }
+        if(obj->HoleTyp() == RUZ_HoehenMarke)
+        {
+            m_drehungAuswahlOrte->Hinzufuegen(new Vektor((static_cast<HoehenMarke*>(obj))->HolePosition()));
+        }
+        if(obj->HoleTyp() == RUZ_Kreis)
+        {
+            m_drehungAuswahlOrte->Hinzufuegen(new Vektor((static_cast<Kreis*>(obj))->HolePosition()));
+        }
+    }
+    (this->*DrehungBefehlsketteVor)();
+    return;
+}
+
+void RUZmBIFrame::DrehungMouseMoveAktiv(wxMouseEvent &event)
+{
+    m_drehungRichtung2->SetKoordinaten(aktProjX, NeueMousePosition.x/m_skalierung + dc_Offset[0]);
+    m_drehungRichtung2->SetKoordinaten(aktProjY, NeueMousePosition.y/m_skalierung + dc_Offset[1]);
+    m_drehungRichtung2->SetKoordinaten(aktProjZ, 0.0);
+    DreheAuswahl();
+    return;
+}
+
+void RUZmBIFrame::DrehungMouseMovePassiv(wxMouseEvent &event)
+{
+    return;
+}
+
+void RUZmBIFrame::DrehungPktEingabe_DrhPkt(Vektor vPkt)
+{
+    m_drehungDrPkt = new Vektor(vPkt);
+
+    Vektor vOrt = vPkt;
+    //KoordinatenMaske->SetzeKoordinaten(vOrt);
+    DoubleEingabe->ErscheinungAnpassen(wxString("Drehwinkel"), wxEmptyString, aktBefehl);
+    DoubleEingabe->Show();
+
+    (this->*DrehungBefehlsketteVor)();
+    return;
+}
+
+void RUZmBIFrame::DrehungPktEingabe_RP_1(Vektor vPkt)
+{
+    if(m_drehungRichtung1)
+    {
+        *m_drehungRichtung1 = vPkt;
+    }else
+    {
+        m_drehungRichtung1 = new Vektor(vPkt);
+    }
+    if(m_drehungRichtung2)
+    {
+        *m_drehungRichtung2 = vPkt;
+    }else
+    {
+        m_drehungRichtung2 = new Vektor(vPkt);
+    }
+
+    m_drehungRichtung1->SetKoordinaten(aktProjZ, 0.0);
+    m_drehungRichtung2->SetKoordinaten(aktProjZ, 0.0);
+
+    //KoordinatenMaske->SetzeKoordinaten(vPkt);
+
+    (this->*DrehungBefehlsketteVor)();
+    return;
+}
+
+void RUZmBIFrame::DrehungPktEingabe_RP_2(Vektor vPkt)
+{
+    *m_drehungRichtung2 = vPkt;
+    m_drehungRichtung2->SetKoordinaten(aktProjZ, 0.0);
+
+    DreheAuswahl();
+    (this->*DrehungBefehlsketteVor)();
+    return;
+}
+
+/*ENDE Drehung*/
+
+void RUZmBIFrame::EndeMessen(double x, double y)
+{
+    messEnde.x = x;
+    messEnde.y = y;
+
+    double messung = sqrt(pow((messAnfang.x - messEnde.x), 2) + pow((messAnfang.y - messEnde.y), 2));
+
+    SetStatusText(wxString::Format("Messung: %.3f", messung), 1);
+    Messen = &RUZmBIFrame::AnfangMessen;
+    return;
+}
+
+bool RUZmBIFrame::ExportiereDreiecksPrismen(char* dateiName)
+{
+    std::ofstream Datei;
+    Datei.open(dateiName, ios_base::out|ios_base::trunc);
+    logSchreiben("%s konnte geoffnet werden\n", dateiName);
+
+    if(Datei.good())
+    {
+        Datei.setf( ios::fixed, ios::floatfield );
+        Datei.precision(15);
+
+        Punkt* tempPunkt;
+        Flaeche* tempFlaeche;
+
+        if(aktLayer)
+        {
+            Liste<Punkt>* pktSammlung = aktLayer->HolePunkte();
+            for(tempPunkt = pktSammlung->GetErstesElement(); tempPunkt != NULL; tempPunkt = pktSammlung->GetNaechstesElement())
+            {
+                Datei<<tempPunkt<<"\t"<<tempPunkt->HolePosition().x()<<"\t"<<-tempPunkt->HolePosition().y()<<"\t"<<tempPunkt->HolePosition().z()<<"\n";
+            }
+
+            Liste<Flaeche>* flSammlung = aktLayer->HoleFlaechen();
+            for(tempFlaeche = flSammlung->GetErstesElement(); tempFlaeche != NULL; tempFlaeche = flSammlung->GetNaechstesElement())
+            {
+                if(tempFlaeche->HoleTyp() == RUZ_Dreieck)
+                {
+                    Datei<<"\n"<<tempFlaeche->HolePunkt(0)<<"\n"<<tempFlaeche->HolePunkt(1)<<"\n"<<tempFlaeche->HolePunkt(2)<<"\n";
+                }
+            }
+        }
+    }
+    else
+    {
+        return false;
+    }
+    Datei.close();
+    return true;
+}
+
+bool RUZmBIFrame::ExportierePunkte(char* dateiName)
+{
+    std::ofstream Datei;
+    Datei.open(dateiName, ios_base::out|ios_base::trunc);
+    logSchreiben("%s konnte geoffnet werden\n", dateiName);
+
+    if(Datei.good())
+    {
+        Datei.setf( ios::fixed, ios::floatfield );
+        Datei.precision(15);
+
+        Punkt* tempPunkt;
+
+        for(RUZ_Layer* layLauefer = m_layer->GetErstesElement(); layLauefer != NULL; layLauefer = m_layer->GetNaechstesElement())
+        {
+            Datei<<layLauefer->HoleName()<<"\n";
+            Liste<Punkt>* pktSammlung = layLauefer->HolePunkte();
+            for(tempPunkt = pktSammlung->GetErstesElement(); tempPunkt != NULL; tempPunkt = pktSammlung->GetNaechstesElement())
+            {
+                Datei<<tempPunkt<<"\t"<<tempPunkt->HolePosition().x()<<"\t"<<-tempPunkt->HolePosition().y()<<"\t"<<tempPunkt->HolePosition().z()<<"\n";
+            }
+            Datei<<"\n";
+        }
+    }
+    else
+    {
+        return false;
+    }
+    Datei.close();
+    return true;
+}
+
+void RUZmBIFrame::FangeDrehwinkel(aruDblEvent& event)
+{
+    int tempID = event.GetId();
+    double drehWinkel = event.HoleWert();
+
+    while(drehWinkel < -180)drehWinkel += 360;
+    while(drehWinkel > 180)drehWinkel -= 360;
+
+    SetStatusText(wxString::Format(wxT("Drehung um %0.2f °"),drehWinkel));
+
+    Vektor vAdd(0.0, 0.0, 0.0);
+    vAdd.SetKoordinaten(aktProjX, 1.0);
+    if(m_drehungRichtung1)
+    {
+        *m_drehungRichtung1 = *m_drehungDrPkt + vAdd;
+    }
+    else
+    {
+        m_drehungRichtung1 = new Vektor(*m_drehungDrPkt);
+        *m_drehungRichtung1 += vAdd;
+    }
+
+    vAdd = Vektor(0.0, 0.0, 0.0);
+    if(drehWinkel == 90)
+    {
+        vAdd.SetKoordinaten(aktProjY, 1.0);
+    }else
+    if(drehWinkel == 180)
+    {
+        vAdd.SetKoordinaten(aktProjX, -1.0);
+    }else
+    if(drehWinkel == -90)
+    {
+        vAdd.SetKoordinaten(aktProjY, -1.0);
+    }else
+    if(drehWinkel == 0)
+    {
+        vAdd.SetKoordinaten(aktProjX, 1.0);
+    }else
+    {
+
+        vAdd.SetKoordinaten(aktProjX, cos(drehWinkel*PI/180));
+        vAdd.SetKoordinaten(aktProjY, sin(drehWinkel*PI/180));
+    }
+    if(m_drehungRichtung2)
+    {
+        *m_drehungRichtung2 = *m_drehungDrPkt + vAdd;
+    }
+    else
+    {
+        m_drehungRichtung2 = new Vektor(*m_drehungDrPkt);
+        *m_drehungRichtung2 += vAdd;
+
+    }
+    DreheAuswahl();
+
+    switch(tempID)
+    {
+    case idDrehwinkel_temp:
         break;
-    case idZeigeFlaeche:
-        m_zeigeFlaeche == false ? m_zeigeFlaeche = true : m_zeigeFlaeche = false;
+    case idDrehwinkel_perm:
+        (this->*DrehungBefehlsketteVor)();
+        (this->*DrehungBefehlsketteVor)();
         break;
-    case idZeigeHoehe:
-        m_zeigeHoehe == false ? m_zeigeHoehe = true : m_zeigeHoehe = false;
-        break;
-    case idZeigeHoehenmarke:
-        m_zeigeHoehenmarke == false ? m_zeigeHoehenmarke = true : m_zeigeHoehenmarke = false;
-        break;
-    case idZeigeLinie:
-        m_zeigeLinie == false ? m_zeigeLinie = true : m_zeigeLinie = false;
-        break;
-    case idZeigePunkt:
-        m_zeigePunkt == false ? m_zeigePunkt = true : m_zeigePunkt = false;
-        break;
-    case idZeigeStrich:
-        m_zeigeStrich == false ? m_zeigeStrich = true : m_zeigeStrich = false;
-        break;
-    case idZeigeKreis:
-        m_zeigeKreis == false ? m_zeigeKreis = true : m_zeigeKreis = false;
-        break;
-    case idZeigeFangpunkt:
-        m_zeigeFangpunkt == false ? m_zeigeFangpunkt = true : m_zeigeFangpunkt = false;
-        break;
-    default:
-        ;
+    default:;
     }
     Refresh();
     return;
 }
 
-void RUZmBIFrame::OnEntferneTieferes(wxCommandEvent& event)
+void RUZmBIFrame::FangeFarben(aruColourEvent& event)
 {
+    int tempID = event.GetInt();
+    wxColour Wert = event.HoleWert();
+
+    switch(tempID)
+    {
+    case IDFarbePktLn:
+        col_Pkt_Ln = Wert;
+        break;
+    case IDFarbeStrich:
+        col_Strich = Wert;
+        break;
+    case IDFarbeHoehenMarke:
+        col_HoehenMarke = Wert;
+        break;
+    case IDFarbeHoehenlinie:
+        col_Hoehenlinie = Wert;
+        break;
+    case IDFarbeMarkiertesObjekt:
+        col_markiert_Obj = Wert;
+        break;
+    case IDFarbeAusgewaehltesObjekt:
+        col_ausgewaehlt_Obj = Wert;
+        break;
+    case IDFarbeHintergrundLayer:
+        col_HintergrundLayer = Wert;
+        break;
+    case IDFarbeZeichenHintergrund:
+        col_ZeichenHintergrund = Wert;
+        break;
+    case IDFarbeAuswahlRechteck:
+        col_AuswahlRechteck = Wert;
+        break;
+    case IDFarbeFlaecheDarueber:
+        col_Flaeche_darueber = Wert;
+        break;
+    case IDFarbeFlaecheDarunter:
+        col_Flaeche_darunter = Wert;
+        break;
+    case IDFarbeGefaelle:
+        col_Gefaelle = Wert;
+        break;
+    case IDFarbeFangpunkt:
+        col_Fangpunkt = Wert;
+        break;
+    }
+    Refresh();
+    return;
+}
+
+void RUZmBIFrame::FangeKoor(aruVektorEvent& event)
+{
+    Vektor vOrt = event.HoleKoordinaten();
+        if(markiertesObjekt!=NULL)
+        {
+            Vektor tempVkt;
+            if(markiertesObjekt->HolePosition(tempVkt))
+                vOrt += tempVkt;
+        }
+
+    if(aktLayer == NULL)
+    {
+        wxMessageDialog(this, wxT("Kein Layer ist aktiv!"), wxT("Layer prüfen")).ShowModal();
+        return;
+    }
+    if(aktBefehl == bef_ID_punktZeichnen)
+    {
+        Punkt *tempPunkt = new Punkt(vOrt, aktLayer);
+        if(tempPunkt)
+        {
+            if(aktLayer->PunktDoppeltVorhanden(tempPunkt))
+            {
+                delete tempPunkt;
+                wxMessageDialog(this, wxT("Punkt gab es schon!"), wxT("Achtung")).ShowModal();
+            }else{
+            }
+        }
+    }
+    if(aktBefehl == bef_ID_linieZeichnen)
+    {
+        if(!m_aktPunkt)
+        {
+            Punkt *pktPkt = new Punkt(vOrt, aktLayer);
+            if(pktPkt)
+            {
+                m_aktPunkt = pktPkt;
+                Linie::NeueLinie(m_aktPunkt, new Punkt(vOrt, aktLayer));
+                m_aktPosition = vOrt;
+            }
+        }else
+        {
+            m_aktPunkt->Positionieren(vOrt);
+            m_aktPunkt = NULL;
+            m_aktLinie = NULL;
+        }
+    }
+    if(aktBefehl == bef_ID_verschieben)
+    {
+        Vschb_Punkt_Festlegen(vOrt);
+    }
+    if((aktBefehl == bef_ID_kopieren)||(aktBefehl == bef_ID_kopierenNachLayer))
+    {
+        Kop_Punkt_Festlegen(vOrt);
+    }
+    if(aktBefehl == bef_ID_versetzen)
+    {
+        RUZ_Objekt* obj = m_auswahl->GetErstesElement();
+        if(obj == NULL)return;
+        if(obj->HoleTyp() == RUZ_Punkt)
+        {
+            static_cast<Punkt*>(obj)->Positionieren(vOrt);
+        }
+        if(obj->HoleTyp() == RUZ_HoehenMarke)
+        {
+            static_cast<HoehenMarke*>(obj)->Positionieren(vOrt);
+        }
+    }
+    if(aktBefehl == bef_ID_punkteSkalieren)
+    {
+        SetStatusText(wxT("Skalierfaktoren eingeben"), 2);
+        SkalierungAusfuehren(Vektor(vOrt.x(), vOrt.y(), vOrt.z()));
+        SetStatusText(wxT("Objekte zum Skalieren auswählen"), 2);
+        m_markierModus = true;
+    }
+    if((aktBefehl == bef_ID_layerSkalieren)||
+       (aktBefehl == bef_ID_hintergrundSkalieren)||
+       (aktBefehl == bef_ID_allesSkalieren))
+    {
+        if(!SkalierFaktorenEingabe())
+        {
+            BefehleZuruecksetzen();
+            return;
+        }
+        LayerSkalieren(vOrt);
+    }
+    if(aktBefehl == bef_ID_drehen)
+    {
+        (this->*DrehungPktEingabe)(vOrt);
+    }
+    if(aktBefehl == bef_ID_kreisZeichnen)
+    {
+        Vektor t_vkt = Vektor(vOrt.x(), vOrt.y(), vOrt.z());
+        KreisPunktEingabe(t_vkt, true);
+    }
+    Refresh();
+    return;
+}
+
+void RUZmBIFrame::FangeLayerSkalieren(aruLayerListeEvent& event)
+{
+    Liste<RUZ_Layer>* t_lst = event.HoleLayerListe();
+    for(RUZ_Layer* t_layer = t_lst->GetErstesElement(); t_layer; t_layer = t_lst->GetNaechstesElement())
+    {
+        m_skalierListe->Hinzufuegen(t_layer);
+    }
+    SetStatusText(wxT("Festpunkt der Skalierung wählen"), 2);
+    KoordinatenMaske->Show();
+    return;
+}
+
+void RUZmBIFrame::FangePE(aruDblEvent& event)
+{
+    int tempID = event.GetId();
+    double Wert = event.HoleWert();
+
+    if(tempID == IDgefaelleRasterGroesse)
+    {
+        m_gefaelleRaster = Wert;
+        Refresh();
+        return;
+    }
+    if(tempID == IDflaechenRasterGroesse)
+    {
+        m_flaechenRaster = Wert;
+        Refresh();
+        return;
+    }
+    if(tempID == IDanzeigeGenauigkeit)
+    {
+        m_anzeigeGenauigkeit = int(Wert);
+        Refresh();
+        return;
+    }
+    if(tempID == IDpseudoSchattenFkt)
+    {
+        m_pseudoSchattenFkt = Wert;
+        if(m_pseudoSchattenFkt < 0)m_pseudoSchattenFkt = 0.0;
+        Refresh();
+        return;
+    }
+    event.Skip();
+    return;
+}
+
+void RUZmBIFrame::FangeRadius(aruDblEvent& event)
+{
+    int tempID = event.GetId();
+    double t_radius = event.HoleWert();
+
+    KreisDoubleEingabe(t_radius, (tempID == idRadius_perm));
+    Refresh();
+
+    return;
+}
+
+void RUZmBIFrame::FangeSonnenstand(aruVektorEvent &event)
+{
+    m_sonnenRichtung = event.HoleKoordinaten();
+    Refresh(false);
+    return;
+}
+
+void RUZmBIFrame::FangpunkteFinden(Liste<RUZ_Objekt>* m_objLst)
+{
+    RUZ_Objekt *objEins, *objZwei;
+    if(!aktLayer)
+    {
+        SetStatusText("Kein aktueller Layer! Finden der Fangpunkte abgebrochen", 2);
+        return;
+    }
+    for(Listenelement<RUZ_Objekt>* LE_obj_a = m_objLst->GetErstesListenelement(); LE_obj_a; LE_obj_a = LE_obj_a->GetNachfolger())
+    {
+        objEins = LE_obj_a->GetElement();
+        for(Listenelement<RUZ_Objekt>* LE_obj_b = LE_obj_a->GetNachfolger(); LE_obj_b; LE_obj_b = LE_obj_b->GetNachfolger())
+        {
+            objZwei = LE_obj_b->GetElement();
+            FangpunkteFinden(objEins, objZwei);
+        }
+    }
+    return;
+}
+
+void RUZmBIFrame::FangpunkteFinden(RUZ_Objekt *objEins, RUZ_Objekt *objZwei)
+{
+    if(objEins == objZwei)return;
+    Linie *ln_a, *ln_b;
+    Kreis *kr_a, *kr_b;
+    if(!aktLayer)
+    {
+        SetStatusText("Kein aktueller Layer! Finden der Fangpunkte abgebrochen", 2);
+        return;
+    }
+    if(objEins->HoleTyp() == RUZ_Linie)
+    {
+        ln_a = static_cast<Linie*>(objEins);
+        if(objZwei->HoleTyp() == RUZ_Linie)
+        {
+            ln_b = static_cast<Linie*>(objZwei);
+            Vektor vkt;
+            if(ln_a->schneidet(ln_b, vkt, aktProjZ, true))
+            {
+                Fangpunkt* fngPkt = new Fangpunkt(vkt, aktLayer);
+                if(!fngPkt)logSchreiben("Fehler bei Speicheranforderung\n");
+            }
+        }else
+        if(objZwei->HoleTyp() == RUZ_Kreis)
+        {
+            kr_b = static_cast<Kreis*>(objZwei);
+            if(kr_b->FindeSchnittpunkte(ln_a, aktProjZ))
+            {
+                Liste<Vektor>* vktLst = kr_b->HoleFangpunkte();
+                for(Vektor* vkt = vktLst->GetErstesElement(); vkt; vkt = vktLst->GetNaechstesElement())
+                {
+                    Fangpunkt* fngPkt = new Fangpunkt(*vkt, aktLayer);
+                    if(!fngPkt)logSchreiben("Fehler bei Speicheranforderung\n");
+                }
+                kr_b->LoescheFangpunkte();
+            }else
+            {
+                logSchreiben("keinSchnittpunkt Kreis mit Linie\n");
+            }
+        }
+    }else
+    if(objEins->HoleTyp() == RUZ_Kreis)
+    {
+        kr_a = static_cast<Kreis*>(objEins);
+        if(objZwei->HoleTyp() == RUZ_Linie)
+        {
+            ln_b = static_cast<Linie*>(objZwei);
+            if(kr_a->FindeSchnittpunkte(ln_b, aktProjZ))
+            {
+                Liste<Vektor>* vktLst = kr_a->HoleFangpunkte();
+                for(Vektor *vkt = vktLst->GetErstesElement(); vkt; vkt = vktLst->GetNaechstesElement())
+                {
+                    Fangpunkt* fngPkt = new Fangpunkt(*vkt, aktLayer);
+                    if(!fngPkt)logSchreiben("Fehler bei Speicheranforderung\n");
+                }
+                kr_a->LoescheFangpunkte();
+            }
+        }
+        if(objZwei->HoleTyp() == RUZ_Kreis)
+        {
+            kr_b = static_cast<Kreis*>(objZwei);
+            if(kr_a->FindeSchnittpunkte(kr_b, aktProjZ))
+            {
+                Liste<Vektor>* vktLst = kr_a->HoleFangpunkte();
+                for(Vektor *vkt = vktLst->GetErstesElement(); vkt; vkt = vktLst->GetNaechstesElement())
+                {
+                    Fangpunkt* fngPkt = new Fangpunkt(*vkt, aktLayer);
+                    logSchreiben("Fangpunkt erstellt: %p\n", fngPkt);
+                }
+                kr_a->LoescheFangpunkte();
+            }
+        }
+    }
+    return;
+}
+
+void RUZmBIFrame::FangpunkteLoeschen(wxCommandEvent& event)
+{
+    /*evtl. noch Layerauswahldialog???*/
     AuswahlLeeren();
+    for(RUZ_Layer* tempLayer = m_layer->GetErstesElement(); tempLayer; tempLayer = m_layer->GetNaechstesElement())
+        tempLayer->LoescheFangpunkte();
+    return;
+}
+
+void RUZmBIFrame::GefaelleVerfolgen(Vektor vStart)
+{
+    if(!aktLayer)return;
+
+    Vektor vAktOrt = vStart;
+    Vektor vNaeOrt, vGefaelle;
+    Flaeche *aktFl, *letzteFl;
+    double dLaenge;
+
+    if(markiertesObjekt)
+    {
+        if((markiertesObjekt->HoleTyp() == RUZ_Dreieck)||(markiertesObjekt->HoleTyp() == RUZ_Viereck))
+        {
+            aktFl = static_cast<Flaeche*>(markiertesObjekt);
+            if(aktFl->Gefaelle(vAktOrt, vGefaelle, aktProjZ))
+            {
+                dLaenge = vGefaelle.Laenge();
+                if(dLaenge)
+                {
+                    vNaeOrt = vAktOrt + vGefaelle * (suchRadius / dLaenge);
+                }else
+                {
+                    return;
+                }
+            }else
+            {
+                return;
+            }
+            int j = 0;
+            while((j < 100000)&&(aktFl))
+            {
+                if(aktFl->Gefaelle(vNaeOrt, vGefaelle, aktProjZ))
+                {
+                    new Strich(vAktOrt.GetKoordinaten(aktProjX), vAktOrt.GetKoordinaten(aktProjY),
+                               vNaeOrt.GetKoordinaten(aktProjX), vNaeOrt.GetKoordinaten(aktProjY), aktLayer);
+                    vAktOrt = vNaeOrt;
+                    dLaenge = vGefaelle.Laenge();
+                    if(dLaenge)
+                    {
+                        vNaeOrt = vAktOrt + vGefaelle * (suchRadius / dLaenge);
+                    }else
+                    {
+                        return;
+                    }
+                }else
+                {
+                    int maxI;
+                    aktFl->HoleTyp() == RUZ_Dreieck ? maxI = 3 : maxI = 4;
+                    for(int i = 0; i < maxI; i++)
+                    {
+                        Linie* aktLn = aktFl->HoleLinie(i);
+                        if(aktLn->schneidet(vAktOrt.GetKoordinaten(aktProjX), vAktOrt.GetKoordinaten(aktProjY),
+                                            vNaeOrt.GetKoordinaten(aktProjX), vNaeOrt.GetKoordinaten(aktProjY), vNaeOrt, aktProjZ))
+                        {
+                            new Strich(vAktOrt.GetKoordinaten(aktProjX), vAktOrt.GetKoordinaten(aktProjY),
+                                       vNaeOrt.GetKoordinaten(aktProjX), vNaeOrt.GetKoordinaten(aktProjY), aktLayer);
+                            break;
+                        }
+                    }
+                    letzteFl = aktFl;
+                    aktFl = NULL;
+                    Liste<Flaeche> *lstFl = aktLayer->HoleFlaechen();
+                    for(Flaeche *flLaeufer = lstFl->GetErstesElement(); flLaeufer; flLaeufer = lstFl->GetNaechstesElement())
+                    {
+                        if(flLaeufer == letzteFl)continue;
+                        if(flLaeufer->IstInnerhalb(vNaeOrt.GetKoordinaten(aktProjX), vNaeOrt.GetKoordinaten(aktProjY), aktProjZ))
+                        {
+                            aktFl = flLaeufer;
+                            if(aktFl->Gefaelle(vNaeOrt, vGefaelle, aktProjZ))
+                            {
+                                dLaenge = vGefaelle.Laenge();
+                                Vektor vTempOrt;
+                                if(dLaenge)
+                                {
+                                    vTempOrt = vNaeOrt + vGefaelle * (suchRadius / dLaenge);
+                                    if(!(aktFl->IstInnerhalb(vTempOrt.GetKoordinaten(aktProjX), vTempOrt.GetKoordinaten(aktProjY), aktProjZ)))return;
+                                }else
+                                {
+                                    return;
+                                }
+                            }
+                            break;
+                        }
+                    }
+                }
+                j++;
+            }
+        }
+    }
+    return;
+}
+
+void RUZmBIFrame::HoehenkarteZeichnen(void)
+{
+    clock_t tLaufzeit;
     if(aktLayer)
     {
-        aktLayer->EntferneTieferes(aktProjZ);
+        double minX, minY, maxX, maxY, minZ, maxZ;
+        if(aktLayer->AusdehnungFinden(minX, minY, maxX, maxY, minZ, maxZ))
+        {
+            double* dIntegral = NULL;
+            aruIntegral tempIntegral(dIntegral, minX, minY, maxX, maxY, m_flaechenRaster, aktProjZ);
+            dIntegral = tempIntegral.HoleIntegral();
+            if(!dIntegral)
+            {
+                wxMessageDialog(this, wxT("Fehler beim Anlegen des Integrals\n(evtl. zu wenig Speicher?)"), wxT("Abbruch der Berechnung")).ShowModal();
+                return;
+            }
+            Liste<Flaeche>* lstFl = aktLayer->HoleFlaechen();
+            tLaufzeit = clock();
+            int iAktFlaeche = 0;
+            SetStatusText(wxT("Starte Integration"), 1);
+            Refresh();
+            for(Flaeche* aktFl = lstFl->GetErstesElement(); aktFl != NULL; aktFl = lstFl->GetNaechstesElement())
+            {
+                if(aktFl->HoleTyp() == RUZ_Dreieck)
+                {
+                    Vektor vNormale = aktFl->HoleNormale();
+                    Vektor vSenkrechte(0, 0, 0);
+                    vSenkrechte.SetKoordinaten(aktProjZ, 1.0);
+                    if(vNormale*vSenkrechte < 0.05)continue;//0.05 = ca. cos(87°) - fast senkrechte Flächen überspringen (ergibt an den Rändern unbrauchbar hohe Werte)
+                }
+                tempIntegral.IntegriereFlaeche(aktFl);
+            }
+
+            double maxWert, minWert;
+            unsigned char aktWert;
+            int iB = tempIntegral.HoleBreite();
+            int iH = tempIntegral.HoleHoehe();
+
+            maxWert = minWert = 0.0;
+            bool nochNAN = true;
+
+            SetStatusText(wxT("Integration erledigt - stopfe Löcher"), 1);
+            Refresh();
+            for(int i = 0; i < iB; i++)
+            {
+                for(int k = 0; k < iH; k++)
+                {
+                    if(!isnan(dIntegral[i+k*iB]))
+                    {
+
+                        if(nochNAN)
+                        {
+                            maxWert = minWert = dIntegral[i+k*iB];
+                            nochNAN = false;
+                        }
+                        if(maxWert < dIntegral[i+k*iB])maxWert = dIntegral[i+k*iB];
+                        if(minWert > dIntegral[i+k*iB])minWert = dIntegral[i+k*iB];
+                    }else
+                    {
+                        //Löcher stopfen
+                        if((i>0)&&(k>0)&&(i<iB-1)&&(k<iH-1))
+                        {
+                            int iNachbarn = 0;
+                            double dSumme = 0;
+                            for(int di = -1; di < 2; di++)
+                                for(int dk = -1; dk < 2; dk++)
+                                {
+                                    if(!isnan(dIntegral[i+di+(k+dk)*iB]))
+                                    {
+                                        iNachbarn++;
+                                        dSumme += dIntegral[i+di+(k+dk)*iB];
+                                    }
+                                }
+                            if(iNachbarn > 5)//Loch ist (vermutlich) in Fläche und nicht am Rand
+                            {
+                                dIntegral[i+k*iB] = dSumme/iNachbarn;
+                            }
+                        }
+                    }
+                }
+            }
+            lwBild.NeueLeinwand(iB, iH, 1/m_flaechenRaster, minX, minY);
+            double dSchrittzahl = (maxWert - minWert)/hoehenSchritt;
+            if(!dSchrittzahl)return;
+            SetStatusText(wxT("Löcher stopfen erledigt - bemale Leinwand"), 1);
+            Refresh();
+            for(int i = 0; i < (iB * iH); i++)
+            {
+                if(isnan(dIntegral[i]))
+                {
+                    lwBild.ucLeinwand[i*3] = col_ZeichenHintergrund.Red();
+                    lwBild.ucLeinwand[i*3+1] = col_ZeichenHintergrund.Green();
+                    lwBild.ucLeinwand[i*3+2] = col_ZeichenHintergrund.Blue();
+                }else if(dIntegral[i] > maxZ)
+                {
+                    lwBild.ucLeinwand[i*3] = 255;
+                    lwBild.ucLeinwand[i*3+1] = 78;
+                    lwBild.ucLeinwand[i*3+2] = 46;
+                }
+                else if(dIntegral[i] < minZ)
+                {
+                    lwBild.ucLeinwand[i*3] = 78;
+                    lwBild.ucLeinwand[i*3+1] = 46;
+                    lwBild.ucLeinwand[i*3+2] = 255;
+                }else
+                {
+                    aktWert = (unsigned char)((dIntegral[i]-minWert)/hoehenSchritt)*(unsigned char)(max(256 / dSchrittzahl, 1.0));
+                    lwBild.ucLeinwand[i*3] = aktWert;
+                    lwBild.ucLeinwand[i*3+1] = aktWert;
+                    lwBild.ucLeinwand[i*3+2] = aktWert;
+                }
+            }
+            SetStatusText(wxString::Format(wxT("min Z: %f | max Z: %f"), minZ, maxZ),1);
+        }
     }
-    Refresh();
     return;
 }
 
-void RUZmBIFrame::OnEntferneHoeheres(wxCommandEvent& event)
+RUZ_Layer* RUZmBIFrame::HoleAktuellenLayer(void) const
+{
+    return aktLayer;
+}
+
+void RUZmBIFrame::Kop_Abbrechen(void)
+{
+    if(m_markierModus)
+    {
+        if(m_auswahl->GetListenGroesse() != 0)
+        {
+            m_auswahl->ListeLeeren("");
+        }else
+        {
+            BefehleZuruecksetzen();
+        }
+        return;
+    }
+    if(vVerschubStart)
+    {
+        Kop_Verschieben(*vVerschubStart);
+        delete vVerschubStart;
+        vVerschubStart = NULL;
+        SetStatusText(wxT("Kopierte Objekte verschieben: 'Von' (Punkt wählen / eingeben)"), 2);
+        return;
+    }
+    m_markierModus = true;
+    KoordinatenMaske->Show(false);
+    for(RUZ_Objekt* obj = m_kopierAuswahl->GetErstesElement(); obj; obj = m_kopierAuswahl->GetNaechstesElement())
+    {
+        if((obj->HoleTyp() == RUZ_Linie)||(obj->HoleTyp() == RUZ_Dreieck)||(obj->HoleTyp() == RUZ_Viereck))
+        {
+            m_kopierAuswahl->Entfernen(obj);
+        }
+    }
+    m_kopierAuswahl->ListeLoeschen("");
+    m_verschubAuswahlOrte->ListeLeeren("");
+    SetStatusText(wxT("Objekte zum Verschieben auswählen"), 2);
+    return;
+}
+
+void RUZmBIFrame::Kop_Auswahl_Bestaetigung(void)
+{
+    if(m_markierModus)
+    {
+        m_markierModus = false;
+        AuswahlKopieren();
+        Kop_Punktspeicher_Schreiben();
+        KoordinatenMaske->Show();
+        SetStatusText(wxT("Kopierte Objekte verschieben: 'Von' (Punkt wählen / eingeben)"), 2);
+    }else
+    {
+        m_markierModus = true;
+        KoordinatenMaske->Show(false);
+        m_verschubAuswahlOrte->ListeLoeschen("");
+        m_auswahl->ListeLeeren("");
+        if(aktBefehl == bef_ID_kopieren)
+        {
+            for(RUZ_Objekt* obj = m_kopierAuswahl->GetErstesElement(); obj; obj = m_kopierAuswahl->GetNaechstesElement())
+                m_auswahl->ExklusivHinzufuegen(obj);
+        }
+        m_kopierAuswahl->ListeLeeren("");
+        SetStatusText(wxT("Objekte zum Kopieren auswählen"), 2);
+        if(aktBefehl == bef_ID_kopierenNachLayer)
+        {
+            BefehleZuruecksetzen();
+        }
+    }
+    return;
+}
+
+void RUZmBIFrame::Kop_Punkt_Festlegen(Vektor vkt)
+{
+    if(vVerschubStart)
+    {
+        Vschb_Verschieben(vkt);
+        delete vVerschubStart;
+        vVerschubStart = NULL;
+        SetStatusText(wxT("Kopierte Objekte verschieben: 'Von' (Punkt wählen / eingeben)"), 2);
+    }else
+    {
+        vVerschubStart = new Vektor(vkt);
+        if(vVerschubStart)
+            SetStatusText(wxT("Kopierte Objekte verschieben: 'Nach' (Punkt wählen / eingeben)"), 2);
+    }
+    return;
+}
+
+void RUZmBIFrame::Kop_Punktspeicher_Schreiben(void)
+{
+    m_verschubAuswahlOrte->ListeLoeschen("Kop_Punktspeicher_Schreiben");
+    PunktSpeicher* pktSp = NULL;
+
+    for(RUZ_Objekt* obj = m_kopierAuswahl->GetErstesElement(); obj != NULL; obj = m_kopierAuswahl->GetNaechstesElement())
+    {
+        if(obj->HoleTyp() == RUZ_Punkt)
+        {
+            pktSp = new PunktSpeicher(static_cast<Punkt*>(obj));
+            if(!(Vschb_Ort_Exklusiv_Hinzufuegen(pktSp)))
+            {
+                delete pktSp;
+                pktSp = NULL;
+            }
+        }else
+        if(obj->HoleTyp() == RUZ_Linie)
+        {
+            Linie* ln = static_cast<Linie*>(obj);
+            for (int i = 0; i < 2; i++)
+            {
+                pktSp = new PunktSpeicher(ln->HolePunkt(i));
+                if(!(Vschb_Ort_Exklusiv_Hinzufuegen(pktSp)))
+                {
+                    delete pktSp;
+                    pktSp = NULL;
+                }
+            }
+        }else
+        if(obj->HoleTyp() == RUZ_Dreieck)
+        {
+            Dreieck* drk = static_cast<Dreieck*>(obj);
+            for (int i = 0; i < 3; i++)
+            {
+                pktSp = new PunktSpeicher(drk->HolePunkt(i));
+                if(!(Vschb_Ort_Exklusiv_Hinzufuegen(pktSp)))
+                {
+                    delete pktSp;
+                    pktSp = NULL;
+                }
+            }
+        }else
+        if(obj->HoleTyp() == RUZ_Viereck)
+        {
+            Viereck* vrk = static_cast<Viereck*>(obj);
+            for (int i = 0; i < 4; i++)
+            {
+                pktSp = new PunktSpeicher(vrk->HolePunkt(i));
+                if(!(Vschb_Ort_Exklusiv_Hinzufuegen(pktSp)))
+                {
+                    delete pktSp;
+                    pktSp = NULL;
+                }
+            }
+        }else
+        if(obj->HoleTyp() == RUZ_HoehenMarke)
+        {
+            pktSp = new PunktSpeicher(static_cast<HoehenMarke*>(obj));
+            if(!(Vschb_Ort_Exklusiv_Hinzufuegen(pktSp)))
+            {
+                delete pktSp;
+                pktSp = NULL;
+            }
+        }else
+        if(obj->HoleTyp() == RUZ_Kreis)
+        {
+            pktSp = new PunktSpeicher(static_cast<Kreis*>(obj));
+            if(!(Vschb_Ort_Exklusiv_Hinzufuegen(pktSp)))
+            {
+                delete pktSp;
+                pktSp = NULL;
+            }
+        }else
+        if(obj->HoleTyp() == RUZ_Fangpunkt)
+        {
+            pktSp = new PunktSpeicher(static_cast<Fangpunkt*>(obj));
+            if(!(Vschb_Ort_Exklusiv_Hinzufuegen(pktSp)))
+            {
+                delete pktSp;
+                pktSp = NULL;
+            }
+        }else
+        {
+            m_kopierAuswahl->Entfernen(obj);
+        }
+    }
+    return;
+}
+
+void RUZmBIFrame::Kop_Verschieben(Vektor vkt)
+{
+    Vschb_Verschieben(vkt);
+    return;
+}
+
+void RUZmBIFrame::KreisDoubleEingabe(double dbl, bool abschliessen)
+{
+    if(m_aktKreis)
+    {
+        m_aktKreis->SetzeRadius(dbl);
+        if(abschliessen)
+        {
+            m_aktKreis = NULL;
+            DoubleEingabe->Show(false);
+            if(aktBefehl == bef_ID_kreisRadiusAendern)aktBefehl = bef_ID_nichts;
+        }
+    }
+    return;
+}
+
+void RUZmBIFrame::KreisPunktEingabe(Vektor& t_vkt, bool abschliessen)
+{
+    if(m_aktKreis)
+    {
+        Vektor t_mitte = m_aktKreis->HolePosition();
+        t_mitte.SetKoordinaten(aktProjZ, 0.0);
+        double dx, dy;
+        dx = t_mitte.GetKoordinaten(aktProjX) - t_vkt.GetKoordinaten(aktProjX);
+        dy = t_mitte.GetKoordinaten(aktProjY) - t_vkt.GetKoordinaten(aktProjY);
+        double t_radius = sqrt(dx * dx + dy * dy);
+        KreisDoubleEingabe(t_radius, abschliessen);
+    }else{
+        Kreis *tempKreis = new Kreis(t_vkt, -1.0, aktLayer);
+        if(tempKreis)m_aktKreis = tempKreis;
+        DoubleEingabe->ErscheinungAnpassen(wxString("Radius"), wxEmptyString, aktBefehl);
+        DoubleEingabe->Show(true);
+    }
+    return;
+}
+
+void RUZmBIFrame::LayerauswahlAktualisieren(void)
+{
+    for(Listenelement<RUZ_Layer>* layerLELaeufer = m_layer->GetErstesListenelement(); layerLELaeufer != NULL; layerLELaeufer = layerLELaeufer->GetNachfolger())
+    {
+        const char* name = (layerLELaeufer->GetElement())->HoleName();
+        LayerAuswahl->LayerHinzufuegen(wxString(name), layerLELaeufer->GetElement());
+    }
+    return;
+}
+
+void RUZmBIFrame::LayerEntfernen(RUZ_Layer *layer)
+{
+    if(layer)
+    {
+        BefehleZuruecksetzen();
+        m_layer->Entfernen(layer);
+        if(layer == aktLayer)
+        {
+            aktLayer = m_layer->GetErstesElement();
+            LayerauswahlAktualisieren();
+        }
+    }else
+    {
+        wxMessageDialog(this, wxT("Layer NICHT gefunden")).ShowModal();
+    }
+    return;
+}
+
+void RUZmBIFrame::LayerHinzufuegen(RUZ_Layer *layer)
+{
+    if(layer)
+    {
+        BefehleZuruecksetzen();
+        aktLayer = layer;
+        m_layer->Hinzufuegen(layer);
+    }
+    return;
+}
+
+RUZ_Layer* RUZmBIFrame::LayerKopieren(RUZ_Layer* altLayer, char* name)
+{
+    if(altLayer == NULL)return NULL;
+    RUZ_Layer* neuLayer = altLayer->Kopieren(name);
+    if(neuLayer == NULL)
+    {
+        wxMessageDialog(this, wxT("Anlegen neuer Layer fehlgeschlagen."), wxT("Layer kopieren")).ShowModal();
+        return NULL;
+    }
+
+    m_layer->Hinzufuegen(neuLayer);
+    LayerauswahlAktualisieren();
+    return neuLayer;
+}
+
+bool RUZmBIFrame::LayerLoeschen(wxString msg)
+{
+    return true;
+}
+
+void RUZmBIFrame::LayerSkalieren(Vektor festPkt)
+{
+    for(RUZ_Layer* t_layer = m_skalierListe->GetErstesElement(); t_layer; t_layer = m_skalierListe->GetNaechstesElement())
+    {
+        Liste<Punkt>* pktLst = t_layer->HolePunkte();
+        for(Punkt* t_pkt = pktLst->GetErstesElement(); t_pkt; t_pkt = pktLst->GetNaechstesElement())
+        {
+            t_pkt->Skalieren(festPkt, m_skalFkt[0], m_skalFkt[1], m_skalFkt[2]);
+        }
+
+        Liste<Strich>* strLst = t_layer->HoleStriche();
+        for(Strich* t_str = strLst->GetErstesElement(); t_str; t_str = strLst->GetNaechstesElement())
+        {
+            t_str->Skalieren(festPkt, m_skalFkt[0], m_skalFkt[1], m_skalFkt[2]);
+        }
+
+        Liste<Bogen>* bgnLst = t_layer->HoleBoegen();
+        for(Bogen* t_bgn = bgnLst->GetErstesElement(); t_bgn; t_bgn = bgnLst->GetNaechstesElement())
+        {
+            t_bgn->Skalieren(festPkt, m_skalFkt[0], m_skalFkt[1], m_skalFkt[2]);
+        }
+    }
+    m_skalierListe->ListeLeeren("");
+    BefehleZuruecksetzen();
+    return;
+}
+
+bool RUZmBIFrame::LeseAusD45(char* dateiName)
 {
     AuswahlLeeren();
-    if(aktLayer)
+
+    std::ifstream Datei;
+    Datei.open(dateiName, ios_base::in);
+    logSchreiben("%s konnte geöffnet werden (D45)\n", dateiName);
+
+    char zeile[11];
+    char x[11], y[11], z[11], pktName[8];
+    Punkt* tempPkt;
+    /*alles Nullen*/
+    x[0] = y[0] = z[0] = '0';
+    x[1] = y[1] = z[1] = '\0';
+    pktName[0] = '\0';
+    /*ENDE alles Nullen*/
+
+    if(Datei.good())
     {
-        aktLayer->EntferneHoeheres(aktProjZ);
-    }
-    Refresh();
-    return;
-}
-
-void RUZmBIFrame::OnObjekteWaehlen(wxCommandEvent& event)
-{
-    int aktID = event.GetId();
-    switch(aktID)
-    {
-    case idWaehleBogen:
-        m_waehleBogen == false ? m_waehleBogen = true : m_waehleBogen = false;
-        break;
-    case idWaehleFlaeche:
-        m_waehleFlaeche == false ? m_waehleFlaeche = true : m_waehleFlaeche = false;
-        break;
-    case idWaehleHoehenmarke:
-        m_waehleHoehenmarke == false ? m_waehleHoehenmarke = true : m_waehleHoehenmarke = false;
-        break;
-    case idWaehleLinie:
-        m_waehleLinie == false ? m_waehleLinie = true : m_waehleLinie = false;
-        break;
-    case idWaehlePunkt:
-        m_waehlePunkt == false ? m_waehlePunkt = true : m_waehlePunkt = false;
-        break;
-    case idWaehleStrich:
-        m_waehleStrich == false ? m_waehleStrich = true : m_waehleStrich = false;
-        break;
-    case idWaehleKreis:
-        m_waehleKreis == false ? m_waehleKreis = true : m_waehleKreis = false;
-        break;
-    case idWaehleFangpunkt:
-        m_waehleFangpunkt == false ? m_waehleFangpunkt = true : m_waehleFangpunkt = false;
-        break;
-    default:
-        ;
-    }
-    Refresh();
-    return;
-}
-
-void RUZmBIFrame::OnHintergrundEinlesen(wxCommandEvent &event)
-{
-    FileOpener->SetWildcard(wxT("DXF-Datei (*.dxf)|*.dxf"));
-    int Rueckgabe = FileOpener->ShowModal();
-    if(Rueckgabe==wxID_CANCEL)return;
-    SetStatusText(FileOpener->GetPath(), 1);
-
-    /*DXF Einlesen*/
-    if((FileOpener->GetPath()).EndsWith(wxT("f"))||(FileOpener->GetPath()).EndsWith(wxT("F")))/*Wenn dxf ausgewählt wurde*/
-    {
-        char x_kennung[64], y_kennung[64], z_kennung[64], sw_kennung[64];
-        dxfParameterDlg->HoleKennung(x_kennung, IDpktXKenn);
-        dxfParameterDlg->HoleKennung(y_kennung, IDpktYKenn);
-        dxfParameterDlg->HoleKennung(z_kennung, IDpktZKenn);
-        dxfParameterDlg->HoleKennung(sw_kennung, IDpktSW);
-
-        DXF_Import *dxfImporteur = new DXF_Import((char*)static_cast<const char*>(FileOpener->GetPath().c_str()),
-                                                         x_kennung, y_kennung, z_kennung, sw_kennung);
-        if(!dxfImporteur->EinlesenHintergrund(m_hintergrundLayer))
+        while(!Datei.eof())
         {
-            wxMessageDialog(this, wxString::FromUTF8("Beim Einlesen ist ein Fehler aufgetreten.\nEvtl. wurde nicht alles eingelesen")).ShowModal();
+            Datei.ignore(2);/*Eintrag 45 aus dem stream entfernen*/
+
+            /*Punktname lesen*/
+            Datei.get(zeile, 8);
+            strncpy(pktName, zeile, 8);
+            pktName[7] = '\0';
+
+            Datei.ignore(1);/*Leerzeichen überspringen*/
+
+            /*Y-Koordinate lesen*/
+            Datei.get(zeile, 11);
+            strncpy(x, zeile, 11);
+            //y[11] = '\0';
+
+            /*X-Koordinate lesen*/
+            Datei.get(zeile, 11);
+            strncpy(y, zeile, 11);
+            //x[11] = '\0';
+
+            /*Z-Koordinate lesen*/
+            Datei.get(zeile, 11);
+            strncpy(z, zeile, 11);
+            //z[11] = '\0';
+
+            while(Datei.peek()=='\n')Datei.ignore();
+
+            if(aktLayer!=NULL)
+            {
+                tempPkt = new Punkt((double)(atof(x))/1000, -(double)(atof(y))/1000, (double)(atof(z))/1000, aktLayer);
+                tempPkt->SetzeName(pktName);
+            }
+            /*int ergebnis = wxMessageDialog(this, wxT(".")+wxString(pktName)+wxT(".")+wxT("\n")+wxT(".")+wxString(x)+wxT(".")
+                                           +wxT("\n")+wxT(".")+wxString(y)+wxT(".")+wxT("\n")+wxT(".")+wxString(z)+wxT("."), wxT("aktPkt"), wxOK|wxCANCEL).ShowModal();
+            if(ergebnis == wxID_CANCEL) return 0;*/
         }
-        wxMessageDialog(this, wxString::FromUTF8(wxString::Format("%d Striche\n%d Bögen", m_hintergrundLayer->HoleStriche()->GetListenGroesse()
-                                               , m_hintergrundLayer->HoleBoegen()->GetListenGroesse()))).ShowModal();
-        AusdehnungFinden();
-        delete dxfImporteur;
-    }/*ENDE DXF Einlesen*/
-    else/*Ansonsten ist es eine ruz-datei*/
-    {
-        wxMessageDialog(this, wxT("Einlesen von RUZ-Dateien wird derzeit nicht unterstützt."), wxT("Abbruch")).ShowModal();
     }
-    Refresh();
-    return;
+    return 1;
 }
 
-void RUZmBIFrame::OnHintergrundLoeschen(wxCommandEvent &event)
+
+bool RUZmBIFrame::LeseAusD58(char* dateiName)
 {
-    m_hintergrundLayer->HolePunkte()->ListeLoeschen("Hintergrundlayer löschen");
-    m_hintergrundLayer->HoleLinien()->ListeLoeschen("Hintergrundlayer löschen");
-    m_hintergrundLayer->HoleFlaechen()->ListeLoeschen("Hintergrundlayer löschen");
-    m_hintergrundLayer->HoleStriche()->ListeLoeschen("Hintergrundlayer löschen");
-    m_hintergrundLayer->HoleBoegen()->ListeLoeschen("Hintergrundlayer löschen");
-    m_hintergrundLayer->HoleHoehenMarken()->ListeLoeschen("Hintergrundlayer löschen");
-    Refresh();
-    return;
+    AuswahlLeeren();
+    int fehlendeDreiecke = 0;
+
+    std::ifstream Datei;
+    Datei.open(dateiName, ios_base::in);
+    logSchreiben("%s konnte geöffnet werden (D58)\n", dateiName);
+
+    char zeile[64];
+    char p1[8], p2[8], p3[8];
+    /*alles Nullen*/
+    p1[0] = p2[0] = p3[0] = '0';
+    p1[1] = p2[1] = p3[1] = '\0';
+    /*ENDE alles Nullen*/
+
+    if(Datei.good())
+    {
+        while(!Datei.eof())
+        {
+            Datei.ignore(23);/*Eintrag 58 bis Dreieckname aus dem stream entfernen*/
+
+            /*Punkt 1 lesen*/
+            Datei.get(zeile, 8);
+            strncpy(p1, zeile, 8);
+
+            Datei.ignore(3);/*Drei Zeichen überspringen (in D45 sind Punktnamen nur 7 lang!!)*/
+
+            /*Punkt 2 lesen*/
+            Datei.get(zeile, 8);
+            strncpy(p2, zeile, 8);
+
+            Datei.ignore(3);/*Drei Zeichen überspringen (in D45 sind Punktnamen nur 7 lang!!)*/
+
+            /*Punkt 3 lesen*/
+            Datei.get(zeile, 8);
+            strncpy(p3, zeile, 8);
+
+            Datei.getline(zeile, 64, '\n');
+            while(Datei.peek()=='\n')Datei.ignore();
+
+            if(aktLayer != NULL)
+            {
+                Liste<Punkt> *pktLst = aktLayer->HolePunkte();
+                Punkt *eckPunkt[3];
+                eckPunkt[0] = eckPunkt[1] = eckPunkt[2] = NULL;
+                int i = 0;
+                for(Punkt* aktPkt = pktLst->GetErstesElement(); aktPkt != NULL; aktPkt = pktLst->GetNaechstesElement())
+                {
+                    if((strcmp(aktPkt->HoleName(), p1) == 0)||
+                       (strcmp(aktPkt->HoleName(), p2) == 0)||
+                       (strcmp(aktPkt->HoleName(), p3) == 0))
+                    {
+                        eckPunkt[i] = aktPkt;
+                        i++;
+                    }
+                    if(i>2)break;
+                }
+                Linie *t_rand[3];
+                t_rand[0] = t_rand[1] = t_rand[2] = NULL;
+                for(int k = 0; k < 3; k++)/*Prüfen, ob alle Punkte gefunden wurden*/
+                {
+                    if(eckPunkt[k] == NULL)
+                    {
+                        fehlendeDreiecke++;
+                        continue;
+                    }
+                }
+                t_rand[0] = aktLayer->HoleLinie(eckPunkt[0], eckPunkt[1]);
+                t_rand[1] = aktLayer->HoleLinie(eckPunkt[1], eckPunkt[2]);
+                t_rand[2] = aktLayer->HoleLinie(eckPunkt[2], eckPunkt[0]);
+                if(t_rand[0] && t_rand[1] && t_rand[2])
+                {
+                    Dreieck::NeuesDreieck(t_rand[0], t_rand[1], t_rand[2]);
+                }
+            }
+
+            /*int ergebnis = wxMessageDialog(this, wxT(".")+wxString(p1)+wxT(".")+wxT("\n")+wxT(".")+wxString(p2)+wxT(".")
+                                           +wxT("\n")+wxT(".")+wxString(p3)+wxT("."), wxT("Kontrolle"), wxOK|wxCANCEL).ShowModal();
+            if(ergebnis == wxID_CANCEL) return 0;*/
+        }
+    }
+    if(aktLayer != NULL)
+    {
+        Liste<Punkt> *pktLst = aktLayer->HolePunkte();
+        for(Punkt* aktPkt = pktLst->GetErstesElement(); aktPkt != NULL; aktPkt = pktLst->GetNaechstesElement())
+        {
+            if(aktPkt->HoleLinien()->GetListenGroesse() == 0)delete aktPkt;
+        }
+    }
+    SetStatusText(wxString::Format("%d Dreieck(e) nicht erzeugt", fehlendeDreiecke), 1);
+    return 1;
 }
 
 bool RUZmBIFrame::LeseAusRUZ(char* dateiName)
@@ -1317,410 +2633,6 @@ bool RUZmBIFrame::LeseAusRUZ(char* dateiName)
     return true;
 }
 
-bool RUZmBIFrame::LeseAusD45(char* dateiName)
-{
-    AuswahlLeeren();
-
-    std::ifstream Datei;
-    Datei.open(dateiName, ios_base::in);
-    logSchreiben("%s konnte geöffnet werden (D45)\n", dateiName);
-
-    char zeile[11];
-    char x[11], y[11], z[11], pktName[8];
-    Punkt* tempPkt;
-    /*alles Nullen*/
-    x[0] = y[0] = z[0] = '0';
-    x[1] = y[1] = z[1] = '\0';
-    pktName[0] = '\0';
-    /*ENDE alles Nullen*/
-
-    if(Datei.good())
-    {
-        while(!Datei.eof())
-        {
-            Datei.ignore(2);/*Eintrag 45 aus dem stream entfernen*/
-
-            /*Punktname lesen*/
-            Datei.get(zeile, 8);
-            strncpy(pktName, zeile, 8);
-            pktName[7] = '\0';
-
-            Datei.ignore(1);/*Leerzeichen überspringen*/
-
-            /*Y-Koordinate lesen*/
-            Datei.get(zeile, 11);
-            strncpy(x, zeile, 11);
-            //y[11] = '\0';
-
-            /*X-Koordinate lesen*/
-            Datei.get(zeile, 11);
-            strncpy(y, zeile, 11);
-            //x[11] = '\0';
-
-            /*Z-Koordinate lesen*/
-            Datei.get(zeile, 11);
-            strncpy(z, zeile, 11);
-            //z[11] = '\0';
-
-            while(Datei.peek()=='\n')Datei.ignore();
-
-            if(aktLayer!=NULL)
-            {
-                tempPkt = new Punkt((double)(atof(x))/1000, -(double)(atof(y))/1000, (double)(atof(z))/1000, aktLayer);
-                tempPkt->SetzeName(pktName);
-            }
-            /*int ergebnis = wxMessageDialog(this, wxT(".")+wxString(pktName)+wxT(".")+wxT("\n")+wxT(".")+wxString(x)+wxT(".")
-                                           +wxT("\n")+wxT(".")+wxString(y)+wxT(".")+wxT("\n")+wxT(".")+wxString(z)+wxT("."), wxT("aktPkt"), wxOK|wxCANCEL).ShowModal();
-            if(ergebnis == wxID_CANCEL) return 0;*/
-        }
-    }
-    return 1;
-}
-
-
-bool RUZmBIFrame::LeseAusD58(char* dateiName)
-{
-    AuswahlLeeren();
-    int fehlendeDreiecke = 0;
-
-    std::ifstream Datei;
-    Datei.open(dateiName, ios_base::in);
-    logSchreiben("%s konnte geöffnet werden (D58)\n", dateiName);
-
-    char zeile[64];
-    char p1[8], p2[8], p3[8];
-    /*alles Nullen*/
-    p1[0] = p2[0] = p3[0] = '0';
-    p1[1] = p2[1] = p3[1] = '\0';
-    /*ENDE alles Nullen*/
-
-    if(Datei.good())
-    {
-        while(!Datei.eof())
-        {
-            Datei.ignore(23);/*Eintrag 58 bis Dreieckname aus dem stream entfernen*/
-
-            /*Punkt 1 lesen*/
-            Datei.get(zeile, 8);
-            strncpy(p1, zeile, 8);
-
-            Datei.ignore(3);/*Drei Zeichen überspringen (in D45 sind Punktnamen nur 7 lang!!)*/
-
-            /*Punkt 2 lesen*/
-            Datei.get(zeile, 8);
-            strncpy(p2, zeile, 8);
-
-            Datei.ignore(3);/*Drei Zeichen überspringen (in D45 sind Punktnamen nur 7 lang!!)*/
-
-            /*Punkt 3 lesen*/
-            Datei.get(zeile, 8);
-            strncpy(p3, zeile, 8);
-
-            Datei.getline(zeile, 64, '\n');
-            while(Datei.peek()=='\n')Datei.ignore();
-
-            if(aktLayer != NULL)
-            {
-                Liste<Punkt> *pktLst = aktLayer->HolePunkte();
-                Punkt *eckPunkt[3];
-                eckPunkt[0] = eckPunkt[1] = eckPunkt[2] = NULL;
-                int i = 0;
-                for(Punkt* aktPkt = pktLst->GetErstesElement(); aktPkt != NULL; aktPkt = pktLst->GetNaechstesElement())
-                {
-                    if((strcmp(aktPkt->HoleName(), p1) == 0)||
-                       (strcmp(aktPkt->HoleName(), p2) == 0)||
-                       (strcmp(aktPkt->HoleName(), p3) == 0))
-                    {
-                        eckPunkt[i] = aktPkt;
-                        i++;
-                    }
-                    if(i>2)break;
-                }
-                Linie *t_rand[3];
-                t_rand[0] = t_rand[1] = t_rand[2] = NULL;
-                for(int k = 0; k < 3; k++)/*Prüfen, ob alle Punkte gefunden wurden*/
-                {
-                    if(eckPunkt[k] == NULL)
-                    {
-                        fehlendeDreiecke++;
-                        continue;
-                    }
-                }
-                t_rand[0] = aktLayer->HoleLinie(eckPunkt[0], eckPunkt[1]);
-                t_rand[1] = aktLayer->HoleLinie(eckPunkt[1], eckPunkt[2]);
-                t_rand[2] = aktLayer->HoleLinie(eckPunkt[2], eckPunkt[0]);
-                if(t_rand[0] && t_rand[1] && t_rand[2])
-                {
-                    Dreieck::NeuesDreieck(t_rand[0], t_rand[1], t_rand[2]);
-                }
-            }
-
-            /*int ergebnis = wxMessageDialog(this, wxT(".")+wxString(p1)+wxT(".")+wxT("\n")+wxT(".")+wxString(p2)+wxT(".")
-                                           +wxT("\n")+wxT(".")+wxString(p3)+wxT("."), wxT("Kontrolle"), wxOK|wxCANCEL).ShowModal();
-            if(ergebnis == wxID_CANCEL) return 0;*/
-        }
-    }
-    if(aktLayer != NULL)
-    {
-        Liste<Punkt> *pktLst = aktLayer->HolePunkte();
-        for(Punkt* aktPkt = pktLst->GetErstesElement(); aktPkt != NULL; aktPkt = pktLst->GetNaechstesElement())
-        {
-            if(aktPkt->HoleLinien()->GetListenGroesse() == 0)delete aktPkt;
-        }
-    }
-    SetStatusText(wxString::Format("%d Dreieck(e) nicht erzeugt", fehlendeDreiecke), 1);
-    return 1;
-}
-
-void RUZmBIFrame::OnSaveFile(wxCommandEvent &event)
-{
-    if(event.GetId() == idMenuExportPrismen)
-    {
-        FileSaver->SetWildcard(wxT("Prismen (*.prs)|*.prs"));
-        FileSaver->SetMessage(wxT("Dreiecksprismen in Datei speichern"));
-    }else
-    if(event.GetId() == idMenuExportPunkte)
-    {
-        FileSaver->SetWildcard(wxT("Punkte (*.pnt)|*.pnt"));
-        FileSaver->SetMessage(wxT("Punkte in Datei speichern"));
-    }else
-    if(event.GetId() == idMenuQuickSave)
-    {
-        if(strAktuellerSpeicherpfad != wxEmptyString)
-        {
-            SchreibeInDatei((char*)static_cast<const char*>(strAktuellerSpeicherpfad.c_str()));
-            return;
-        }
-        FileSaver->SetWildcard(wxT("RUZ-Datei (*.ruz)|*.ruz"));
-        FileSaver->SetMessage(wxT("Zeichnung in RUZ-Datei speichern"));
-    }else
-    {
-        FileSaver->SetWildcard(wxT("DXF-Datei (*.dxf)|*.dxf|RUZ-Datei (*.ruz)|*.ruz"));
-        FileSaver->SetMessage(wxT("Zeichnung in DXF-Datei speichern"));
-    }
-
-    int Rueckgabe = FileSaver->ShowModal();
-    if(Rueckgabe==wxID_CANCEL)return;
-    SetStatusText(FileSaver->GetPath(), 1);
-
-    if(event.GetId() == idMenuExportPrismen)
-    {
-        ExportiereDreiecksPrismen((char*)static_cast<const char*>(FileSaver->GetPath().c_str()));
-    }else
-    if(event.GetId() == idMenuExportPunkte)
-    {
-        ExportierePunkte((char*)static_cast<const char*>(FileSaver->GetPath().c_str()));
-    }else
-    {
-        if((FileSaver->GetPath()).EndsWith(wxT("ruz"))||(FileSaver->GetPath()).EndsWith(wxT("RUZ")))
-        {
-            strAktuellerSpeicherpfad = FileSaver->GetPath();
-            SchreibeInDatei((char*)static_cast<const char*>(FileSaver->GetPath().c_str()));
-        }
-        if((FileSaver->GetPath()).EndsWith(wxT("dxf"))||(FileSaver->GetPath()).EndsWith(wxT("DXF")))
-        {
-            Liste<RUZ_Layer>* exportListe = new Liste<RUZ_Layer>;
-            for(RUZ_Layer* t_lay = m_layer->GetErstesElement(); t_lay; t_lay = m_layer->GetNaechstesElement())
-            {
-                if(t_lay->IstSichtbar())exportListe->Hinzufuegen(t_lay);
-            }
-            if(m_hintergrundMalen)exportListe->Hinzufuegen(m_hintergrundLayer);
-						/*Sichtbarkeitsflags setzen*/
-						unsigned int cSichtbar = 0x0000;
-						cSichtbar = (m_zeigePunkt | (m_zeigeLinie << 1) | (m_zeigeFlaeche << 2) |
-												(hlAnzeigen << 3) | (m_zeigeStrich << 4) | (m_zeigeBogen << 5) |
-												(m_zeigeHoehenmarke << 6));
-						/*ENDE Sichtbarkeitsflags setzen*/
-            DXF_Export(exportListe, (char*)static_cast<const char*>(FileSaver->GetPath().c_str()), m_anzeigeGenauigkeit, cSichtbar);
-            exportListe->ListeLeeren("");
-            delete exportListe;
-        }
-    }
-    return;
-}
-
-bool RUZmBIFrame::SchreibeInDatei(char* dateiName)
-{
-    std::ofstream Datei;
-    int anzEcken;
-    Datei.open(dateiName, ios_base::out|ios_base::trunc);
-    logSchreiben("%s konnte geoffnet werden\n", dateiName);
-
-    if(Datei.good())
-    {
-        Datei.setf( ios::fixed, ios::floatfield );
-        Datei.precision(15);
-
-        Punkt* tempPunkt;
-        HoehenMarke* tempHM;
-        Linie* tempLinie;
-        Flaeche* tempFlaeche;
-
-        for(RUZ_Layer *tempLayer = m_layer->GetErstesElement(); tempLayer != NULL; tempLayer = m_layer->GetNaechstesElement())
-        {
-            Datei<<"  0\n  L\n"<<tempLayer->HoleName()<<"\n";
-            //if(tempLayer->IstSichtbar() == false)continue;
-
-            Liste<Punkt>* pktSammlung = tempLayer->HolePunkte();
-            Liste<HoehenMarke>* hmSammlung = tempLayer->HoleHoehenMarken();
-            Liste<Linie>* lnSammlung = tempLayer->HoleLinien();
-            Liste<Flaeche>* flSammlung = tempLayer->HoleFlaechen();
-            for(tempPunkt = pktSammlung->GetErstesElement(); tempPunkt != NULL; tempPunkt = pktSammlung->GetNaechstesElement())
-            {
-                Datei<<"  0\nPOINT\n  X\n"<<tempPunkt->HolePosition().x()<<"\n  Y\n"<<-(tempPunkt->HolePosition().y())<<"\n  Z\n"
-                    <<tempPunkt->HolePosition().z()<<"\n  @\n"<<tempPunkt<<"\n";
-            }
-
-            for(tempLinie = lnSammlung->GetErstesElement(); tempLinie != NULL; tempLinie = lnSammlung->GetNaechstesElement())
-            {
-                Datei<<"  0\nLINE\n P0\n"<<tempLinie->HolePunkt(0)<<"\n P1\n"<<tempLinie->HolePunkt(1)<<"\n  @\n"<<tempLinie<<"\n";
-            }
-
-            for(tempFlaeche = flSammlung->GetErstesElement(); tempFlaeche != NULL; tempFlaeche = flSammlung->GetNaechstesElement())
-            {
-                if(tempFlaeche->HoleTyp() == RUZ_Dreieck)
-                {
-                    Datei<<"  0\nTRIANGLE\n";
-                    anzEcken = 3;
-                }else{
-                    Datei<<"  0\nQUAD\n";
-                    anzEcken = 4;
-                }
-                for(int k=0; k<anzEcken; k++)
-                {
-                    Datei<<" L"<<k<<"\n"<<tempFlaeche->HoleLinie(k)<<"\n";
-                }
-            }
-            for(tempHM = hmSammlung->GetErstesElement(); tempHM != NULL; tempHM = hmSammlung->GetNaechstesElement())
-            {
-                Datei<<"  0\nHOEHENMARKE\n  X\n"<<tempHM->HolePosition().x()<<"\n  Y\n"<<-(tempHM->HolePosition().y())<<"\n";
-            }
-        }
-        Datei<<"  0\n HG\n";
-        Liste<Strich>* strichSammlung = m_hintergrundLayer->HoleStriche();
-        Liste<Bogen>* bogenSammlung = m_hintergrundLayer->HoleBoegen();
-        for(Strich* aktStrich = strichSammlung->GetErstesElement(); aktStrich; aktStrich = strichSammlung->GetNaechstesElement())
-        {
-            Datei<<"  0\nSTRICH\n X1\n"<<aktStrich->Xa()<<"\n Y1\n"<<-(aktStrich->Ya())<<"\n X2\n"<<aktStrich->Xe()<<"\n Y2\n"<<-(aktStrich->Ye())<<"\n";
-        }
-        for(Bogen* aktBogen = bogenSammlung->GetErstesElement(); aktBogen; aktBogen = bogenSammlung->GetNaechstesElement())
-        {
-            Datei<<"  0\nBOGEN\n X1\n"<<aktBogen->Xa()<<"\n Y1\n"<<-(aktBogen->Ya())<<"\n X2\n"<<aktBogen->Xe()<<"\n Y2\n"<<-(aktBogen->Ye())
-                    <<"\n XM\n"<<aktBogen->Xm()<<"\n YM\n"<<-(aktBogen->Ym())<<"\n";
-        }
-        Datei<<"  0\nEOF\n";
-    }
-    else
-    {
-        return false;
-    }
-    Datei.close();
-    SetStatusText(strAktuellerSpeicherpfad + wxT(" erfolgreich gespeichert."), 1);
-    return true;
-}
-
-bool RUZmBIFrame::ExportiereDreiecksPrismen(char* dateiName)
-{
-    std::ofstream Datei;
-    Datei.open(dateiName, ios_base::out|ios_base::trunc);
-    logSchreiben("%s konnte geoffnet werden\n", dateiName);
-
-    if(Datei.good())
-    {
-        Datei.setf( ios::fixed, ios::floatfield );
-        Datei.precision(15);
-
-        Punkt* tempPunkt;
-        Flaeche* tempFlaeche;
-
-        if(aktLayer)
-        {
-            Liste<Punkt>* pktSammlung = aktLayer->HolePunkte();
-            for(tempPunkt = pktSammlung->GetErstesElement(); tempPunkt != NULL; tempPunkt = pktSammlung->GetNaechstesElement())
-            {
-                Datei<<tempPunkt<<"\t"<<tempPunkt->HolePosition().x()<<"\t"<<-tempPunkt->HolePosition().y()<<"\t"<<tempPunkt->HolePosition().z()<<"\n";
-            }
-
-            Liste<Flaeche>* flSammlung = aktLayer->HoleFlaechen();
-            for(tempFlaeche = flSammlung->GetErstesElement(); tempFlaeche != NULL; tempFlaeche = flSammlung->GetNaechstesElement())
-            {
-                if(tempFlaeche->HoleTyp() == RUZ_Dreieck)
-                {
-                    Datei<<"\n"<<tempFlaeche->HolePunkt(0)<<"\n"<<tempFlaeche->HolePunkt(1)<<"\n"<<tempFlaeche->HolePunkt(2)<<"\n";
-                }
-            }
-        }
-    }
-    else
-    {
-        return false;
-    }
-    Datei.close();
-    return true;
-}
-
-bool RUZmBIFrame::ExportierePunkte(char* dateiName)
-{
-    std::ofstream Datei;
-    Datei.open(dateiName, ios_base::out|ios_base::trunc);
-    logSchreiben("%s konnte geoffnet werden\n", dateiName);
-
-    if(Datei.good())
-    {
-        Datei.setf( ios::fixed, ios::floatfield );
-        Datei.precision(15);
-
-        Punkt* tempPunkt;
-
-        for(RUZ_Layer* layLauefer = m_layer->GetErstesElement(); layLauefer != NULL; layLauefer = m_layer->GetNaechstesElement())
-        {
-            Datei<<layLauefer->HoleName()<<"\n";
-            Liste<Punkt>* pktSammlung = layLauefer->HolePunkte();
-            for(tempPunkt = pktSammlung->GetErstesElement(); tempPunkt != NULL; tempPunkt = pktSammlung->GetNaechstesElement())
-            {
-                Datei<<tempPunkt<<"\t"<<tempPunkt->HolePosition().x()<<"\t"<<-tempPunkt->HolePosition().y()<<"\t"<<tempPunkt->HolePosition().z()<<"\n";
-            }
-            Datei<<"\n";
-        }
-    }
-    else
-    {
-        return false;
-    }
-    Datei.close();
-    return true;
-}
-
-RUZ_Layer* RUZmBIFrame::LayerKopieren(RUZ_Layer* altLayer, char* name)
-{
-    if(altLayer == NULL)return NULL;
-    RUZ_Layer* neuLayer = altLayer->Kopieren(name);
-    if(neuLayer == NULL)
-    {
-        wxMessageDialog(this, wxT("Anlegen neuer Layer fehlgeschlagen."), wxT("Layer kopieren")).ShowModal();
-        return NULL;
-    }
-
-    m_layer->Hinzufuegen(neuLayer);
-    LayerauswahlAktualisieren();
-    return neuLayer;
-}
-
-bool RUZmBIFrame::LayerLoeschen(wxString msg)
-{
-    return true;
-}
-
-void RUZmBIFrame::LayerauswahlAktualisieren(void)
-{
-    for(Listenelement<RUZ_Layer>* layerLELaeufer = m_layer->GetErstesListenelement(); layerLELaeufer != NULL; layerLELaeufer = layerLELaeufer->GetNachfolger())
-    {
-        const char* name = (layerLELaeufer->GetElement())->HoleName();
-        LayerAuswahl->LayerHinzufuegen(wxString(name), layerLELaeufer->GetElement());
-    }
-    return;
-}
-
 void RUZmBIFrame::LinieExtrudieren(Vektor nachPos)
 {
     double gefaelle = 0.0;
@@ -1866,7 +2778,6 @@ void RUZmBIFrame::LinieExtrudieren(Vektor nachPos)
     return;
 }
 
-
 void RUZmBIFrame::LinieParallel(Vektor nachPos)
 {
     double t_abstand;
@@ -1947,63 +2858,128 @@ void RUZmBIFrame::LinieParallel(Vektor nachPos)
     return;
 }
 
-void RUZmBIFrame::SkalierungAusfuehren(Vektor festPkt)
+void RUZmBIFrame::logSchreiben(const char* msg, ...)
 {
-    if(m_auswahl->GetListenGroesse() == 0)
+    FILE *Logbuch;
+    const char *pfad = "log/Debug.log";
+    Logbuch = fopen(pfad, "a");
+    va_list args;
+    va_start (args, msg);
+    vfprintf (Logbuch, msg, args);
+    va_end (args);
+    fclose(Logbuch);
+    return;
+}
+
+void RUZmBIFrame::logSchreiben(std::string msg)
+{
+    ofstream Logbuch;
+    const char *pfad = "log/Debug.log";
+    Logbuch.open(pfad, ios_base::out|ios_base::app);
+		if(Logbuch.good())
     {
-        return;
-    }
-    if(!SkalierFaktorenEingabe())
+      Logbuch<<msg;
+    	Logbuch.close();
+		}
+    return;
+}
+
+void RUZmBIFrame::logSchreiben(const Vektor msg, int i)
+{
+    ofstream Logbuch;
+    const char *pfad = "log/Debug.log";
+    Logbuch.open(pfad, ios_base::out|ios_base::app);
+    if(Logbuch.good())
     {
-        BefehleZuruecksetzen();
-        return;
+        Logbuch.setf( ios::fixed, ios::floatfield );
+        Logbuch.precision(i);
+        Logbuch<<"x: "<<msg.x()<<" | y: "<<msg.y()<<" | z:"<<msg.z();
+        Logbuch.close();
     }
-    for(RUZ_Objekt* obj = m_auswahl->GetErstesElement(); obj; obj = m_auswahl->GetNaechstesElement())
-    {
-        (obj)->Skalieren(festPkt, m_skalFkt[0], m_skalFkt[1], m_skalFkt[2]);
-    }
-    m_markierModus = true;
+    return;
+}
+
+void RUZmBIFrame::MenuEntmarkieren(void)
+{
     KoordinatenMaske->Show(false);
-    SetStatusText(wxT("Objekte zum Skalieren auswählen"), 2);
+    DoubleEingabe->Show(false);
+
+    /*menuItems zurücksetzen*/
+    menuLoeschen->Check(false);
+    menuVerschieben->Check(false);
+    menuKopieren->Check(false);
+    menuKopierenNachLayer->Check(false);
+    menuVersetzen->Check(false);
+    menuDrehen->Check(false);
+    menuPunktZeichnen->Check(false);
+    menuLinieZeichnen->Check(false);
+    menuKreisZeichnen->Check(false);
+    menuLinieExtrudieren->Check(false);
+    menuLinieParallel->Check(false);
+    menuDreieckZeichnen->Check(false);
+    menuViereckZeichnen->Check(false);
+    menuStreckeMessen->Check(false);
+    menuHoehenMarkeZeichnen->Check(false);
+    menuPunktVereinigen->Check(false);
+    menuPunkteSkalieren->Check(false);
+    menuViereckTeilen->Check(false);
+    menuFlaecheVerschneiden->Check(false);
+    menuSchnittPunktFlaeche->Check(false);
+    menuSchnittPunktLinie->Check(false);
+    menuFangpunkteFinden->Check(false);
+    /*ENDE menuItems zurücksetzen*/
+
+    Refresh();
     return;
 }
 
-void RUZmBIFrame::OnLoescheLayer(wxCommandEvent &event)
+void RUZmBIFrame::ObjekteNullen(void)
 {
-    AuswahlLeeren();
-    LayerLoeschen(wxT("Wollen Sie ALLE Layer\nunwiederbringlich löschen?"));
+    /*SchnittpunktSuche*/
+    m_schP_OrgPkt = m_schP_Richtung_1 = m_schP_Richtung_2 = NULL;
+    m_schP_Ln = NULL;
+    m_schP_Dr = NULL;
+    m_schP_Obj = NULL;
+    if(aktLayer == alternativAktLayer)
+    {
+        aktLayer = aktLayerBAK;
+    }
+    aktLayerBAK = alternativAktLayer = NULL;
+    /*ENDE SchnittpunktSuche*/
+
+    markiertesObjekt = objFang1 = objFang2 = NULL;
+    m_aktPunkt = NULL;
+    m_aktLinie = NULL;
+    m_aktKreis = NULL;
+    vereinOrigPkt = vereinErsatzPkt = NULL;
+
+    m_kopierAuswahl->ListeLoeschen("Objekte Nullen");
+}
+
+void RUZmBIFrame::OnAbout(wxCommandEvent &event)
+{
+	//wxProcess::Open("/../../HTML/RUZ-Handbuch/start.bat");
+	return;
+}
+
+void RUZmBIFrame::OnAnsichtswechsel(wxCommandEvent &event)
+{
+    if(aktuelleAnsicht == ansicht_ID_hoehenkarte)
+    {
+        lwBild.TabulaRasa();
+    }
+    aktuelleAnsicht = (ansichtID)event.GetId();
+    if(aktuelleAnsicht == ansicht_ID_hoehenkarte)
+    {
+        HoehenkarteZeichnen();
+    }
+    Refresh();
     return;
 }
 
-void RUZmBIFrame::OnLoescheStriche(wxCommandEvent &event)
+void RUZmBIFrame::OnAusdehnungFinden(wxCommandEvent &event)
 {
-		if(!aktLayer)return;
-		Liste<Strich> *LstStriche = aktLayer->HoleStriche();
-		LstStriche->ListeLoeschen("RUZmBIFrame::OnLoescheStriche");
-		return;
-}
-
-void RUZmBIFrame::OnLayerKopieren(wxCommandEvent &event)
-{
-    int layNr = Layer_Auswahl_Dialog(this, m_layer, wxT("Zu kopierenden Layer wählen")).ShowModal();
-    RUZ_Layer* sel_Layer = aktLayer;
-
-    for(Listenelement<RUZ_Layer>* layer_LE = m_layer->GetErstesListenelement(); layer_LE; layer_LE = layer_LE->GetNachfolger())
-    {
-        if(layer_LE->Wert() == layNr)
-        {
-            sel_Layer = layer_LE->GetElement();
-            break;
-        }
-    }
-
-    if(sel_Layer)
-    {
-        char layerName[256];
-        strcpy(layerName, "Cc_");
-        strncat(layerName, sel_Layer->HoleName(), 253);
-        LayerKopieren(sel_Layer, layerName);
-    }
+    AusdehnungFinden();
     return;
 }
 
@@ -2391,199 +3367,9 @@ void RUZmBIFrame::OnBearbeitungsBefehl(wxCommandEvent &event)
     return;
 }
 
-void RUZmBIFrame::OnAnsichtswechsel(wxCommandEvent &event)
+void RUZmBIFrame::OnClose(wxCloseEvent &event)
 {
-    if(aktuelleAnsicht == ansicht_ID_hoehenkarte)
-    {
-        lwBild.TabulaRasa();
-    }
-    aktuelleAnsicht = (ansichtID)event.GetId();
-    if(aktuelleAnsicht == ansicht_ID_hoehenkarte)
-    {
-        HoehenkarteZeichnen();
-    }
-    Refresh();
-    return;
-}
-
-void RUZmBIFrame::OnToggleHintergrund(wxCommandEvent &event)
-{
-    m_hintergrundMalen == true? m_hintergrundMalen = false : m_hintergrundMalen = true;
-    menuHintergrundMalen->Check(m_hintergrundMalen);
-    Refresh();
-    return;
-}
-
-void RUZmBIFrame::OnUeberlappungFinden(wxCommandEvent& event)
-{
-    Liste<Flaeche>* flLst = aktLayer->HoleFlaechen();
-    Liste<Linie>* lnLst = aktLayer->HoleLinien();
-    Flaeche *flAkt, *flVergleich;
-    int iEckenAkt, iEckenVergleich;
-    for(Listenelement<Flaeche>* flLEAkt = flLst->GetErstesListenelement(); flLEAkt != NULL; flLEAkt = flLEAkt->GetNachfolger())
-    {
-        flAkt = flLEAkt->GetElement();
-        flAkt->LoescheFarbe();
-        flAkt->SetzeBesucht('-');
-    }
-    for(Linie* lnAkt = lnLst->GetErstesElement(); lnAkt != NULL; lnAkt = lnLst->GetNaechstesElement())
-    {
-        lnAkt->LoescheFarbe();
-    }
-    aktLayer->FehlerEntfernen();
-
-    bool weiter;
-    double dFlaechenInhaltAkt, dFlaechenInhalteVergleich;
-    for(Listenelement<Flaeche>* flLEAkt = flLst->GetErstesListenelement(); flLEAkt != NULL; flLEAkt = flLEAkt->GetNachfolger())
-    {
-        flAkt = flLEAkt->GetElement();
-        dFlaechenInhaltAkt = flAkt->FlaechenInhalt(aktProjZ);
-        (flAkt->HoleTyp() == RUZ_Dreieck) ? iEckenAkt = 3 : iEckenAkt = 4;
-        for(Listenelement<Flaeche>* flLEVergleich = flLEAkt->GetNachfolger(); flLEVergleich != NULL; flLEVergleich = flLEVergleich->GetNachfolger())
-        {
-            flVergleich = flLEVergleich->GetElement();
-            dFlaechenInhalteVergleich = flVergleich->FlaechenInhalt(aktProjZ);
-            (flVergleich->HoleTyp() == RUZ_Dreieck) ? iEckenVergleich = 3 : iEckenVergleich = 4;
-
-            for(int i = 0; i < iEckenAkt; i++)
-            {
-                weiter = false;
-                Punkt* pktTemp = flAkt->HolePunkt(i);
-                for(int k = 0; k < iEckenVergleich; k++)
-                {
-                    if(pktTemp == flVergleich->HolePunkt(k))
-                    {
-                        weiter = true;
-                        break;
-                    }
-                }
-                if(weiter)continue;
-                if(flVergleich->IstInnerhalb(pktTemp))
-                {
-                    if(dFlaechenInhaltAkt > dFlaechenInhalteVergleich)
-                    {
-                        flVergleich->SetzeBesucht('+');
-                    }else{
-                        flAkt->SetzeBesucht('+');
-                    }
-                    flVergleich->SetzeFarbe(128, 55, 55);
-                    flAkt->SetzeFarbe(128, 55, 55);
-
-                    aktLayer->Hinzufuegen(new Vektor(pktTemp->HolePosition()));
-                }
-                for(int k = 0; k < iEckenVergleich; k++)
-                {
-                    if(flVergleich->HoleLinie(k)->schneidet(flAkt->HoleLinie(i), aktProjZ))
-                    {
-                        if(dFlaechenInhaltAkt > dFlaechenInhalteVergleich)
-                        {
-                            flVergleich->SetzeBesucht('+');
-                        }else{
-                            flAkt->SetzeBesucht('+');
-                        }
-                        flVergleich->SetzeFarbe(128, 55, 55);
-                        flAkt->SetzeFarbe(128, 55, 55);
-
-                        flVergleich->HoleLinie(k)->SetzeFarbe(255, 110, 110);
-                        flAkt->HoleLinie(i)->SetzeFarbe(255, 110, 110);
-                    }
-                }
-            }
-
-            for(int i = 0; i < iEckenVergleich; i++)
-            {
-                weiter = false;
-                Punkt* pktTemp = flVergleich->HolePunkt(i);
-                for(int k = 0; k < iEckenAkt; k++)
-                {
-                    if(pktTemp == flAkt->HolePunkt(k))
-                    {
-                        weiter = true;
-                        break;
-                    }
-                }
-                if(weiter)continue;
-                if(flAkt->IstInnerhalb(flVergleich->HolePunkt(i)))
-                {
-                    if(dFlaechenInhaltAkt > dFlaechenInhalteVergleich)
-                    {
-                        flVergleich->SetzeBesucht('+');
-                    }else{
-                        flAkt->SetzeBesucht('+');
-                    }
-                    flVergleich->SetzeFarbe(128, 55, 55);
-                    flAkt->SetzeFarbe(128, 55, 55);
-
-                    aktLayer->Hinzufuegen(new Vektor(pktTemp->HolePosition()));
-                }
-            }
-        }
-    }
-    Refresh();
-
-    if(wxMessageDialog(this, wxT("Soll die Überlappung gelöscht werden?\n(kleinere Fläche wird gelöscht)")
-                       , wxT("Überlappung löschen"), wxYES_NO).ShowModal() == wxID_YES)
-    {
-        for(Flaeche* flAkt = flLst->GetErstesElement(); flAkt != NULL; flAkt = flLst->GetNaechstesElement())
-        {
-            if(flAkt->HoleBesucht() == '+')
-            {
-                flLst->Entfernen(flAkt);
-                delete flAkt;
-            }
-        }
-        Refresh();
-    }
-    return;
-}
-
-void RUZmBIFrame::OnAusdehnungFinden(wxCommandEvent &event)
-{
-    AusdehnungFinden();
-    return;
-}
-
-void RUZmBIFrame::OnKantenWandeln(wxCommandEvent &event)
-{
-    SetStatusText(wxT("Striche in Linien wandeln"));
-    if(aktLayer!=NULL)
-    {
-        aktLayer->LinienAusStrichen(peEinstellungenDlg->HoleWert(IDlnWandelGenauigkeit), z);
-    }else{
-        SetStatusText(wxT("Kein aktueller Layer vorhanden!"), 1);
-    }
-    return;
-}
-
-void RUZmBIFrame::OnPunkteVernetzen(wxCommandEvent &event)
-{
-    ObjekteNullen();
-    SetStatusText(wxT("Punkte vernetzen"));
-    if(aktLayer!=NULL)
-    {
-        Liste<Punkt>* pktLst = new Liste<Punkt>();
-        for(RUZ_Objekt *obj = m_auswahl->GetErstesElement(); obj != NULL; obj = m_auswahl->GetNaechstesElement())
-        {
-            if(obj->HoleTyp() == RUZ_Punkt)
-            {
-                pktLst->Hinzufuegen(static_cast<Punkt*>(obj));
-            }
-        }
-        m_auswahl->ListeLeeren("");
-        double dauer;
-        if(pktLst->GetListenGroesse() == 0)
-        {
-            dauer = aktLayer->PunkteVernetzen();
-        }else{
-            dauer = aktLayer->PunkteVernetzen(pktLst);
-        }
-        delete pktLst;
-        SetStatusText(wxString::Format("Vernetzen dauerte %1.5f Sekunden", dauer), 1);
-        Refresh();
-    }else{
-        SetStatusText(wxT("Kein aktueller Layer vorhanden!"), 1);
-    }
-    return;
+    Destroy();
 }
 
 void RUZmBIFrame::OnDreieckeFinden(wxCommandEvent &event)
@@ -2599,249 +3385,129 @@ void RUZmBIFrame::OnDreieckeFinden(wxCommandEvent &event)
     return;
 }
 
-void RUZmBIFrame::OnViereckeFinden(wxCommandEvent &event)
+void RUZmBIFrame::OnEinstellungen(wxCommandEvent &event)
 {
-    AuswahlLeeren();
-    if(aktLayer!=NULL)
-    {
-        aktLayer->ViereckeFinden();
-        Refresh();
-    }else{
-        SetStatusText(wxT("Kein Layer vorhanden!"), 1);
-    }
+    peEinstellungenDlg->ShowModal();
+
+    m_verschubWeite = peEinstellungenDlg->HoleWert(IDverschubWeite);
+    m_lnWandelGenauigkeit = peEinstellungenDlg->HoleWert(IDlnWandelGenauigkeit);
+    m_anzeigeGenauigkeit = (int)(peEinstellungenDlg->HoleWert(IDanzeigeGenauigkeit));
+        if(m_anzeigeGenauigkeit < 0)m_anzeigeGenauigkeit = 0;
+    m_pseudoSchattenFkt = peEinstellungenDlg->HoleWert(IDpseudoSchattenFkt);
+        if(m_pseudoSchattenFkt < 0)m_pseudoSchattenFkt = 0;
+    pxSuchEntfernung = (int)(peEinstellungenDlg->HoleWert(IDpxSuchEntfernung));
+        if(pxSuchEntfernung < 1)pxSuchEntfernung = 1;
+
+    Refresh();
     return;
 }
 
-void RUZmBIFrame::OnKomplettVernetzen(wxCommandEvent &event)
-{
-    AuswahlLeeren();
-    if(aktLayer!=NULL)
-    {
-        aktLayer->LinienAusStrichen(peEinstellungenDlg->HoleWert(IDlnWandelGenauigkeit), z);
-        SetStatusText(wxT("Punkte vernetzen"));
-        double dauer = aktLayer->PunkteVernetzen();
-        SetStatusText(wxString::Format("Vernetzen dauerte %1.5f Sekunden", dauer), 1);
-        aktLayer->DreieckeFinden();
-        aktLayer->ViereckeFinden();
-        Refresh();
-    }else{
-        SetStatusText(wxT("Kein Layer vorhanden!"), 1);
-    }
-    return;
-}
-
-void RUZmBIFrame::OnLayerVerschneiden(wxCommandEvent &event)
-{
-    AuswahlLeeren();
-    /*Die zu verschneidenden Layer auswählen*/
-    int layNr1 = Layer_Auswahl_Dialog(this, m_layer, wxT("Ersten Layer wählen")).ShowModal();
-    int layNr2;
-    if(layNr1 == -1)return;
-    do
-    {
-        layNr2 = Layer_Auswahl_Dialog(this, m_layer, wxT("Zweiten Layer wählen")).ShowModal();
-        if(layNr2 == -1)return;
-        if(layNr1 == layNr2)
-        {
-            if(wxMessageDialog(this, wxT("Layer kann nicht mit sich selber verschnitten werden!\nBitte neuen zweiten Layer wählen."), wxT("Layer identisch")).ShowModal() == wxID_CANCEL)
-            {
-                return;
-            }
-        }
-    }while(layNr1 == layNr2);
-
-    char layerName[256];
-    RUZ_Layer* erster_Layer = NULL;
-    RUZ_Layer* zweiter_Layer = NULL;
-    RUZ_Layer *erster_neuer_Layer, *zweiter_neuer_Layer;
-
-    for(Listenelement<RUZ_Layer>* layer_LE = m_layer->GetErstesListenelement(); layer_LE; layer_LE = layer_LE->GetNachfolger())
-    {
-        if(layer_LE->Wert() == layNr1)
-        {
-            erster_Layer = layer_LE->GetElement();
-        }
-        if(layer_LE->Wert() == layNr2)
-        {
-            zweiter_Layer = layer_LE->GetElement();
-        }
-        if(erster_Layer && zweiter_Layer)break;
-    }
-    if(!erster_Layer || !zweiter_Layer)
-    {
-        wxMessageDialog(this, wxT("Layerauswahl war nicht erfolgreich."), wxT("Abbruch")).ShowModal();
-        return;
-    }
-    wxTextEntryDialog abfrage(this, wxT("Bitte geben Sie einen Namen an"), wxT("Name der Verschneidung"), wxT("Verschneidung"));
-    abfrage.ShowModal();
-    wxString namensZusatzString = abfrage.GetValue();
-    wxCharBuffer buffer = namensZusatzString.ToUTF8();
-    char* namensZusatzchar(buffer.data());  // data() returns const char *
-
-    strncpy(layerName, namensZusatzchar, 128);
-    strncat(layerName, "_", (256 - 128));
-    strncat(layerName, erster_Layer->HoleName(), (256 - 128 -1));
-    erster_neuer_Layer = LayerKopieren(erster_Layer, layerName);
-
-    strncpy(layerName, namensZusatzchar, 128);
-    strncat(layerName, "_", (256 - 128));
-    strncat(layerName, zweiter_Layer->HoleName(), (256 - 128 -1));
-    zweiter_neuer_Layer = LayerKopieren(zweiter_Layer, layerName);
-
-    if((!erster_neuer_Layer)||(!zweiter_neuer_Layer))return;
-    /*ENDE Die zu verschneidenden Layer auswählen*/
-
-    /*Das eigentliche Verschneiden*/
-		thread_info_verschnitt thInf(erster_neuer_Layer, zweiter_neuer_Layer);
-		//RUZ_Layer *hilfsLayer, *randLayer1, *randLayer2;
-		//thInf.HoleLayer(&hilfsLayer, &randLayer1, &randLayer2, &erster_neuer_Layer, &zweiter_neuer_Layer);
-		int t_genauigkeit = m_anzeigeGenauigkeit+3;
-		std::thread thVerschnitt(&RUZ_Layer::Verschneiden, erster_neuer_Layer, zweiter_neuer_Layer, &thInf, &t_genauigkeit);
-		thVerschnitt.detach();
-
-		RUZThreadCtrl(&thInf, 200, this, wxID_ANY, wxString::Format("Layer verschneiden")).ShowModal();
-    /*ENDE Das eigentliche Verschneiden*/
-    return;
-}
-
-void RUZmBIFrame::OnLayerInSichVerschneiden(wxCommandEvent &event)
+void RUZmBIFrame::OnEntferneHoeheres(wxCommandEvent& event)
 {
     AuswahlLeeren();
     if(aktLayer)
     {
-        aktLayer->VerschneideFlaechen(aktLayer->HoleFlaechen(), m_anzeigeGenauigkeit+3);
+        aktLayer->EntferneHoeheres(aktProjZ);
     }
+    Refresh();
     return;
 }
 
-void RUZmBIFrame::OnLayerRandabschneiden(wxCommandEvent &event)
+void RUZmBIFrame::OnEntferneTieferes(wxCommandEvent& event)
 {
     AuswahlLeeren();
-    int layNr1 = Layer_Auswahl_Dialog(this, m_layer, wxT("Ersten Layer wählen")).ShowModal();
-    int layNr2;
-    if(layNr1 == -1)return;
-    do
+    if(aktLayer)
     {
-        layNr2 = Layer_Auswahl_Dialog(this, m_layer, wxT("Zweiten Layer wählen")).ShowModal();
-        if(layNr2 == -1)return;
-        if(layNr1 == layNr2)
-        {
-            if(wxMessageDialog(this, wxT("Layer kann nicht am eigenen Rand abgeschnitten werden!\nBitte neuen zweiten Layer wählen."), wxT("Layer identisch")).ShowModal() == wxID_CANCEL)
-            {
-                return;
-            }
-        }
-    }while(layNr1 == layNr2);
-
-    //char layerName[256];
-    RUZ_Layer* erster_Layer = NULL;
-    RUZ_Layer* zweiter_Layer = NULL;
-    //RUZ_Layer *erster_neuer_Layer, *zweiter_neuer_Layer;
-
-    for(Listenelement<RUZ_Layer>* layer_LE = m_layer->GetErstesListenelement(); layer_LE; layer_LE = layer_LE->GetNachfolger())
-    {
-        if(layer_LE->Wert() == layNr1)
-        {
-            erster_Layer = layer_LE->GetElement();
-        }
-        if(layer_LE->Wert() == layNr2)
-        {
-            zweiter_Layer = layer_LE->GetElement();
-        }
-        if(erster_Layer && zweiter_Layer)break;
+        aktLayer->EntferneTieferes(aktProjZ);
     }
-    if(!erster_Layer || !zweiter_Layer)
-    {
-        wxMessageDialog(this, wxT("Layerauswahl war nicht erfolgreich."), wxT("Abbruch")).ShowModal();
-    }
-
-    erster_Layer->RandAbschneiden(zweiter_Layer);
-    erster_Layer->LoescheFreiliegendeFlaechen(zweiter_Layer);
-    zweiter_Layer->LoescheFreiliegendeFlaechen(erster_Layer);
+    Refresh();
     return;
 }
 
-void RUZmBIFrame::FangeLayerSkalieren(aruLayerListeEvent& event)
+void RUZmBIFrame::OnEraseBackground(wxEraseEvent& event)
 {
-    Liste<RUZ_Layer>* t_lst = event.HoleLayerListe();
-    for(RUZ_Layer* t_layer = t_lst->GetErstesElement(); t_layer; t_layer = t_lst->GetNaechstesElement())
-    {
-        m_skalierListe->Hinzufuegen(t_layer);
-    }
-    SetStatusText(wxT("Festpunkt der Skalierung wählen"), 2);
-    KoordinatenMaske->Show();
     return;
 }
 
-void RUZmBIFrame::LayerSkalieren(Vektor festPkt)
+void RUZmBIFrame::OnGefaelleRasterZeigen(wxCommandEvent &event)
 {
-    for(RUZ_Layer* t_layer = m_skalierListe->GetErstesElement(); t_layer; t_layer = m_skalierListe->GetNaechstesElement())
+    if(!menuGefaelleRasterZeigen->IsChecked())
     {
-        Liste<Punkt>* pktLst = t_layer->HolePunkte();
-        for(Punkt* t_pkt = pktLst->GetErstesElement(); t_pkt; t_pkt = pktLst->GetNaechstesElement())
-        {
-            t_pkt->Skalieren(festPkt, m_skalFkt[0], m_skalFkt[1], m_skalFkt[2]);
-        }
-
-        Liste<Strich>* strLst = t_layer->HoleStriche();
-        for(Strich* t_str = strLst->GetErstesElement(); t_str; t_str = strLst->GetNaechstesElement())
-        {
-            t_str->Skalieren(festPkt, m_skalFkt[0], m_skalFkt[1], m_skalFkt[2]);
-        }
-
-        Liste<Bogen>* bgnLst = t_layer->HoleBoegen();
-        for(Bogen* t_bgn = bgnLst->GetErstesElement(); t_bgn; t_bgn = bgnLst->GetNaechstesElement())
-        {
-            t_bgn->Skalieren(festPkt, m_skalFkt[0], m_skalFkt[1], m_skalFkt[2]);
-        }
+        if(aktLayer)aktLayer->GefaelleRasterLoeschen();
+        gefaelleRasterAnzeigen = false;
+        return;
     }
-    m_skalierListe->ListeLeeren("");
-    BefehleZuruecksetzen();
+    gefaelleRasterAnzeigen = true;
+    m_gefaelleRaster = peEinstellungenDlg->HoleWert(IDgefaelleRasterGroesse);
+    m_flaechenRaster = peEinstellungenDlg->HoleWert(IDflaechenRasterGroesse);
+    double dTempMin = peEinstellungenDlg->HoleWert(IDgefaelleMinimum)/100;
+    double dTempOpt = peEinstellungenDlg->HoleWert(IDgefaelleOptimum)/100;
+    double dTempMax = peEinstellungenDlg->HoleWert(IDgefaelleMaximum)/100;
+
+    if(aktLayer)aktLayer->GefaelleRasterAnlegen(m_gefaelleRaster, dTempMin, dTempOpt, dTempMax);
+    //wxMessageDialog(this, wxT("Angelegt")).ShowModal();
+    Refresh();
     return;
 }
 
-bool RUZmBIFrame::SkalierFaktorenEingabe()
+void RUZmBIFrame::OnGefaelleZeigen(wxCommandEvent &event)
 {
-    double t_wert = 1.0;
-    for(int i = 0; i < 3; i++)
+    if(menuGefaelleZeigen->IsChecked())
     {
-        do
-        {
-            wxString t_richtung;
-            switch(i)
-            {
-            case 1:
-                t_richtung = wxT("y");
-                break;
-            case 2:
-                t_richtung = wxT("z");
-                break;
-            default:
-                t_richtung = wxT("x");
-            }
-            wxTextEntryDialog abfrage(this, wxT("Bitte geben Sie den Skalierfaktor in ") + t_richtung + wxT("-Richtung an."), wxT("Skalierfaktor"), wxString::Format(wxT("%0.6f"), t_wert));
-            if(abfrage.ShowModal() == wxID_ABORT)return false;
-            wxString number = abfrage.GetValue();
-            /*komma gegen punkt tauschen*/
-            wxString punkt = wxT(".");
-            wxString komma = wxT(",");
-            number.Replace(komma, punkt);
-            double value;
-            if(!number.ToDouble(&value))
-            {
-                if(strcmp(number, "")!=0)
-                {
-                    if(wxMessageDialog(this, wxT("Bitte geben Sie eine Zahl ein"), wxT("Eingabe fehlerhaft")).ShowModal() == wxID_ABORT)return false;
-                }else{
-                    value = t_wert;
-                    continue;
-                }
-            }
-            m_skalFkt[i] = value;
-            break;
-        }while(1);
+        //m_gefaelleRaster = peEinstellungenDlg->HoleWert(IDgefaelleRasterGroesse);
+        //wxMessageDialog(this, wxString::Format("Gefälleraster: %0.2f", gefaelle)).ShowModal();
+        gefaelleAnzeigen = 1;
+    }else{
+        gefaelleAnzeigen = 0;
     }
-    return true;
+    return;
+}
+
+void RUZmBIFrame::OnHintergrundEinlesen(wxCommandEvent &event)
+{
+    FileOpener->SetWildcard(wxT("DXF-Datei (*.dxf)|*.dxf"));
+    int Rueckgabe = FileOpener->ShowModal();
+    if(Rueckgabe==wxID_CANCEL)return;
+    SetStatusText(FileOpener->GetPath(), 1);
+
+    /*DXF Einlesen*/
+    if((FileOpener->GetPath()).EndsWith(wxT("f"))||(FileOpener->GetPath()).EndsWith(wxT("F")))/*Wenn dxf ausgewählt wurde*/
+    {
+        char x_kennung[64], y_kennung[64], z_kennung[64], sw_kennung[64];
+        dxfParameterDlg->HoleKennung(x_kennung, IDpktXKenn);
+        dxfParameterDlg->HoleKennung(y_kennung, IDpktYKenn);
+        dxfParameterDlg->HoleKennung(z_kennung, IDpktZKenn);
+        dxfParameterDlg->HoleKennung(sw_kennung, IDpktSW);
+
+        DXF_Import *dxfImporteur = new DXF_Import((char*)static_cast<const char*>(FileOpener->GetPath().c_str()),
+                                                         x_kennung, y_kennung, z_kennung, sw_kennung);
+        if(!dxfImporteur->EinlesenHintergrund(m_hintergrundLayer))
+        {
+            wxMessageDialog(this, wxString::FromUTF8("Beim Einlesen ist ein Fehler aufgetreten.\nEvtl. wurde nicht alles eingelesen")).ShowModal();
+        }
+        wxMessageDialog(this, wxString::FromUTF8(wxString::Format("%d Striche\n%d Bögen", m_hintergrundLayer->HoleStriche()->GetListenGroesse()
+                                               , m_hintergrundLayer->HoleBoegen()->GetListenGroesse()))).ShowModal();
+        AusdehnungFinden();
+        delete dxfImporteur;
+    }/*ENDE DXF Einlesen*/
+    else/*Ansonsten ist es eine ruz-datei*/
+    {
+        wxMessageDialog(this, wxT("Einlesen von RUZ-Dateien wird derzeit nicht unterstützt."), wxT("Abbruch")).ShowModal();
+    }
+    Refresh();
+    return;
+}
+
+void RUZmBIFrame::OnHintergrundLoeschen(wxCommandEvent &event)
+{
+    m_hintergrundLayer->HolePunkte()->ListeLoeschen("Hintergrundlayer löschen");
+    m_hintergrundLayer->HoleLinien()->ListeLoeschen("Hintergrundlayer löschen");
+    m_hintergrundLayer->HoleFlaechen()->ListeLoeschen("Hintergrundlayer löschen");
+    m_hintergrundLayer->HoleStriche()->ListeLoeschen("Hintergrundlayer löschen");
+    m_hintergrundLayer->HoleBoegen()->ListeLoeschen("Hintergrundlayer löschen");
+    m_hintergrundLayer->HoleHoehenMarken()->ListeLoeschen("Hintergrundlayer löschen");
+    Refresh();
+    return;
 }
 
 void RUZmBIFrame::OnHLEinstellen(wxCommandEvent &event)
@@ -2889,1259 +3555,15 @@ void RUZmBIFrame::OnHLZeigen(wxCommandEvent &event)
     return;
 }
 
-void RUZmBIFrame::OnGefaelleZeigen(wxCommandEvent &event)
+void RUZmBIFrame::OnKantenWandeln(wxCommandEvent &event)
 {
-    if(menuGefaelleZeigen->IsChecked())
+    SetStatusText(wxT("Striche in Linien wandeln"));
+    if(aktLayer!=NULL)
     {
-        //m_gefaelleRaster = peEinstellungenDlg->HoleWert(IDgefaelleRasterGroesse);
-        //wxMessageDialog(this, wxString::Format("Gefälleraster: %0.2f", gefaelle)).ShowModal();
-        gefaelleAnzeigen = 1;
+        aktLayer->LinienAusStrichen(peEinstellungenDlg->HoleWert(IDlnWandelGenauigkeit), z);
     }else{
-        gefaelleAnzeigen = 0;
+        SetStatusText(wxT("Kein aktueller Layer vorhanden!"), 1);
     }
-    return;
-}
-
-void RUZmBIFrame::OnGefaelleRasterZeigen(wxCommandEvent &event)
-{
-    if(!menuGefaelleRasterZeigen->IsChecked())
-    {
-        if(aktLayer)aktLayer->GefaelleRasterLoeschen();
-        gefaelleRasterAnzeigen = false;
-        return;
-    }
-    gefaelleRasterAnzeigen = true;
-    m_gefaelleRaster = peEinstellungenDlg->HoleWert(IDgefaelleRasterGroesse);
-    m_flaechenRaster = peEinstellungenDlg->HoleWert(IDflaechenRasterGroesse);
-    double dTempMin = peEinstellungenDlg->HoleWert(IDgefaelleMinimum)/100;
-    double dTempOpt = peEinstellungenDlg->HoleWert(IDgefaelleOptimum)/100;
-    double dTempMax = peEinstellungenDlg->HoleWert(IDgefaelleMaximum)/100;
-
-    if(aktLayer)aktLayer->GefaelleRasterAnlegen(m_gefaelleRaster, dTempMin, dTempOpt, dTempMax);
-    //wxMessageDialog(this, wxT("Angelegt")).ShowModal();
-    Refresh();
-    return;
-}
-
-void RUZmBIFrame::OnEinstellungen(wxCommandEvent &event)
-{
-    peEinstellungenDlg->ShowModal();
-
-    m_verschubWeite = peEinstellungenDlg->HoleWert(IDverschubWeite);
-    m_lnWandelGenauigkeit = peEinstellungenDlg->HoleWert(IDlnWandelGenauigkeit);
-    m_anzeigeGenauigkeit = (int)(peEinstellungenDlg->HoleWert(IDanzeigeGenauigkeit));
-        if(m_anzeigeGenauigkeit < 0)m_anzeigeGenauigkeit = 0;
-    m_pseudoSchattenFkt = peEinstellungenDlg->HoleWert(IDpseudoSchattenFkt);
-        if(m_pseudoSchattenFkt < 0)m_pseudoSchattenFkt = 0;
-    pxSuchEntfernung = (int)(peEinstellungenDlg->HoleWert(IDpxSuchEntfernung));
-        if(pxSuchEntfernung < 1)pxSuchEntfernung = 1;
-
-    Refresh();
-    return;
-}
-
-void RUZmBIFrame::OnSonnenstandEinstellen(wxCommandEvent &event)
-{
-    Sonnenstand_Dialog(this, m_sonnenRichtung).ShowModal();
-    return;
-}
-
-void RUZmBIFrame::OnLayerinhaltAnzeigen(wxCommandEvent &event)
-{
-    if(aktLayer)
-    {
-        int anzPkt = aktLayer->HolePunkte()->GetListenGroesse();
-        int anzLn = aktLayer->HoleLinien()->GetListenGroesse();
-        int anzKr = aktLayer->HoleKreise()->GetListenGroesse();
-        int anzFP = aktLayer->HoleFangpunkte()->GetListenGroesse();
-        int anzDrk = 0;
-        int anzVrk = 0;
-        Liste<Flaeche> *flLst = aktLayer->HoleFlaechen();
-        for(Flaeche *tFl = flLst->GetErstesElement(); tFl; tFl = flLst->GetNaechstesElement())
-        {
-            (tFl->HoleTyp() == RUZ_Dreieck) ? anzDrk++ : anzVrk++;
-        }
-        int anzHP = aktLayer->HoleHoehenMarken()->GetListenGroesse();
-        int anzGM = aktLayer->HoleGefaelleMarken()->GetListenGroesse();
-        wxMessageDialog(this, wxString::FromUTF8(aktLayer->HoleName()) +
-                            wxString::FromUTF8(wxString::Format(" enthält: \n%d Punkt(e)\n%d Linie(n)\n%d Kreis(e)\n%d Fangpunkt(e)\n%d Dreieck(e)\n%d Viereck(e)\n%d Höhenmarke(n)\n%d Gefällemarke(n)",
-                                             anzPkt, anzLn, anzKr, anzFP, anzDrk, anzVrk, anzHP, anzGM))).ShowModal();
-    }
-    return;
-}
-
-void RUZmBIFrame::OnVolumenZwischenLayern(wxCommandEvent &event)
-{
-    /*Die Layer auswählen zwischen denen das Volumen ermittelt werden soll*/
-    int layNr1 = Layer_Auswahl_Dialog(this, m_layer, wxT("Layer wählen (Ursprungsgelände)")).ShowModal();
-    int layNr2;
-    if(layNr1 == -1)return;
-    do
-    {
-        layNr2 = Layer_Auswahl_Dialog(this, m_layer, wxT("Layer wählen (Neues Gelände)")).ShowModal();
-        if(layNr2 == -1)return;
-        if(layNr1 == layNr2)
-        {
-            if(wxMessageDialog(this, wxT("Zweimal derselbe Layer gewählt!\nBitte neuen zweiten Layer wählen."), wxT("Layer identisch"), wxOK|wxCANCEL).ShowModal() == wxID_CANCEL)
-            {
-                return;
-            }
-        }
-    }while(layNr1 == layNr2);
-
-    RUZ_Layer* erster_Layer = NULL;
-    RUZ_Layer* zweiter_Layer = NULL;
-    //RUZ_Layer *erster_neuer_Layer, *zweiter_neuer_Layer;
-
-    for(Listenelement<RUZ_Layer>* layer_LE = m_layer->GetErstesListenelement(); layer_LE; layer_LE = layer_LE->GetNachfolger())
-    {
-        if(layer_LE->Wert() == layNr1)
-        {
-            erster_Layer = layer_LE->GetElement();
-        }
-        if(layer_LE->Wert() == layNr2)
-        {
-            zweiter_Layer = layer_LE->GetElement();
-        }
-        if(erster_Layer && zweiter_Layer)break;
-    }
-    if(!erster_Layer || !zweiter_Layer)
-    {
-        wxMessageDialog(this, wxT("Layerauswahl war nicht erfolgreich."), wxT("Abbruch")).ShowModal();
-        return;
-    }
-
-    /*Volumen ermitteln*/
-    clock_t tLaufzeit;
-
-    double dAuftrag, dAbtrag, dOffsetNeu, dOffsetUr;
-    dAuftrag = dAbtrag = 0.0;
-    dOffsetNeu = dOffsetUr = 0.0;
-
-    if(event.GetId() == idVolumenZwischenLayern_Integral)
-    {
-        /*Höhenverschub der Layer*/
-        bool exitSchleife = false;
-        while(!exitSchleife) //dOffsetNeu
-        {
-            wxTextEntryDialog abfrage(this, wxT(" (Neues Gelände):\nHöhen für für die Berechnung anpassen"),
-                                      wxT("Höhenverschub"), wxString::Format(wxT("%0.2f"), 0.0));
-            if(abfrage.ShowModal() == wxID_ABORT)return;
-            wxString number = abfrage.GetValue();
-            /*komma gegen punkt tauschen*/
-            wxString punkt = wxT(".");
-            wxString komma = wxT(",");
-            number.Replace(komma, punkt);
-            if(!number.ToDouble(&dOffsetNeu))
-            {
-                if(strcmp(number, "")!=0)
-                {
-                    if(wxMessageDialog(this, wxT("Bitte geben Sie eine Zahl ein"), wxT("Eingabe fehlerhaft")).ShowModal() == wxID_ABORT)break;
-                }else{
-                    dOffsetNeu = 0.0;
-                    exitSchleife = true;
-                }
-            }
-            exitSchleife = true;
-        }
-        exitSchleife = false;
-        while(!exitSchleife) //dOffsetUr
-        {
-            wxTextEntryDialog abfrage(this, wxT(" (Urgelände):\nHöhen für für die Berechnung anpassen"),
-                                      wxT("Höhenverschub"), wxString::Format(wxT("%0.2f"), 0.0));
-            if(abfrage.ShowModal() == wxID_ABORT)return;
-            wxString number = abfrage.GetValue();
-            /*komma gegen punkt tauschen*/
-            wxString punkt = wxT(".");
-            wxString komma = wxT(",");
-            number.Replace(komma, punkt);
-            if(!number.ToDouble(&dOffsetUr))
-            {
-                if(strcmp(number, "")!=0)
-                {
-                    if(wxMessageDialog(this, wxT("Bitte geben Sie eine Zahl ein"), wxT("Eingabe fehlerhaft")).ShowModal() == wxID_ABORT)break;
-                }else{
-                    dOffsetUr = 0.0;
-                    exitSchleife = true;
-                }
-            }
-            exitSchleife = true;
-        }
-        /*ENDE Höhenverschub der Layer*/
-
-        double minX, minY, maxX, maxY, minZ, maxZ;
-        if(zweiter_Layer->AusdehnungFinden(minX, minY, maxX, maxY, minZ, maxZ))
-        {
-            SetStatusText(wxT("Starte Integration (Neues Gelände)"), 1);
-            Refresh();
-
-            double* dIntegral_NeuesGelaende = NULL;
-            aruIntegral tempIntegral_Neu(dIntegral_NeuesGelaende, minX, minY, maxX, maxY, m_flaechenRaster, aktProjZ);
-            dIntegral_NeuesGelaende = tempIntegral_Neu.HoleIntegral();
-            if(!dIntegral_NeuesGelaende)
-            {
-                wxMessageDialog(this, wxT("Fehler beim Anlegen des Integrals\n(evtl. zu wenig Speicher?)"), wxT("Abbruch der Berechnung")).ShowModal();
-                return;
-            }
-
-            Liste<Flaeche>* lstFl = zweiter_Layer->HoleFlaechen();
-            int iAktFlaeche = 0;
-            for(Flaeche* aktFl = lstFl->GetErstesElement(); aktFl != NULL; aktFl = lstFl->GetNaechstesElement())
-            {
-                if(aktFl->HoleTyp() == RUZ_Dreieck)
-                {
-                    Vektor vNormale = aktFl->HoleNormale();
-                    Vektor vSenkrechte(0, 0, 0);
-                    vSenkrechte.SetKoordinaten(aktProjZ, 1.0);
-                    if(vNormale*vSenkrechte < 0.05)continue;//0.05 = ca. cos(87°) - fast senkrechte Flächen überspringen (ergibt an den Rändern unbrauchbar hohe Werte)
-                }
-                tempIntegral_Neu.IntegriereFlaeche(aktFl);
-            }
-
-            SetStatusText(wxT("Starte Integration (Urgelände)"), 1);
-            Refresh();
-
-            double* dIntegral_Urgelaende = NULL;
-            aruIntegral tempIntegral_Ur(dIntegral_Urgelaende, minX, minY, maxX, maxY, m_flaechenRaster, aktProjZ);
-            dIntegral_Urgelaende = tempIntegral_Ur.HoleIntegral();
-            if(!dIntegral_Urgelaende)
-            {
-                wxMessageDialog(this, wxT("Fehler beim Anlegen des Integrals\n(evtl. zu wenig Speicher?)"), wxT("Abbruch der Berechnung")).ShowModal();
-                return;
-            }
-
-            lstFl = erster_Layer->HoleFlaechen();
-            tLaufzeit = clock();
-            iAktFlaeche = 0;
-            for(Flaeche* aktFl = lstFl->GetErstesElement(); aktFl != NULL; aktFl = lstFl->GetNaechstesElement())
-            {
-                if(aktFl->HoleTyp() == RUZ_Dreieck)
-                {
-                    Vektor vNormale = aktFl->HoleNormale();
-                    Vektor vSenkrechte(0, 0, 0);
-                    vSenkrechte.SetKoordinaten(aktProjZ, 1.0);
-                    if(vNormale*vSenkrechte < 0.05)continue;//0.05 = ca. cos(87°) - fast senkrechte Flächen überspringen (ergibt an den Rändern unbrauchbar hohe Werte)
-                }
-                tempIntegral_Ur.IntegriereFlaeche(aktFl);
-            }
-
-            double maxWert, minWert;
-            int iB = tempIntegral_Neu.HoleBreite();
-            int iH = tempIntegral_Neu.HoleHoehe();
-
-            maxWert = minWert = 0.0;
-            bool nochNAN = true;
-
-            SetStatusText(wxT("Stopfe Löcher (Neues Gelände)"), 1);
-            Refresh();
-            for(int i = 0; i < iB; i++)
-            {
-                for(int k = 0; k < iH; k++)
-                {
-                    if(!isnan(dIntegral_NeuesGelaende[i+k*iB]))
-                    {
-
-                        if(nochNAN)
-                        {
-                            maxWert = minWert = dIntegral_NeuesGelaende[i+k*iB];
-                            nochNAN = false;
-                        }
-                        if(maxWert < dIntegral_NeuesGelaende[i+k*iB])maxWert = dIntegral_NeuesGelaende[i+k*iB];
-                        if(minWert > dIntegral_NeuesGelaende[i+k*iB])minWert = dIntegral_NeuesGelaende[i+k*iB];
-                    }else
-                    {
-                        //Löcher stopfen
-                        if((i>0)&&(k>0)&&(i<iB-1)&&(k<iH-1))
-                        {
-                            int iNachbarn = 0;
-                            double dSumme = 0;
-                            for(int di = -1; di < 2; di++)
-                                for(int dk = -1; dk < 2; dk++)
-                                {
-                                    if(!isnan(dIntegral_NeuesGelaende[i+di+(k+dk)*iB]))
-                                    {
-                                        iNachbarn++;
-                                        dSumme += dIntegral_NeuesGelaende[i+di+(k+dk)*iB];
-                                    }
-                                }
-                            if(iNachbarn > 5)//Loch ist (vermutlich) in Fläche und nicht am Rand
-                            {
-                                dIntegral_NeuesGelaende[i+k*iB] = dSumme/iNachbarn;
-                            }
-                        }
-                    }
-                }
-            }
-
-            SetStatusText(wxT("Stopfe Löcher (Urgelände)"), 1);
-            Refresh();
-
-            for(int i = 0; i < iB; i++)
-            {
-                for(int k = 0; k < iH; k++)
-                {
-                    if(!isnan(dIntegral_Urgelaende[i+k*iB]))
-                    {
-                        if(nochNAN)
-                        {
-                            maxWert = minWert = dIntegral_Urgelaende[i+k*iB];
-                            nochNAN = false;
-                        }
-                        if(maxWert < dIntegral_Urgelaende[i+k*iB])maxWert = dIntegral_Urgelaende[i+k*iB];
-                        if(minWert > dIntegral_Urgelaende[i+k*iB])minWert = dIntegral_Urgelaende[i+k*iB];
-                    }else
-                    {
-                        //Löcher stopfen
-                        if((i>0)&&(k>0)&&(i<iB-1)&&(k<iH-1))
-                        {
-                            int iNachbarn = 0;
-                            double dSumme = 0;
-                            for(int di = -1; di < 2; di++)
-                                for(int dk = -1; dk < 2; dk++)
-                                {
-                                    if(!isnan(dIntegral_Urgelaende[i+di+(k+dk)*iB]))
-                                    {
-                                        iNachbarn++;
-                                        dSumme += dIntegral_Urgelaende[i+di+(k+dk)*iB];
-                                    }
-                                }
-                            if(iNachbarn > 5)//Loch ist (vermutlich) in Fläche und nicht am Rand
-                            {
-                                dIntegral_Urgelaende[i+k*iB] = dSumme/iNachbarn;
-                            }
-                        }
-                    }
-                }
-            }
-
-
-            for(int i = 0; i < iB; i++)
-            {
-                for(int k = 0; k < iH; k++)
-                {
-                    dIntegral_NeuesGelaende[i+k*iB] -= dIntegral_Urgelaende[i+k*iB] + dOffsetUr - dOffsetNeu;
-                }
-            }
-
-            lwBild.NeueLeinwand(iB, iH, 1/m_flaechenRaster, minX, minY);
-            for(int i = 0; i < (iB * iH); i++)
-            {
-                if(isnan(dIntegral_NeuesGelaende[i]))
-                {
-                    lwBild.ucLeinwand[i*3] = col_ZeichenHintergrund.Red();
-                    lwBild.ucLeinwand[i*3+1] = col_ZeichenHintergrund.Green();
-                    lwBild.ucLeinwand[i*3+2] = col_ZeichenHintergrund.Blue();
-                }else if(dIntegral_NeuesGelaende[i] >= 0)
-                {
-                    dAuftrag += dIntegral_NeuesGelaende[i];
-                    lwBild.ucLeinwand[i*3] = col_Flaeche_darunter.Red();
-                    lwBild.ucLeinwand[i*3+1] = col_Flaeche_darunter.Green();
-                    lwBild.ucLeinwand[i*3+2] = col_Flaeche_darunter.Blue();
-                }
-                else if(dIntegral_NeuesGelaende[i] < 0)
-                {
-                    dAbtrag -= dIntegral_NeuesGelaende[i];
-                    lwBild.ucLeinwand[i*3] = col_Flaeche_darueber.Red();
-                    lwBild.ucLeinwand[i*3+1] = col_Flaeche_darueber.Green();
-                    lwBild.ucLeinwand[i*3+2] = col_Flaeche_darueber.Blue();
-                }
-            }
-        }
-        /*Ergebnisausgabe*/
-        dAuftrag *= m_flaechenRaster * m_flaechenRaster;
-        dAbtrag *= m_flaechenRaster * m_flaechenRaster;
-        SetStatusText(wxString::Format("Auftrag:\t%0.3f\tAbtrag:\t%0.3f", dAuftrag, dAbtrag), 1);
-        wxMessageDialog(this, wxString::Format("Auftrag:\t%0.3f\nAbtrag:\t%0.3f", dAuftrag, dAbtrag), wxT("Ergebnis")).ShowModal();
-        logSchreiben("\n\n/**Ergebnis der Volumenberechnung zwischen Layern**/\n/***************Flächenintegration****************/\n");
-        logSchreiben("Urgelände:\t%s\tVerschub:\t%0.3f\n", erster_Layer->HoleName(), dOffsetUr);
-        logSchreiben("neues Gelände:\t%s\tVerschub:\t%0.3f\n", zweiter_Layer->HoleName(), dOffsetNeu);
-        logSchreiben("Rastergröße:\t%0.3f\n", m_flaechenRaster);
-        char buffer[50];
-        sprintf(buffer, "Auftrag:\t%c0.%df\n", '%', m_anzeigeGenauigkeit);
-        logSchreiben(buffer, dAuftrag);
-        sprintf(buffer, "Abtrag:\t%c0.%df\n", '%', m_anzeigeGenauigkeit);
-        logSchreiben(buffer, dAbtrag);
-        logSchreiben("/**ENDE Volumenberechnung**/\n");
-        /*ENDE Ergebnisausgabe*/
-        return;
-    }
-
-    Liste<Flaeche> *flLst1 = erster_Layer->HoleFlaechen();
-    Liste<Flaeche> *flLst2 = zweiter_Layer->HoleFlaechen();
-
-		Liste<Punkt> *pktLst1 = erster_Layer->HolePunkte();
-		Liste<Punkt> *pktLst2 = zweiter_Layer->HolePunkte();
-    Vektor swPkt;
-    double vergleichsHoehe;
-
-		ofstream fsAusgabeUr58, fsAusgabeUr45, fsAusgabeNeu58, fsAusgabeNeu45;
-		fsAusgabeUr58.open("Urgelaende.D58", std::fstream::out|std::fstream::trunc);
-		fsAusgabeUr45.open("Urgelaende.D45", std::fstream::out|std::fstream::trunc);
-		fsAusgabeNeu58.open("NeueOK.D58", std::fstream::out|std::fstream::trunc);
-		fsAusgabeNeu45.open("NeueOK.D45", std::fstream::out|std::fstream::trunc);
-		if(!fsAusgabeUr45.good() || !fsAusgabeUr58.good() || !fsAusgabeNeu45.good() || !fsAusgabeNeu58.good())
-		{
-			wxMessageDialog(this, wxT("Ausgabedateien konnten nicht geöffnet werden")).ShowModal();
-			return;
-		}
-		int lfdNrPkt = 0;
-		char pktName[8];
-		Vektor vOrt;
-		for(Punkt *pkt = pktLst1->GetErstesElement(); pkt; pkt = pktLst1->GetNaechstesElement())
-		{
-			snprintf(pktName, 8, "Ur%d", lfdNrPkt++);
-			pkt->SetzeName(pktName);
-			vOrt = pkt->HolePosition();
-			fsAusgabeUr45<<"45"<<setw(7)<<pktName<<setw(10)
-										<<(unsigned long long)(vOrt.x()*1000)<<setw(10)
-										<<(unsigned long long)(-vOrt.y()*1000)<<setw(10)
-										<<(unsigned long long)(vOrt.z()*1000)<<"\n";
-		}
-		/*Damit das sicher funktioniert, muessen die Layer vorher verschnitten werden*/
-    for(Flaeche *aktFl1 = flLst1->GetErstesElement(); aktFl1; aktFl1 = flLst1->GetNaechstesElement())
-    {
-        swPkt = aktFl1->Schwerpunkt();
-        vergleichsHoehe = swPkt.GetKoordinaten(aktProjZ);
-        for(Flaeche *aktFl2 = flLst2->GetErstesElement(); aktFl2; aktFl2 = flLst2->GetNaechstesElement())
-        {
-            if(aktFl2->OrtAufFlaeche(swPkt, aktProjZ))
-            {
-                if(swPkt.GetKoordinaten(aktProjZ) > vergleichsHoehe)
-                {
-                    dAuftrag -= aktFl1->Volumen(aktProjZ);
-                    aktFl1->SetzeFarbe(col_Flaeche_darunter.Red(), col_Flaeche_darunter.Green(), col_Flaeche_darunter.Blue());
-                    break;
-                }else
-                if(swPkt.GetKoordinaten(aktProjZ) < vergleichsHoehe)
-                {
-                    dAbtrag += aktFl1->Volumen(aktProjZ);
-                    aktFl1->SetzeFarbe(col_Flaeche_darueber.Red(), col_Flaeche_darueber.Green(), col_Flaeche_darueber.Blue());
-                    break;
-                }
-            }
-        }
-    }
-    for(Flaeche *aktFl2 = flLst2->GetErstesElement(); aktFl2; aktFl2 = flLst2->GetNaechstesElement())
-    {
-        swPkt = aktFl2->Schwerpunkt();
-        vergleichsHoehe = swPkt.GetKoordinaten(aktProjZ);
-        for(Flaeche *aktFl1 = flLst1->GetErstesElement(); aktFl1; aktFl1 = flLst1->GetNaechstesElement())
-        {
-            if(aktFl1->OrtAufFlaeche(swPkt, aktProjZ))
-            {
-                if(swPkt.GetKoordinaten(aktProjZ) > vergleichsHoehe)
-                {
-                    dAbtrag -= aktFl2->Volumen(aktProjZ);
-                    aktFl2->SetzeFarbe(col_Flaeche_darunter.Red(), col_Flaeche_darunter.Green(), col_Flaeche_darunter.Blue());
-                    break;
-                }else
-                if(swPkt.GetKoordinaten(aktProjZ) < vergleichsHoehe)
-                {
-                    dAuftrag += aktFl2->Volumen(aktProjZ);
-                    aktFl2->SetzeFarbe(col_Flaeche_darueber.Red(), col_Flaeche_darueber.Green(), col_Flaeche_darueber.Blue());
-                    break;
-                }
-            }
-        }
-    }
-    /*ENDE Volumen ermitteln*/
-    wxMessageDialog(this, wxString::Format("Auftrag:\t%0.3f\nAbtrag:\t%0.3f", dAuftrag, dAbtrag)).ShowModal();
-    logSchreiben("\n\n/**Ergebnis der Volumenberechnung zwischen Layern**/\n/***************Prismenberechnung****************/\n");
-    logSchreiben("Urgelände:\t%s\tVerschub:\t%0.3f\n", erster_Layer->HoleName(), dOffsetUr);
-    logSchreiben("neues Gelände:\t%s\tVerschub:\t%0.3f\n", zweiter_Layer->HoleName(), dOffsetNeu);
-    logSchreiben("Rastergröße:\t%0.3f\n", m_flaechenRaster);
-    char buffer[50];
-    sprintf(buffer, "Auftrag:\t%c0.%df\n", '%', m_anzeigeGenauigkeit);
-    logSchreiben(buffer, dAuftrag);
-    sprintf(buffer, "Abtrag:\t%c0.%df\n", '%', m_anzeigeGenauigkeit);
-    logSchreiben(buffer, dAbtrag);
-    logSchreiben("/**ENDE Volumenberechnung**/\n");
-
-		fsAusgabeUr58.close();
-		fsAusgabeUr45.close();
-		fsAusgabeNeu58.close();
-		fsAusgabeNeu45.close();
-    return;
-}
-
-void RUZmBIFrame::OnPaint(wxPaintEvent &event)
-{
-    wxClientDC CL_dc(this);
-    if(CL_dc.GetSize().GetHeight() == 0)return;
-    if(CL_dc.GetSize().GetWidth() == 0)return;
-
-    wxBufferedPaintDC dc(this);
-
-    RUZ_Layer* tempLayer;
-    wxColor loc_col_Pkt_Ln, loc_col_HoehenMarke, loc_col_Hoehenlinie, loc_col_Strich, loc_col_Fangpunkt;
-    char r, g, b;
-    int posX, posY;
-
-    /*Hintergrund zeichnen*/
-    wxRect rect(wxPoint(0, 0), CL_dc.GetSize());
-    dc.SetBrush(wxBrush(col_ZeichenHintergrund));
-    dc.SetPen(wxPen(col_ZeichenHintergrund, 1));
-    dc.DrawRectangle(rect);
-
-    if(lwBild.ucLeinwand)//Wenn die Leinwand Daten enthaelt, zeichnen!
-    {
-        if(lwBild.dSkalierung)
-        {
-            wxImage imBild = wxImage(lwBild.iBreite, lwBild.iHoehe, lwBild.ucLeinwand, true);
-
-            double oleX, oleY, ureX, ureY;//obere Linke und untere rechte Ecke des Zuschnitts
-            oleX = (lwBild.dOffsetX > dc_Offset[0]) ? 0.0 : (dc_Offset[0] - lwBild.dOffsetX);
-            oleY = (lwBild.dOffsetY > dc_Offset[1]) ? 0.0 : (dc_Offset[1] - lwBild.dOffsetY);
-
-            ureX = (lwBild.iBreite / lwBild.dSkalierung);
-            if(ureX > dc_Offset[0]+ CL_dc.GetSize().GetWidth() / m_skalierung - lwBild.dOffsetX)
-                ureX = dc_Offset[0] + CL_dc.GetSize().GetWidth() / m_skalierung - lwBild.dOffsetX ;
-
-            ureY = (lwBild.iHoehe / lwBild.dSkalierung);
-            if(ureY > dc_Offset[1] + CL_dc.GetSize().GetHeight() / m_skalierung - lwBild.dOffsetY)
-                ureY = dc_Offset[1] + CL_dc.GetSize().GetHeight() / m_skalierung - lwBild.dOffsetY;
-
-            if((oleX < ureX)&&(oleY < ureY))
-            {
-                int iB, iH;
-                iB = (ureX-oleX)*lwBild.dSkalierung;
-                iH = (ureY-oleY)*lwBild.dSkalierung;
-                if(iB!=0 && iH!=0)
-                {
-                    imBild = imBild.Resize(wxSize(iB, iH), wxPoint(-(oleX)*lwBild.dSkalierung, -(oleY)*lwBild.dSkalierung), 128, 0,76);
-                    iB = (ureX-oleX)*m_skalierung;
-                    iH = (ureY-oleY)*m_skalierung;
-                    if(iB!=0 && iH!=0)
-                    {
-                        imBild.Rescale(iB, iH);
-                        dc.DrawBitmap(wxBitmap(imBild, dc), (lwBild.dOffsetX + oleX - dc_Offset[0])*m_skalierung,
-																														(lwBild.dOffsetY + oleY - dc_Offset[1])*m_skalierung);
-                    }
-                }
-            }
-        }
-    }
-
-    Punkt* tempPunkt;
-    Linie* tempLinie;
-    Strich* tempStrich;
-    Flaeche* tempFlaeche;
-    HoehenMarke* tempHM;
-    Kreis* tempKreis;
-    Fangpunkt* tempFangpunkt;
-    wxPoint dP[4];
-    int anzEcken;
-
-    if(aktLayer)
-    {
-        SetStatusText(wxT("Aktiver Layer: " + wxString::FromUTF8(aktLayer->HoleName())));
-        if(m_zeigeFlaeche)aktLayer->FlaechenAktualisieren(hlAnzeigen);
-    }else{
-        SetStatusText("Kein aktiver Layer");
-    }
-
-    if((aktuelleAnsicht == ansicht_ID_normal)||(aktuelleAnsicht == ansicht_ID_hoehenkarte))
-    {
-        /*Farbige Flächen malen*/
-        if(aktLayer)
-        {
-            if(m_zeigeFlaeche)
-            {
-                Liste<Flaeche> *flLst = aktLayer->HoleFlaechen();
-                for(Flaeche *aktFl = flLst->GetErstesElement(); aktFl; aktFl = flLst->GetNaechstesElement())
-                {
-                    unsigned char r, g, b;
-                    if(aktFl->HoleFarbe(r, g, b))
-                    {
-                        dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
-                        dc.SetBrush(wxBrush(wxColour(r, g, b)));
-                        if(aktFl->HoleTyp() == RUZ_Dreieck)
-                        {
-                            Dreieck* obj = static_cast<Dreieck*> (aktFl);
-                            if(obj)
-                            {
-                                for(int k=0; k<3; k++)
-                                {
-                                    dP[k] = wxPoint((int)((obj->HolePunkt(k)->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung),
-                                                    (int)((obj->HolePunkt(k)->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung));
-                                }
-                                dc.DrawPolygon(3, dP, 0, 0, wxODDEVEN_RULE);
-                            }
-                        }else
-                        if(aktFl->HoleTyp() == RUZ_Viereck)
-                        {
-                            Viereck* obj = static_cast<Viereck*> (aktFl);
-                            if(obj)
-                            {
-                                for(int k=0; k<4; k++)
-                                {
-                                    dP[k] = wxPoint((int)((obj->HolePunkt(k)->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung),
-                                                    (int)((obj->HolePunkt(k)->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung));
-                                }
-                                dc.DrawPolygon(4, dP, 0, 0, wxODDEVEN_RULE);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        /*ENDE Farbige Flächen malen*/
-
-        /*Markierung Malen - Flaechen*/
-        dc.SetPen(wxPen(col_markiert_Obj, 5));
-        dc.SetBrush(wxBrush(col_markiert_Obj));
-        if(markiertesObjekt)
-        {
-            if(markiertesObjekt->HoleTyp() == RUZ_Dreieck && m_zeigeFlaeche)
-            {
-                Dreieck* obj = static_cast<Dreieck*> (markiertesObjekt);
-                if(obj)
-                {
-                    for(int k=0; k<3; k++)
-                    {
-                        dP[k] = wxPoint((int)((obj->HolePunkt(k)->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung),
-                                        (int)((obj->HolePunkt(k)->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung));
-                    }
-                    dc.DrawPolygon(3, dP, 0, 0, wxODDEVEN_RULE);
-                }
-            }else
-            if(markiertesObjekt->HoleTyp() == RUZ_Viereck  && m_zeigeFlaeche)
-            {
-                Viereck* obj = static_cast<Viereck*> (markiertesObjekt);
-                if(obj)
-                {
-                    for(int k=0; k<4; k++)
-                    {
-                        dP[k] = wxPoint((int)((obj->HolePunkt(k)->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung),
-                                        (int)((obj->HolePunkt(k)->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung));
-                    }
-                    dc.DrawPolygon(4, dP, 0, 0, wxODDEVEN_RULE);
-                }
-            }
-        }
-        /*ENDE Markierung Malen - Flaechen*/
-
-        /*Auswahl malen*/
-        dc.SetPen(wxPen(col_ausgewaehlt_Obj, 3));
-        dc.SetBrush(wxBrush(col_ausgewaehlt_Obj));
-
-        Liste<RUZ_Objekt> *t_auswahl = m_auswahl;
-        if(m_kopierAuswahl->GetListenGroesse() != 0)
-            t_auswahl = m_kopierAuswahl;
-
-        for(RUZ_Objekt* RUZobj = t_auswahl->GetErstesElement(); RUZobj != NULL; RUZobj = t_auswahl->GetNaechstesElement())
-        {
-            Punkt* objPkt;
-            HoehenMarke* objHM;
-            Linie* objLn;
-            Kreis* objKr;
-            Fangpunkt* objFP;
-            Dreieck* objDr;
-            Viereck* objVck;
-
-            int objTyp = RUZobj->HoleTyp();
-            switch(objTyp)
-            {
-            case RUZ_Punkt:
-                objPkt = static_cast<Punkt*> (RUZobj);
-                dc.DrawCircle((objPkt->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung,
-                          (objPkt->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung, pxSuchEntfernung);
-                break;
-            case RUZ_HoehenMarke:
-                objHM = static_cast<HoehenMarke*> (RUZobj);
-                dc.DrawCircle((objHM->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung,
-                          (objHM->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung, (int)(pxSuchEntfernung/3));
-                break;
-            case RUZ_Kreis:
-                dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
-                objKr = static_cast<Kreis*> (RUZobj);
-                dc.DrawCircle((objKr->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung,
-                                  (objKr->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung,
-                                  (int)(objKr->HoleRadius()*m_skalierung));
-                dc.SetBrush(wxBrush(col_ausgewaehlt_Obj));
-                break;
-            case RUZ_Fangpunkt:
-                objFP = static_cast<Fangpunkt*>(RUZobj);
-                posX = (objFP->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung;
-                posY = (objFP->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung;
-                {
-                    int symbolGroesse = 1.2f * pxSuchEntfernung;
-                    dc.DrawLine(posX - symbolGroesse, posY - symbolGroesse, posX + symbolGroesse, posY + symbolGroesse);
-                    dc.DrawLine(posX + symbolGroesse, posY - symbolGroesse, posX - symbolGroesse, posY + symbolGroesse);
-                }
-                break;
-            case RUZ_Linie:
-                objLn = static_cast<Linie*> (RUZobj);
-                dc.DrawLine((objLn->HolePunkt(0)->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung, (objLn->HolePunkt(0)->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung,
-                            (objLn->HolePunkt(1)->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung, (objLn->HolePunkt(1)->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung);
-                break;
-            case RUZ_Dreieck:
-                objDr = static_cast<Dreieck*> (RUZobj);
-                for(int k=0; k<3; k++)
-                {
-                    dP[k] = wxPoint((int)((objDr->HolePunkt(k)->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung),
-                                    (int)((objDr->HolePunkt(k)->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung));
-                }
-                dc.DrawPolygon(3, dP, 0, 0, wxODDEVEN_RULE);
-                break;
-            case RUZ_Viereck:
-                objVck = static_cast<Viereck*> (RUZobj);
-                for(int k=0; k<4; k++)
-                {
-                    dP[k] = wxPoint((int)((objVck->HolePunkt(k)->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung),
-                                    (int)((objVck->HolePunkt(k)->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung));
-                }
-                dc.DrawPolygon(4, dP, 0, 0, wxODDEVEN_RULE);
-                break;
-            default:
-                break;
-            }
-        }
-        if(m_schP_OrgPkt)
-        {
-            dc.DrawCircle((m_schP_OrgPkt->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung,
-                          (m_schP_OrgPkt->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung, pxSuchEntfernung);
-        }
-        if(m_schP_Ln)
-        {
-            dc.DrawLine((m_schP_Ln->HolePunkt(0)->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung,
-                        (m_schP_Ln->HolePunkt(0)->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung,
-                        (m_schP_Ln->HolePunkt(1)->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung,
-                        (m_schP_Ln->HolePunkt(1)->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung);
-        }
-        /*ENDE Auswahl malen*/
-
-        /*Schnittpunkt Flächen malen*/
-        dc.SetPen(wxPen(col_markiert_Obj, 3));
-        dc.SetBrush(wxBrush(col_markiert_Obj));
-        if(m_schP_Dr)
-        {
-            for(int k=0; k<3; k++)
-                {
-                    dP[k] = wxPoint((int)((m_schP_Dr->HolePunkt(k)->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung),
-                                    (int)((m_schP_Dr->HolePunkt(k)->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung));
-                }
-                dc.DrawPolygon(3, dP, 0, 0, wxODDEVEN_RULE);
-        }
-        if(m_schP_Obj)
-        {
-            Flaeche* objFl;
-            Linie* objLn;
-
-            int objTyp = m_schP_Obj->HoleTyp();
-            switch(objTyp)
-            {
-            case RUZ_Dreieck:
-            case RUZ_Viereck:
-                objTyp == RUZ_Dreieck ? anzEcken = 3 : anzEcken = 4;
-                objFl = static_cast<Flaeche*> (m_schP_Obj);
-                for(int k=0; k<anzEcken; k++)
-                    {
-                        dP[k] = wxPoint((int)((objFl->HolePunkt(k)->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung),
-                                        (int)((objFl->HolePunkt(k)->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung));
-                    }
-                dc.DrawPolygon(anzEcken, dP, 0, 0, wxODDEVEN_RULE);
-                break;
-            case RUZ_Linie:
-                objLn = static_cast<Linie*> (m_schP_Obj);
-                dc.DrawLine((objLn->HolePunkt(0)->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung, (objLn->HolePunkt(0)->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung,
-                            (objLn->HolePunkt(1)->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung, (objLn->HolePunkt(1)->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung);
-                            break;
-            default:
-                break;
-            }
-        }
-        /*ENDE Schnittpunkt Flächen malen*/
-
-        Liste<Strich>* strSammlung;
-
-        /*Hintergrundlayer malen*/
-        if(m_hintergrundMalen)
-        {
-            dc.SetPen(wxPen(col_HintergrundLayer, 1));
-            dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
-
-            strSammlung = m_hintergrundLayer->HoleStriche();
-            Liste<Bogen>* bogSammlung = m_hintergrundLayer->HoleBoegen();
-            if(m_zeigeStrich)
-            {
-                for(tempStrich = strSammlung->GetErstesElement(); tempStrich != NULL; tempStrich = strSammlung->GetNaechstesElement())
-                {
-                    dc.DrawLine((tempStrich->Xa()-dc_Offset[0])*m_skalierung, (tempStrich->Ya()-dc_Offset[1])*m_skalierung,
-                                (tempStrich->Xe()-dc_Offset[0])*m_skalierung, (tempStrich->Ye()-dc_Offset[1])*m_skalierung);
-                }
-            }
-            if(m_zeigeBogen)
-            {
-                for(Bogen* tempBogen = bogSammlung->GetErstesElement(); tempBogen != NULL; tempBogen = bogSammlung->GetNaechstesElement())
-                {
-                    dc.DrawArc((tempBogen->Xa()-dc_Offset[0])*m_skalierung, (tempBogen->Ya()-dc_Offset[1])*m_skalierung,
-                               (tempBogen->Xe()-dc_Offset[0])*m_skalierung, (tempBogen->Ye()-dc_Offset[1])*m_skalierung,
-                               (tempBogen->Xm()-dc_Offset[0])*m_skalierung, (tempBogen->Ym()-dc_Offset[1])*m_skalierung);
-                }
-            }
-        }
-        /*ENDE Hintergrundlayer malen*/
-
-        /*Alle Layer malen*/
-        int nFntSize = dc.GetFont().GetPointSize();
-        for(tempLayer = m_layer->GetErstesElement(); tempLayer != NULL; tempLayer = m_layer->GetNaechstesElement())
-        {
-            if(tempLayer->IstSichtbar() == false)continue;
-            if(tempLayer == aktLayer)/*evtl. aktLayer noch nach hinten schieben*/
-            {
-                loc_col_Pkt_Ln = col_Pkt_Ln;
-                loc_col_Strich = col_Strich;
-                loc_col_HoehenMarke = col_HoehenMarke;
-                loc_col_Hoehenlinie = col_Hoehenlinie;
-                loc_col_Fangpunkt = col_Fangpunkt;
-            }else
-            {
-                r = (0.6 * col_Pkt_Ln.Red());
-                g = (0.6 * col_Pkt_Ln.Green());
-                b = (0.6 * col_Pkt_Ln.Blue());
-                loc_col_Pkt_Ln = wxColor(r, g, b);
-
-                r = (0.6 * col_Strich.Red());
-                g = (0.6 * col_Strich.Green());
-                b = (0.6 * col_Strich.Blue());
-                loc_col_Strich = wxColor(r, g, b);
-
-                r = (0.6 * col_HoehenMarke.Red());
-                g = (0.6 * col_HoehenMarke.Green());
-                b = (0.6 * col_HoehenMarke.Blue());
-                loc_col_HoehenMarke = wxColor(r, g, b);
-
-                r = (0.6 * col_Hoehenlinie.Red());
-                g = (0.6 * col_Hoehenlinie.Green());
-                b = (0.6 * col_Hoehenlinie.Blue());
-                loc_col_Hoehenlinie = wxColor(r, g, b);
-
-                r = (0.6 * col_Fangpunkt.Red());
-                g = (0.6 * col_Fangpunkt.Green());
-                b = (0.6 * col_Fangpunkt.Blue());
-                loc_col_Fangpunkt = wxColor(r, g, b);
-            }
-
-            Liste<Punkt>* pktSammlung = tempLayer->HolePunkte();
-            Liste<Linie>* lnSammlung = tempLayer->HoleLinien();
-            strSammlung = tempLayer->HoleStriche();
-            Liste<Flaeche>* flSammlung = tempLayer->HoleFlaechen();
-            Liste<HoehenMarke>* hmSammlung = tempLayer->HoleHoehenMarken();
-            Liste<Kreis>* krSammlung = tempLayer->HoleKreise();
-            Liste<Fangpunkt>* fngPktSammlung = tempLayer->HoleFangpunkte();
-
-            if(m_zeigeFlaeche)
-            {
-                for(tempFlaeche = flSammlung->GetErstesElement(); tempFlaeche != NULL; tempFlaeche = flSammlung->GetNaechstesElement())
-                {
-                    if(tempFlaeche->HoleTyp() == RUZ_Dreieck)
-                    {
-                        anzEcken = 3;
-                    }else{
-                        anzEcken = 4;
-                    }
-                    dc.SetPen(wxPen(loc_col_Hoehenlinie, 1));
-                    dc.SetBrush(*wxTRANSPARENT_BRUSH);
-                    if(hlAnzeigen)
-                    {
-                        Liste<RUZ_Hoehenlinie>* hlListe = tempFlaeche->HoleHL();
-                        for(RUZ_Hoehenlinie* aktHL = hlListe->GetErstesElement(); aktHL != NULL; aktHL = hlListe->GetNaechstesElement())
-                        {
-                            dc.DrawLine((aktHL->x(0)-dc_Offset[0])*m_skalierung, (aktHL->y(0)-dc_Offset[1])*m_skalierung,
-                                (aktHL->x(1)-dc_Offset[0])*m_skalierung, (aktHL->y(1)-dc_Offset[1])*m_skalierung);
-                        }
-                    }
-                }
-            }
-            if(m_zeigePunkt)
-            {
-                for(tempPunkt = pktSammlung->GetErstesElement(); tempPunkt != NULL; tempPunkt = pktSammlung->GetNaechstesElement())
-                {
-                    if(tempPunkt == markiertesObjekt)
-                    {
-                        continue;
-                    }else{
-                        dc.SetPen(wxPen(loc_col_Pkt_Ln, 1));
-                        dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
-                    }
-                    dc.DrawCircle((tempPunkt->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung,
-                              (tempPunkt->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung, pxSuchEntfernung);
-                    if(m_zeigeHoehe)
-                    {
-                        dc.SetTextForeground(loc_col_Pkt_Ln);
-                        wxString genauigkeit = wxString::Format("%1.%df", m_anzeigeGenauigkeit);
-                        dc.DrawText(wxString::Format(genauigkeit, tempPunkt->HolePosition().GetKoordinaten(aktProjZ)),
-                                    (tempPunkt->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung + 1.2f * pxSuchEntfernung,
-                                    (tempPunkt->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung - nFntSize);
-                    }
-                }
-            }
-            if(m_zeigeLinie)
-            {
-                for(tempLinie = lnSammlung->GetErstesElement(); tempLinie != NULL; tempLinie = lnSammlung->GetNaechstesElement())
-                {
-                    if(tempLinie == markiertesObjekt)
-                    {
-                        continue;
-                    }else
-                    {
-                        dc.SetPen(wxPen(loc_col_Pkt_Ln, 1));
-                        dc.SetBrush(wxBrush(loc_col_Pkt_Ln));
-                    }
-                    dc.DrawLine((tempLinie->HolePunkt(0)->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung, (tempLinie->HolePunkt(0)->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung,
-                                (tempLinie->HolePunkt(1)->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung, (tempLinie->HolePunkt(1)->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung);
-                }
-
-            }
-            dc.SetPen(wxPen(loc_col_Strich, 1));
-            dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
-            if(m_zeigeKreis)
-            {
-                for(tempKreis = krSammlung->GetErstesElement(); tempKreis != NULL; tempKreis = krSammlung->GetNaechstesElement())
-                {
-                    dc.DrawCircle((tempKreis->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung,
-                                  (tempKreis->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung,
-                                  (int)(tempKreis->HoleRadius()*m_skalierung));
-                }
-            }
-            dc.SetBrush(wxBrush(loc_col_Strich));
-            if(m_zeigeStrich)
-            {
-                for(tempStrich = strSammlung->GetErstesElement(); tempStrich != NULL; tempStrich = strSammlung->GetNaechstesElement())
-                {
-                    dc.DrawLine((tempStrich->Xa()-dc_Offset[0])*m_skalierung, (tempStrich->Ya()-dc_Offset[1])*m_skalierung,
-                                (tempStrich->Xe()-dc_Offset[0])*m_skalierung, (tempStrich->Ye()-dc_Offset[1])*m_skalierung);
-                }
-            }
-            if(m_zeigeHoehenmarke)
-            {
-                for(tempHM = hmSammlung->GetErstesElement(); tempHM != NULL; tempHM = hmSammlung->GetNaechstesElement())
-                {
-                    if(tempHM == markiertesObjekt)
-                    {
-                        continue;
-                    }else{
-                        dc.SetPen(wxPen(loc_col_HoehenMarke, 1));
-                        dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
-                    }
-                    dc.DrawCircle((tempHM->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung,
-                              (tempHM->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung, (int)(pxSuchEntfernung/3));
-                    dc.SetTextForeground(loc_col_HoehenMarke);
-                    if(tempHM->IstInFlaeche())
-                    {
-                        wxString genauigkeit = wxString::Format("%1.%df", m_anzeigeGenauigkeit);
-                        dc.DrawText(wxString::Format(genauigkeit, std::nearbyint(tempHM->HolePosition().GetKoordinaten(aktProjZ) * 100000) / 100000.0),
-                                    (tempHM->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung + 1.2f * (pxSuchEntfernung/3),
-                                    (tempHM->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung - nFntSize);
-                    }else{
-                        dc.DrawText(wxT("#NiF"),
-                                    (tempHM->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung + 1.2f * (pxSuchEntfernung/3),
-                                    (tempHM->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung - nFntSize);
-                    }
-                }
-            }
-            if(m_zeigeFangpunkt)
-            {
-                dc.SetPen(wxPen(loc_col_Fangpunkt, 1));
-                for(tempFangpunkt = fngPktSammlung->GetErstesElement(); tempFangpunkt; tempFangpunkt = fngPktSammlung->GetNaechstesElement())
-                {
-                    posX = (tempFangpunkt->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung;
-                    posY = (tempFangpunkt->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung;
-                    int symbolGroesse = 1.2f * pxSuchEntfernung;
-                    dc.DrawLine(posX - symbolGroesse, posY - symbolGroesse, posX + symbolGroesse, posY + symbolGroesse);
-                    dc.DrawLine(posX + symbolGroesse, posY - symbolGroesse, posX - symbolGroesse, posY + symbolGroesse);
-                }
-            }
-        }
-        /*ENDE Alle Layer malen*/
-
-        /*Fehler malen*/
-        Liste<Vektor>* vFehlerLst = aktLayer->HoleFehlermarken();
-        for(Vektor* vFehler = vFehlerLst->GetErstesElement(); vFehler != NULL; vFehler = vFehlerLst->GetNaechstesElement())
-        {
-            dc.SetPen(wxPen(wxColor(255, 110, 110), 3));
-            dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
-
-            dc.DrawCircle((vFehler->GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung,
-                          (vFehler->GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung, pxSuchEntfernung * 1.5);
-        }
-        Liste<Linie>* lnLst = aktLayer->HoleLinien();
-        for(Linie* lnAkt = lnLst->GetErstesElement(); lnAkt != NULL; lnAkt = lnLst->GetNaechstesElement())
-        {
-            unsigned char r, g, b;
-            if(lnAkt->HoleFarbe(r, g, b))
-            {
-                dc.SetPen(wxPen(wxColor(r, g, b), 3));
-                dc.DrawLine((lnAkt->HolePunkt(0)->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung, (lnAkt->HolePunkt(0)->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung,
-                            (lnAkt->HolePunkt(1)->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung, (lnAkt->HolePunkt(1)->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung);
-            }
-        }
-        /*ENDE Fehler malen*/
-
-        /*Markierung Malen*/
-        dc.SetPen(wxPen(col_markiert_Obj, 1));
-        dc.SetBrush(wxBrush(col_markiert_Obj));
-        if(markiertesObjekt)
-        {
-            if(markiertesObjekt->HoleTyp() == RUZ_Punkt && m_zeigePunkt)
-            {
-                Punkt* obj = static_cast<Punkt*>(markiertesObjekt);
-                if(obj)
-                {
-                    dc.DrawCircle((obj->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung,
-                              (obj->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung, pxSuchEntfernung);
-                    if(m_zeigeHoehe)
-                    {
-                        dc.SetTextForeground(col_markiert_Obj);
-                        wxString genauigkeit = wxString::Format("%1.%df", m_anzeigeGenauigkeit);
-                        wxFont fnt = dc.GetFont();
-                        int nFntSize = fnt.GetPointSize();
-                        fnt.SetPointSize((int)(nFntSize * 1.75f));
-                        dc.SetFont(fnt);
-                        dc.DrawText(wxString::Format(genauigkeit, obj->HolePosition().GetKoordinaten(aktProjZ)),
-                                    (obj->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung + 1.2f * pxSuchEntfernung,
-                                    (obj->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung - nFntSize * 4.0f);
-                        fnt.SetPointSize(nFntSize);
-                        dc.SetFont(fnt);
-                    }
-                }
-            }else
-            if(markiertesObjekt->HoleTyp() == RUZ_Kreis && m_zeigeKreis)
-            {
-                dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
-                Kreis* objKr = static_cast<Kreis*> (markiertesObjekt);
-                if(objKr->HoleRadius()>0)
-                    dc.DrawCircle((objKr->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung,
-                                      (objKr->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung,
-                                      (int)(objKr->HoleRadius()*m_skalierung));
-                dc.SetBrush(wxBrush(col_markiert_Obj));
-            }else
-            if(markiertesObjekt->HoleTyp() == RUZ_Linie && m_zeigeLinie)
-            {
-                Linie* obj = static_cast<Linie*> (markiertesObjekt);
-                if(obj)
-                {
-                    dc.DrawLine((obj->HolePunkt(0)->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung, (obj->HolePunkt(0)->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung,
-                                (obj->HolePunkt(1)->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung, (obj->HolePunkt(1)->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung);
-                }
-            }else
-            if(markiertesObjekt->HoleTyp() == RUZ_HoehenMarke && m_zeigeHoehenmarke)
-            {
-                HoehenMarke* obj = static_cast<HoehenMarke*> (markiertesObjekt);
-                if(obj)
-                {
-                    dc.DrawCircle((obj->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung,
-                              (obj->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung, (int)(pxSuchEntfernung/3));
-                    dc.SetTextForeground(col_markiert_Obj);
-                    wxString genauigkeit = wxString::Format("%1.%df", m_anzeigeGenauigkeit);
-                    wxFont fnt = dc.GetFont();
-                    int nFntSize = fnt.GetPointSize();
-                    fnt.SetPointSize((int)(nFntSize * 1.75f));
-                    dc.SetFont(fnt);
-                    dc.DrawText(wxString::Format(genauigkeit, obj->HolePosition().GetKoordinaten(aktProjZ)),
-                                (obj->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung + 1.2f * pxSuchEntfernung,
-                                (obj->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung - nFntSize * 4.0f);
-                    fnt.SetPointSize(nFntSize);
-                    dc.SetFont(fnt);
-                }
-            }else
-            if(markiertesObjekt->HoleTyp() == RUZ_Fangpunkt)
-            {
-                Fangpunkt* obj = static_cast<Fangpunkt*> (markiertesObjekt);
-                if(obj)
-                {
-                    posX = (obj->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung;
-                    posY = (obj->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung;
-                    int symbolGroesse = 1.2f * pxSuchEntfernung;
-                    dc.DrawLine(posX - symbolGroesse, posY - symbolGroesse, posX + symbolGroesse, posY + symbolGroesse);
-                    dc.DrawLine(posX + symbolGroesse, posY - symbolGroesse, posX - symbolGroesse, posY + symbolGroesse);
-                }
-            }
-        }
-        /*ENDE Markierung Malen*/
-
-        /*Gefälle malen*/
-        if(gefaelleAnzeigen)
-        {
-            dc.SetPen(wxPen(col_Gefaelle, 1));
-            dc.SetBrush(wxBrush(col_Gefaelle));
-            wxPoint ln_start, ln_ende;
-            ln_start = NeueMousePosition;
-            ln_ende = wxPoint(NeueMousePosition.x - (m_aktGefaelle.GetKoordinaten(aktProjX)*suchRadius)*m_skalierung,
-                              NeueMousePosition.y - (m_aktGefaelle.GetKoordinaten(aktProjY)*suchRadius)*m_skalierung);
-                dc.DrawLine(ln_start, ln_ende);
-            wxString t_text = wxString::Format("%0.2f\%", m_aktGefaelle.GetKoordinaten(aktProjZ)*100);
-            dc.DrawText(t_text, ln_start.x+5, ln_start.y-15);
-        }
-        if(gefaelleRasterAnzeigen)
-        {
-            if(aktLayer)
-            {
-                dc.SetBrush(*wxTRANSPARENT_BRUSH);
-                unsigned char *uchFarbe;
-                wxPoint ln_start, ln_ende;
-                double dLaenge;
-                Vektor vAktOrt, vGefaelle;
-                Liste<GefaelleMarke>* gmSammlung = aktLayer->HoleGefaelleMarken();
-
-                for(GefaelleMarke* gmLaeufer = gmSammlung->GetErstesElement(); gmLaeufer != NULL; gmLaeufer = gmSammlung->GetNaechstesElement())
-                {
-                    uchFarbe = gmLaeufer->HoleFarbe();
-                    vAktOrt = gmLaeufer->HolePosition();
-                    vGefaelle = gmLaeufer->HoleGefaelle();
-                    dc.SetPen(wxPen(wxColor(uchFarbe[0], uchFarbe[1], uchFarbe[2]), 1));
-
-                    ln_start = wxPoint((vAktOrt.GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung, (vAktOrt.GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung);
-                    dLaenge = vGefaelle.ProjLaenge(aktProjZ);
-                    if(dLaenge)
-                    {
-                        ln_ende = wxPoint(ln_start.x - (vGefaelle.GetKoordinaten(aktProjX)*m_gefaelleRaster)*m_skalierung/dLaenge/2,
-                                      ln_start.y - (vGefaelle.GetKoordinaten(aktProjY)*m_gefaelleRaster)*m_skalierung/dLaenge/2);
-                        dc.DrawLine(ln_start, ln_ende);
-                        dc.DrawCircle(ln_start, m_gefaelleRaster*m_skalierung*0.075);
-                    }
-                }
-            }
-        }
-        /*ENDEGefälle malen*/
-    }else
-    if(aktuelleAnsicht == ansicht_ID_pseudoschatten)
-    {
-        dc.SetPen(wxPen(wxColour(255, 0, 128), 1));
-        dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
-        dc.DrawText(wxString::Format("Pseudoschattenfaktor: %0.3f", m_pseudoSchattenFkt), wxPoint(0, 0));
-        for(tempLayer = m_layer->GetErstesElement(); tempLayer != NULL; tempLayer = m_layer->GetNaechstesElement())
-        {
-            if(tempLayer->IstSichtbar() == false)continue;
-            if(tempLayer == aktLayer)continue;
-            loc_col_Hoehenlinie = col_Hoehenlinie;
-            Liste<Flaeche>* flSammlung = tempLayer->HoleFlaechen();
-
-
-            for(tempFlaeche = flSammlung->GetErstesElement(); tempFlaeche != NULL; tempFlaeche = flSammlung->GetNaechstesElement())
-            {
-                if(tempFlaeche->HoleTyp() == RUZ_Dreieck)
-                {
-                    anzEcken = 3;
-                }else{
-                    anzEcken = 4;
-                }
-
-                Vektor tempNormale = tempFlaeche->HoleNormale();
-                double neigungsFkt = (tempNormale * m_sonnenRichtung)/(tempNormale.Laenge() * m_sonnenRichtung.Laenge());
-                neigungsFkt = acos(neigungsFkt);
-                neigungsFkt = 1 - neigungsFkt * (2 / (3.14159265358979 * m_pseudoSchattenFkt));
-                if(neigungsFkt < 0)neigungsFkt = 0.0;
-                if(neigungsFkt > 1)neigungsFkt = 1.0;
-                r = g = b = 255 * neigungsFkt;
-                dc.SetPen(wxPen(wxColour(r, g, b), 1));
-                dc.SetBrush(wxBrush(wxColour(r, g, b)));
-                for(int k=0; k<anzEcken; k++)
-                {
-                    dP[k] = wxPoint((int)((tempFlaeche->HolePunkt(k)->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung),
-                                    (int)((tempFlaeche->HolePunkt(k)->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung));
-                }
-                dc.DrawPolygon(anzEcken, dP, 0, 0, wxODDEVEN_RULE);
-
-                dc.SetPen(wxPen(loc_col_Hoehenlinie, 1));
-                dc.SetBrush(*wxTRANSPARENT_BRUSH);
-                if(hlAnzeigen)
-                {
-                    Liste<RUZ_Hoehenlinie>* hlListe = tempFlaeche->HoleHL();
-                    for(RUZ_Hoehenlinie* aktHL = hlListe->GetErstesElement(); aktHL != NULL; aktHL = hlListe->GetNaechstesElement())
-                    {
-                        dc.DrawLine((aktHL->x(0)-dc_Offset[0])*m_skalierung, (aktHL->y(0)-dc_Offset[1])*m_skalierung,
-                            (aktHL->x(1)-dc_Offset[0])*m_skalierung, (aktHL->y(1)-dc_Offset[1])*m_skalierung);
-                    }
-                }
-            }
-        }
-        if(aktLayer)
-        {
-            loc_col_Hoehenlinie = col_Hoehenlinie;
-            Liste<Flaeche>* flSammlung = aktLayer->HoleFlaechen();
-
-            for(tempFlaeche = flSammlung->GetErstesElement(); tempFlaeche != NULL; tempFlaeche = flSammlung->GetNaechstesElement())
-            {
-                if(tempFlaeche->HoleTyp() == RUZ_Dreieck)
-                {
-                    anzEcken = 3;
-                }else{
-                    anzEcken = 4;
-                }
-
-                Vektor tempNormale = tempFlaeche->HoleNormale();
-                double neigungsFkt = (tempNormale * m_sonnenRichtung)/(tempNormale.Laenge() * m_sonnenRichtung.Laenge());
-                neigungsFkt = acos(neigungsFkt);
-                neigungsFkt = 1 - neigungsFkt * (2 / (3.14159265358979 * m_pseudoSchattenFkt));
-                if(neigungsFkt < 0)neigungsFkt = 0.0;
-                if(neigungsFkt > 1)neigungsFkt = 1.0;
-                r = g = b = 255 * neigungsFkt;
-                dc.SetPen(wxPen(wxColour(r, g, b), 1));
-                dc.SetBrush(wxBrush(wxColour(r, g, b)));
-                for(int k=0; k<anzEcken; k++)
-                {
-                    dP[k] = wxPoint((int)((tempFlaeche->HolePunkt(k)->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung),
-                                    (int)((tempFlaeche->HolePunkt(k)->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung));
-                }
-                dc.DrawPolygon(anzEcken, dP, 0, 0, wxODDEVEN_RULE);
-
-                dc.SetPen(wxPen(loc_col_Hoehenlinie, 1));
-                dc.SetBrush(*wxTRANSPARENT_BRUSH);
-                if(hlAnzeigen)
-                {
-                    Liste<RUZ_Hoehenlinie>* hlListe = tempFlaeche->HoleHL();
-                    for(RUZ_Hoehenlinie* aktHL = hlListe->GetErstesElement(); aktHL != NULL; aktHL = hlListe->GetNaechstesElement())
-                    {
-                        dc.DrawLine((aktHL->x(0)-dc_Offset[0])*m_skalierung, (aktHL->y(0)-dc_Offset[1])*m_skalierung,
-                            (aktHL->x(1)-dc_Offset[0])*m_skalierung, (aktHL->y(1)-dc_Offset[1])*m_skalierung);
-                    }
-                }
-            }
-        }
-    }
-    if(m_markierungsRechteck)
-    {
-        dc.SetPen(wxPen(col_AuswahlRechteck, 1));
-        dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
-        dc.DrawRectangle(wxRect(AlteMousePosition, NeueMousePosition));
-    }
-
-    dc.SetPen(wxPen(col_markiert_Obj, 2));
-    if(vVerschubStart)
-    {
-        posX = (vVerschubStart->GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung;
-        posY = (vVerschubStart->GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung;
-        dc.DrawLine(posX - 3, posY - 3, posX + 3, posY + 3);
-        dc.DrawLine(posX + 3, posY - 3, posX - 3, posY + 3);
-    }
-    if(m_drehungDrPkt)
-    {
-        posX = (m_drehungDrPkt->GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung;
-        posY = (m_drehungDrPkt->GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung;
-        dc.DrawLine(posX - 3, posY - 3, posX + 3, posY + 3);
-        dc.DrawLine(posX + 3, posY - 3, posX - 3, posY + 3);
-    }
-    if(m_drehungRichtung1)
-    {
-        posX = (m_drehungRichtung1->GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung;
-        posY = (m_drehungRichtung1->GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung;
-        dc.DrawLine(posX - 3, posY - 3, posX + 3, posY + 3);
-        dc.DrawLine(posX + 3, posY - 3, posX - 3, posY + 3);
-    }
-    if(m_drehungRichtung2)
-    {
-        posX = (m_drehungRichtung2->GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung;
-        posY = (m_drehungRichtung2->GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung;
-        dc.DrawLine(posX - 3, posY - 3, posX + 3, posY + 3);
-        dc.DrawLine(posX + 3, posY - 3, posX - 3, posY + 3);
-    }
-    return;
-}
-
-void RUZmBIFrame::OnEraseBackground(wxEraseEvent& event)
-{
     return;
 }
 
@@ -4403,435 +3825,262 @@ void RUZmBIFrame::OnKeyUp(wxKeyEvent& event)
     return;
 }
 
-void RUZmBIFrame::AusdehnungFinden(void)
+void RUZmBIFrame::OnKomplettVernetzen(wxCommandEvent &event)
 {
-    //if(aktLayer == NULL)return;
-    wxClientDC cl_dc(this);
-    double abmessungCL_dc_X = cl_dc.GetSize().GetWidth();
-    double abmessungCL_dc_Y = cl_dc.GetSize().GetHeight();
-
-    double max_x, max_y, min_x, min_y;
-    max_x = max_y = min_x = min_y = 0.0;
-    RUZ_Layer* lokAktLayer;
-    Punkt *tempPkt;
-    HoehenMarke *tempHM;
-    Kreis *tempKr;
-    double tempRadius;
-    Fangpunkt *tempFP;
-
-    lokAktLayer = m_layer->GetErstesElement();
-    if(lokAktLayer == NULL)return;
-
-    bool ersterSichtbarerLayer = true;
-    for(Listenelement<RUZ_Layer>* aktLayer_LE = m_layer->GetErstesListenelement(); aktLayer_LE != NULL; aktLayer_LE = aktLayer_LE->GetNachfolger())
+    AuswahlLeeren();
+    if(aktLayer!=NULL)
     {
-        lokAktLayer = aktLayer_LE->GetElement();
-        if(lokAktLayer == NULL)continue;
-        if(!(lokAktLayer->IstSichtbar()))continue;
-        if(ersterSichtbarerLayer)
-        {
-            tempPkt = lokAktLayer->HolePunkte()->GetErstesElement();
-            tempHM = lokAktLayer->HoleHoehenMarken()->GetErstesElement();
-            tempKr = lokAktLayer->HoleKreise()->GetErstesElement();
-            tempFP = lokAktLayer->HoleFangpunkte()->GetErstesElement();
-            if(tempPkt != NULL)
-            {
-                max_x = min_x = tempPkt->HolePosition().GetKoordinaten(aktProjX);
-                max_y = min_y = tempPkt->HolePosition().GetKoordinaten(aktProjY);
-                ersterSichtbarerLayer = false;
-            }
-            if(tempHM != NULL)
-            {
-                max_x = min_x = tempHM->HolePosition().GetKoordinaten(aktProjX);
-                max_y = min_y = tempHM->HolePosition().GetKoordinaten(aktProjY);
-                ersterSichtbarerLayer = false;
-            }
-            if(tempKr != NULL)
-            {
-                max_x = min_x = tempKr->HolePosition().GetKoordinaten(aktProjX);
-                max_y = min_y = tempKr->HolePosition().GetKoordinaten(aktProjY);
-                ersterSichtbarerLayer = false;
-            }
-            if(tempFP != NULL)
-            {
-                max_x = min_x = tempFP->HolePosition().GetKoordinaten(aktProjX);
-                max_y = min_y = tempFP->HolePosition().GetKoordinaten(aktProjY);
-                ersterSichtbarerLayer = false;
-            }
-        }
-        for(tempPkt = lokAktLayer->HolePunkte()->GetErstesElement(); tempPkt != NULL; tempPkt = lokAktLayer->HolePunkte()->GetNaechstesElement())
-        {
-            if(tempPkt->HolePosition().GetKoordinaten(aktProjX) < min_x)min_x = tempPkt->HolePosition().GetKoordinaten(aktProjX);
-            if(tempPkt->HolePosition().GetKoordinaten(aktProjX) > max_x)max_x = tempPkt->HolePosition().GetKoordinaten(aktProjX);
-            if(tempPkt->HolePosition().GetKoordinaten(aktProjY) < min_y)min_y = tempPkt->HolePosition().GetKoordinaten(aktProjY);
-            if(tempPkt->HolePosition().GetKoordinaten(aktProjY) > max_y)max_y = tempPkt->HolePosition().GetKoordinaten(aktProjY);
-        }
-        for(tempHM = lokAktLayer->HoleHoehenMarken()->GetErstesElement(); tempHM != NULL; tempHM = lokAktLayer->HoleHoehenMarken()->GetNaechstesElement())
-        {
-            if(tempHM->HolePosition().GetKoordinaten(aktProjX) < min_x)min_x = tempHM->HolePosition().GetKoordinaten(aktProjX);
-            if(tempHM->HolePosition().GetKoordinaten(aktProjX) > max_x)max_x = tempHM->HolePosition().GetKoordinaten(aktProjX);
-            if(tempHM->HolePosition().GetKoordinaten(aktProjY) < min_y)min_y = tempHM->HolePosition().GetKoordinaten(aktProjY);
-            if(tempHM->HolePosition().GetKoordinaten(aktProjY) > max_y)max_y = tempHM->HolePosition().GetKoordinaten(aktProjY);
-        }
-        for(tempKr = lokAktLayer->HoleKreise()->GetErstesElement(); tempKr != NULL; tempKr = lokAktLayer->HoleKreise()->GetNaechstesElement())
-        {
-            tempRadius = tempKr->HoleRadius();
-            if((tempKr->HolePosition().GetKoordinaten(aktProjX) - tempRadius) < min_x)min_x = tempKr->HolePosition().GetKoordinaten(aktProjX) - tempRadius;
-            if((tempKr->HolePosition().GetKoordinaten(aktProjX) + tempRadius) > max_x)max_x = tempKr->HolePosition().GetKoordinaten(aktProjX) + tempRadius;
-            if((tempKr->HolePosition().GetKoordinaten(aktProjY) - tempRadius) < min_y)min_y = tempKr->HolePosition().GetKoordinaten(aktProjY) - tempRadius;
-            if((tempKr->HolePosition().GetKoordinaten(aktProjY) + tempRadius) > max_y)max_y = tempKr->HolePosition().GetKoordinaten(aktProjY) + tempRadius;
-        }
-        for(tempFP = lokAktLayer->HoleFangpunkte()->GetErstesElement(); tempFP != NULL; tempFP = lokAktLayer->HoleFangpunkte()->GetNaechstesElement())
-        {
-            if(tempFP->HolePosition().GetKoordinaten(aktProjX) < min_x)min_x = tempFP->HolePosition().GetKoordinaten(aktProjX);
-            if(tempFP->HolePosition().GetKoordinaten(aktProjX) > max_x)max_x = tempFP->HolePosition().GetKoordinaten(aktProjX);
-            if(tempFP->HolePosition().GetKoordinaten(aktProjY) < min_y)min_y = tempFP->HolePosition().GetKoordinaten(aktProjY);
-            if(tempFP->HolePosition().GetKoordinaten(aktProjY) > max_y)max_y = tempFP->HolePosition().GetKoordinaten(aktProjY);
-        }
-    }
-    lokAktLayer = m_hintergrundLayer;
-    Strich* tempStrich = lokAktLayer->HoleStriche()->GetErstesElement();
-    if(tempStrich != NULL)
-    {
-        if(min_x == 0)min_x = tempStrich->Xa();
-        if(max_x == 0)max_x = tempStrich->Xa();
-        if(min_y == 0)min_y = tempStrich->Ya();
-        if(max_y == 0)max_y = tempStrich->Ya();
-    }
-    for(; tempStrich != NULL; tempStrich = lokAktLayer->HoleStriche()->GetNaechstesElement())
-    {
-        if(tempStrich->Xa() < min_x)min_x = tempStrich->Xa();
-        if(tempStrich->Xa() > max_x)max_x = tempStrich->Xa();
-        if(tempStrich->Ya() < min_y)min_y = tempStrich->Ya();
-        if(tempStrich->Ya() > max_y)max_y = tempStrich->Ya();
-
-        if(tempStrich->Xe() < min_x)min_x = tempStrich->Xe();
-        if(tempStrich->Xe() > max_x)max_x = tempStrich->Xe();
-        if(tempStrich->Ye() < min_y)min_y = tempStrich->Ye();
-        if(tempStrich->Ye() > max_y)max_y = tempStrich->Ye();
-    }
-    if((max_x == min_x)||(max_y == min_y))
-    {
-        m_skalierung = 1.0;
-        //return;
+        aktLayer->LinienAusStrichen(peEinstellungenDlg->HoleWert(IDlnWandelGenauigkeit), z);
+        SetStatusText(wxT("Punkte vernetzen"));
+        double dauer = aktLayer->PunkteVernetzen();
+        SetStatusText(wxString::Format("Vernetzen dauerte %1.5f Sekunden", dauer), 1);
+        aktLayer->DreieckeFinden();
+        aktLayer->ViereckeFinden();
+        Refresh();
     }else{
-        m_skalierung = ((abmessungCL_dc_X/(max_x - min_x)) < (abmessungCL_dc_Y/(max_y - min_y))) ?
-                            (abmessungCL_dc_X/(max_x - min_x)) : (abmessungCL_dc_Y/(max_y - min_y));
-        m_skalierung *= 0.9;
+        SetStatusText(wxT("Kein Layer vorhanden!"), 1);
     }
-    dc_Offset[0] = 0.5 * ((min_x + max_x) - abmessungCL_dc_X / m_skalierung);
-    dc_Offset[1] = 0.5 * ((min_y + max_y) - abmessungCL_dc_Y / m_skalierung);
-    SetStatusText(wxString::Format("Offset x, y: %1.5f, %1.5f - Skalierung: %5.5f", dc_Offset[0], dc_Offset[1], m_skalierung), 1);
+    return;
+}
+
+void RUZmBIFrame::OnLayerAuswahl(wxCommandEvent& event)
+{
+    LayerAuswahl->ShowModal();
     Refresh();
     return;
 }
 
-void RUZmBIFrame::OnMouseMove(wxMouseEvent& event)
+void RUZmBIFrame::OnLayerinhaltAnzeigen(wxCommandEvent &event)
 {
-    wxClientDC dc(this);
-    NeueMousePosition = event.GetLogicalPosition(dc);
-
-    double dX = NeueMousePosition.x / m_skalierung + dc_Offset[0];
-    double dY = -(NeueMousePosition.y / m_skalierung + dc_Offset[1]);
-    SetStatusText(wxString::Format("Cursor (x/y): %.3f/%.3f", dX, dY), 3);
-
-    if(event.Dragging() && event.MiddleIsDown())
+    if(aktLayer)
     {
-        dc_Offset[0] -= ((NeueMousePosition.x-AlteMousePosition.x)/m_skalierung);
-        dc_Offset[1] -= ((NeueMousePosition.y-AlteMousePosition.y)/m_skalierung);
-
-        AlteMousePosition = NeueMousePosition;
-        Refresh();
-        event.Skip();
-        return;
+        int anzPkt = aktLayer->HolePunkte()->GetListenGroesse();
+        int anzLn = aktLayer->HoleLinien()->GetListenGroesse();
+        int anzKr = aktLayer->HoleKreise()->GetListenGroesse();
+        int anzFP = aktLayer->HoleFangpunkte()->GetListenGroesse();
+        int anzDrk = 0;
+        int anzVrk = 0;
+        Liste<Flaeche> *flLst = aktLayer->HoleFlaechen();
+        for(Flaeche *tFl = flLst->GetErstesElement(); tFl; tFl = flLst->GetNaechstesElement())
+        {
+            (tFl->HoleTyp() == RUZ_Dreieck) ? anzDrk++ : anzVrk++;
+        }
+        int anzHP = aktLayer->HoleHoehenMarken()->GetListenGroesse();
+        int anzGM = aktLayer->HoleGefaelleMarken()->GetListenGroesse();
+        wxMessageDialog(this, wxString::FromUTF8(aktLayer->HoleName()) +
+                            wxString::FromUTF8(wxString::Format(" enthält: \n%d Punkt(e)\n%d Linie(n)\n%d Kreis(e)\n%d Fangpunkt(e)\n%d Dreieck(e)\n%d Viereck(e)\n%d Höhenmarke(n)\n%d Gefällemarke(n)",
+                                             anzPkt, anzLn, anzKr, anzFP, anzDrk, anzVrk, anzHP, anzGM))).ShowModal();
     }
-    if(event.Dragging() && event.LeftIsDown())
-    {
-        if(aktBefehl == bef_ID_verschieben)
-        {
-            if(m_markierModus)
-            {
-                if(markiertesObjekt != NULL)
-                {
-                    markiertesObjekt->Verschieben(Vektor(((NeueMousePosition.x-AlteMousePosition.x)/m_skalierung), ((NeueMousePosition.y-AlteMousePosition.y)/m_skalierung), 0));
-                    m_auswahl->Entfernen(markiertesObjekt);
-                    AlteMousePosition = NeueMousePosition;
-                }
-            }
-            else
-            {
-                for(RUZ_Objekt* obj = m_auswahl->GetErstesElement(); obj != NULL; obj = m_auswahl->GetNaechstesElement())
-                {
-                    obj->Verschieben(Vektor(((NeueMousePosition.x-AlteMousePosition.x)/m_skalierung), ((NeueMousePosition.y-AlteMousePosition.y)/m_skalierung), 0));
-                }
-                if(vVerschubStart)
-                {
-                    delete vVerschubStart;
-                    vVerschubStart = NULL;
-                }
-                AlteMousePosition = NeueMousePosition;
-            }
-        }
-        Refresh();
-        event.Skip();
-        return;
-    }else{
-        if(aktBefehl == bef_ID_verschieben)
-        {
-            Vschb_Verschieben(Vektor(((NeueMousePosition.x)/m_skalierung) + dc_Offset[0], ((NeueMousePosition.y)/m_skalierung) + dc_Offset[1], 0));
-        }
-        if((aktBefehl == bef_ID_kopieren)||(aktBefehl == bef_ID_kopierenNachLayer))
-        {
-            Kop_Verschieben(Vektor(((NeueMousePosition.x)/m_skalierung) + dc_Offset[0], ((NeueMousePosition.y)/m_skalierung) + dc_Offset[1], 0));
-        }
-    }
-
-    MarkierMousePosition = NeueMousePosition;
-    if(aktLayer != NULL)
-    {
-        if(aktBefehl == bef_ID_drehen)
-        {
-            (this->*DrehungMouseMove)(event);
-        }
-        if(aktBefehl == bef_ID_SchnittPunktFlaeche && !m_markierModus2)
-        {
-            if(m_schP_OrgPkt && m_schP_Dr && m_schP_Obj && m_schP_Richtung_2)
-            {
-                int objTyp = m_schP_Obj->HoleTyp();
-                if(objTyp == RUZ_Dreieck || objTyp == RUZ_Viereck)
-                {
-                    m_schP_Richtung_2->Positionieren(Vektor((NeueMousePosition.x / m_skalierung) + dc_Offset[0],
-                                                        (NeueMousePosition.y / m_skalierung) + dc_Offset[1], 0));
-                    Vektor t_r2 = m_schP_Richtung_2->HolePosition();
-
-                    if(m_normale.GetKoordinaten(2) != 0.0)
-                    {
-                        double t_z = (m_Abstand - m_normale.GetKoordinaten(0) * t_r2.GetKoordinaten(0)
-                                      - m_normale.GetKoordinaten(1) * t_r2.GetKoordinaten(1)) / m_normale.GetKoordinaten(2);
-                        t_r2.SetKoordinaten(2, t_z);
-                        m_schP_Richtung_2->Positionieren(t_r2);
-                        if((static_cast<Flaeche*>(m_schP_Obj))->DurchstossPunkt(m_schP_Ln, m_vktSchnittPkt1, m_vktSchnittPkt2, true))
-                        {
-                            m_schP_OrgPkt->Positionieren(m_vktSchnittPkt1);
-                        }
-                    }
-                }
-            }
-        }
-        if(m_aktKreis)
-        {
-            Vektor t_vkt = Vektor(((NeueMousePosition.x) / m_skalierung) + dc_Offset[0],
-                                     ((NeueMousePosition.y) / m_skalierung) + dc_Offset[1], 0.0);
-            SetStatusText(wxString::Format("Kreis aktiv - Mouse bei %.3f - %.3f", t_vkt.x(), t_vkt.y()), 1);
-            KreisPunktEingabe(t_vkt, false);
-        }
-        if(m_aktPunkt)
-        {
-            Vektor t_vkt;
-            t_vkt.SetKoordinaten(aktProjX, NeueMousePosition.x / m_skalierung + dc_Offset[0]);
-            t_vkt.SetKoordinaten(aktProjY, NeueMousePosition.y / m_skalierung + dc_Offset[1]);
-            if(KoordinatenMaske->IsShown())
-            {
-                t_vkt.SetKoordinaten(aktProjZ, KoordinatenMaske->HoleKoordinaten(aktProjZ));
-            }else
-            {
-                t_vkt.SetKoordinaten(aktProjZ, 0.0);
-            }
-            if(markiertesObjekt)
-            {
-                markiertesObjekt->HolePosition(t_vkt);
-            }
-
-            if(m_kreuzen && aktBefehl == bef_ID_linieZeichnen)
-            {
-                double dProjektionslaenge[2];
-                Vektor vTemp1;
-                vTemp1 = (t_vkt - m_aktPosition);
-
-                Vektor vCaRichtung(1, 0, 0);
-                dProjektionslaenge[0] = vTemp1 * vCaRichtung;
-
-                Vektor vAndereRichtung(0, 1, 0);
-                dProjektionslaenge[1] = vTemp1 * vAndereRichtung;
-
-                if(abs(dProjektionslaenge[0]) < abs(dProjektionslaenge[1]))
-                {
-                    vCaRichtung = vAndereRichtung;
-                    dProjektionslaenge[0] = dProjektionslaenge[1];
-                }
-                t_vkt = vCaRichtung * dProjektionslaenge[0];
-                if(KoordinatenMaske->IsShown())
-                {
-                    t_vkt.SetKoordinaten(aktProjZ, KoordinatenMaske->HoleKoordinaten(aktProjZ));
-                }else
-                {
-                    t_vkt.SetKoordinaten(aktProjZ, 0.0);
-                }
-                t_vkt += m_aktPosition;
-            }
-            m_aktPunkt->Positionieren(t_vkt);
-        }
-
-        if(ObjektMarkieren(NeueMousePosition.x, NeueMousePosition.y))
-        {
-            if(gefaelleAnzeigen && (markiertesObjekt != NULL))
-            {
-                Vektor t_vkt((NeueMousePosition.x / m_skalierung) + dc_Offset[0],
-                             (NeueMousePosition.y / m_skalierung) + dc_Offset[1], 0);
-                if(markiertesObjekt->HoleTyp() == RUZ_Dreieck || markiertesObjekt->HoleTyp() == RUZ_Viereck)
-                {
-                    if(!(static_cast<Flaeche*>(markiertesObjekt))->Gefaelle(t_vkt, m_aktGefaelle, aktProjZ))
-                    {
-                        m_aktGefaelle = NULL_VEKTOR;
-                    }
-                }
-            }
-        }else
-        {
-            if(gefaelleAnzeigen)m_aktGefaelle = NULL_VEKTOR;
-        }
-    }
-    event.Skip();
-    Refresh();
     return;
 }
 
-bool RUZmBIFrame::ObjektMarkieren(int xPos, int yPos)
+void RUZmBIFrame::OnLayerInSichVerschneiden(wxCommandEvent &event)
 {
-    RUZ_Layer* layer_laeufer = aktLayer;
-    markiertesObjekt = NULL;
-    Liste<Punkt>* pktLst = layer_laeufer->HolePunkte();
-    Liste<Kreis>* krLst = layer_laeufer->HoleKreise();
-    Liste<Linie>* lnLst = layer_laeufer->HoleLinien();
-    Liste<Flaeche>* flLst = layer_laeufer->HoleFlaechen();
-    Liste<HoehenMarke>* hmLst = layer_laeufer->HoleHoehenMarken();
-    Liste<Fangpunkt>* fngPktLst = layer_laeufer->HoleFangpunkte();
-
-    if(m_zeigePunkt && m_waehlePunkt)
+    AuswahlLeeren();
+    if(aktLayer)
     {
-        for(Punkt* aktPkt = pktLst->GetErstesElement(); aktPkt != NULL; aktPkt = pktLst->GetNaechstesElement())
-        {
-            if(aktPkt == m_aktPunkt)continue;
-            if(aktPkt->IstNahebei((xPos / m_skalierung) + dc_Offset[0],
-                                  (yPos / m_skalierung) + dc_Offset[1], pxSuchEntfernung / m_skalierung, aktProjZ))
-            {
-                markiertesObjekt = aktPkt;
-                return true;
-            }
-        }
+        aktLayer->VerschneideFlaechen(aktLayer->HoleFlaechen(), m_anzeigeGenauigkeit+3);
     }
-    if(m_zeigeFangpunkt && m_waehleFangpunkt)
-    {
-        for(Fangpunkt* aktfngPkt = fngPktLst->GetErstesElement(); aktfngPkt != NULL; aktfngPkt = fngPktLst->GetNaechstesElement())
-        {
-            if(aktfngPkt->IstNahebei((xPos / m_skalierung) + dc_Offset[0],
-                                  (yPos / m_skalierung) + dc_Offset[1], 1.2f * 1.4142f * pxSuchEntfernung / m_skalierung, aktProjZ))
-            {
-                markiertesObjekt = aktfngPkt;
-                return true;
-            }
-        }
-    }
-    if(m_zeigeKreis && m_waehleKreis)
-    {
-        for(Kreis* aktKreis = krLst->GetErstesElement(); aktKreis != NULL; aktKreis = krLst->GetNaechstesElement())
-        {
-            if(aktKreis->IstNahebei((xPos / m_skalierung) + dc_Offset[0],
-                                  (yPos / m_skalierung) + dc_Offset[1], pxSuchEntfernung / m_skalierung, aktProjZ))
-            {
-                markiertesObjekt = aktKreis;
-                return true;
-            }
-        }
-    }
-    if(m_zeigeHoehenmarke && m_waehleHoehenmarke)
-    {
-        for(HoehenMarke* aktHM = hmLst->GetErstesElement(); aktHM != NULL; aktHM = hmLst->GetNaechstesElement())
-        {
-            if(aktHM->IstNahebei((xPos / m_skalierung) + dc_Offset[0],
-                                  (yPos / m_skalierung) + dc_Offset[1], pxSuchEntfernung / (3 * m_skalierung), aktProjZ))
-            {
-                markiertesObjekt = aktHM;
-                return true;
-            }
-        }
-    }
-    if((aktBefehl != bef_ID_versetzen))
-    {
-        if(m_zeigeLinie && m_waehleLinie)
-        {
-            for(Linie* aktLn = lnLst->GetErstesElement(); aktLn != NULL; aktLn = lnLst->GetNaechstesElement())
-            {
-                if(aktLn == m_aktLinie)continue;
-                if(aktLn->IstNahebei((xPos / m_skalierung) + dc_Offset[0],
-                                      (yPos / m_skalierung) + dc_Offset[1], pxSuchEntfernung / m_skalierung, aktProjZ))
-                {
-                    markiertesObjekt = aktLn;
-                    return true;
-                }
-            }
-        }
-        if(m_zeigeFlaeche && m_waehleFlaeche)
-        {
-            for(Flaeche* aktFl = flLst->GetErstesElement(); aktFl != NULL; aktFl = flLst->GetNaechstesElement())
-            {
-                if(aktFl->IstInnerhalb((xPos/m_skalierung)+dc_Offset[0], (yPos/m_skalierung)+dc_Offset[1], aktProjZ))
-                {
-                    if(aktFl != markiertesObjekt)
-                    {
-                        markiertesObjekt = aktFl;
-                        return true;
-                    }
-                }
-            }
-        }
-    }
-    return false;
+    return;
 }
 
-void RUZmBIFrame::OnMouseWheel(wxMouseEvent& event)
+void RUZmBIFrame::OnLayerKopieren(wxCommandEvent &event)
 {
-    wxClientDC dc(this);
-    wxPoint MousePosition = event.GetLogicalPosition(dc);
-    double alteSkalierung = m_skalierung;
-    double verschub = 0.0;
-    if(event.GetWheelRotation() < 0)
+    int layNr = Layer_Auswahl_Dialog(this, m_layer, wxT("Zu kopierenden Layer wählen")).ShowModal();
+    RUZ_Layer* sel_Layer = aktLayer;
+
+    for(Listenelement<RUZ_Layer>* layer_LE = m_layer->GetErstesListenelement(); layer_LE; layer_LE = layer_LE->GetNachfolger())
     {
-        verschub = (m_verschubWeite * wertFkt);
-    }
-    if(event.GetWheelRotation() > 0)
-    {
-        verschub = -(m_verschubWeite * wertFkt);
-    }
-    if(anzeigeSkalieren)
-    {
-       if(KoordinatenMaske->IsShown() && !m_markierModus)
+        if(layer_LE->Wert() == layNr)
         {
-            KoordinatenMaske->SetzeKoordinaten(z, KoordinatenMaske->HoleKoordinaten(aktProjZ) + verschub);
+            sel_Layer = layer_LE->GetElement();
+            break;
         }
-        if((aktBefehl == bef_ID_verschieben)||(aktBefehl == bef_ID_kopieren)||(aktBefehl == bef_ID_kopierenNachLayer))
+    }
+
+    if(sel_Layer)
+    {
+        char layerName[256];
+        strcpy(layerName, "Cc_");
+        strncat(layerName, sel_Layer->HoleName(), 253);
+        LayerKopieren(sel_Layer, layerName);
+    }
+    return;
+}
+
+void RUZmBIFrame::OnLayerRandabschneiden(wxCommandEvent &event)
+{
+    AuswahlLeeren();
+    int layNr1 = Layer_Auswahl_Dialog(this, m_layer, wxT("Ersten Layer wählen")).ShowModal();
+    int layNr2;
+    if(layNr1 == -1)return;
+    do
+    {
+        layNr2 = Layer_Auswahl_Dialog(this, m_layer, wxT("Zweiten Layer wählen")).ShowModal();
+        if(layNr2 == -1)return;
+        if(layNr1 == layNr2)
         {
-            for(RUZ_Objekt* obj = m_auswahl->GetErstesElement(); obj != NULL; obj = m_auswahl->GetNaechstesElement())
+            if(wxMessageDialog(this, wxT("Layer kann nicht am eigenen Rand abgeschnitten werden!\nBitte neuen zweiten Layer wählen."), wxT("Layer identisch")).ShowModal() == wxID_CANCEL)
             {
-                obj->Verschieben(Vektor(0, 0, verschub));
+                return;
             }
         }
-    }else
-    {
-        if(event.GetWheelRotation() < 0)
-        {
-            m_skalierung /= (1 + 0.1 * wertFkt);
-        }
-        if(event.GetWheelRotation() > 0)
-        {
-            m_skalierung *= (1 + 0.1 * wertFkt);
-        }
+    }while(layNr1 == layNr2);
 
-        dc_Offset[0] += MousePosition.x * ((1/alteSkalierung)-(1/m_skalierung));
-        dc_Offset[1] += MousePosition.y * ((1/alteSkalierung)-(1/m_skalierung));
-        SetStatusText(wxString::Format("Offset: %1.5f - %1.5f / Skalierung: %5.5f", dc_Offset[0], dc_Offset[1], m_skalierung), 1);
+    //char layerName[256];
+    RUZ_Layer* erster_Layer = NULL;
+    RUZ_Layer* zweiter_Layer = NULL;
+    //RUZ_Layer *erster_neuer_Layer, *zweiter_neuer_Layer;
+
+    for(Listenelement<RUZ_Layer>* layer_LE = m_layer->GetErstesListenelement(); layer_LE; layer_LE = layer_LE->GetNachfolger())
+    {
+        if(layer_LE->Wert() == layNr1)
+        {
+            erster_Layer = layer_LE->GetElement();
+        }
+        if(layer_LE->Wert() == layNr2)
+        {
+            zweiter_Layer = layer_LE->GetElement();
+        }
+        if(erster_Layer && zweiter_Layer)break;
     }
-    Refresh();
+    if(!erster_Layer || !zweiter_Layer)
+    {
+        wxMessageDialog(this, wxT("Layerauswahl war nicht erfolgreich."), wxT("Abbruch")).ShowModal();
+    }
+
+    erster_Layer->RandAbschneiden(zweiter_Layer);
+    erster_Layer->LoescheFreiliegendeFlaechen(zweiter_Layer);
+    zweiter_Layer->LoescheFreiliegendeFlaechen(erster_Layer);
+    return;
+}
+
+void RUZmBIFrame::OnLayerVerschneiden(wxCommandEvent &event)
+{
+    AuswahlLeeren();
+    /*Die zu verschneidenden Layer auswählen*/
+    int layNr1 = Layer_Auswahl_Dialog(this, m_layer, wxT("Ersten Layer wählen")).ShowModal();
+    int layNr2;
+    if(layNr1 == -1)return;
+    do
+    {
+        layNr2 = Layer_Auswahl_Dialog(this, m_layer, wxT("Zweiten Layer wählen")).ShowModal();
+        if(layNr2 == -1)return;
+        if(layNr1 == layNr2)
+        {
+            if(wxMessageDialog(this, wxT("Layer kann nicht mit sich selber verschnitten werden!\nBitte neuen zweiten Layer wählen."), wxT("Layer identisch")).ShowModal() == wxID_CANCEL)
+            {
+                return;
+            }
+        }
+    }while(layNr1 == layNr2);
+
+    char layerName[256];
+    RUZ_Layer* erster_Layer = NULL;
+    RUZ_Layer* zweiter_Layer = NULL;
+    RUZ_Layer *erster_neuer_Layer, *zweiter_neuer_Layer;
+
+    for(Listenelement<RUZ_Layer>* layer_LE = m_layer->GetErstesListenelement(); layer_LE; layer_LE = layer_LE->GetNachfolger())
+    {
+        if(layer_LE->Wert() == layNr1)
+        {
+            erster_Layer = layer_LE->GetElement();
+        }
+        if(layer_LE->Wert() == layNr2)
+        {
+            zweiter_Layer = layer_LE->GetElement();
+        }
+        if(erster_Layer && zweiter_Layer)break;
+    }
+    if(!erster_Layer || !zweiter_Layer)
+    {
+        wxMessageDialog(this, wxT("Layerauswahl war nicht erfolgreich."), wxT("Abbruch")).ShowModal();
+        return;
+    }
+    wxTextEntryDialog abfrage(this, wxT("Bitte geben Sie einen Namen an"), wxT("Name der Verschneidung"), wxT("Verschneidung"));
+    abfrage.ShowModal();
+    wxString namensZusatzString = abfrage.GetValue();
+    wxCharBuffer buffer = namensZusatzString.ToUTF8();
+    char* namensZusatzchar(buffer.data());  // data() returns const char *
+
+    strncpy(layerName, namensZusatzchar, 128);
+    strncat(layerName, "_", (256 - 128));
+    strncat(layerName, erster_Layer->HoleName(), (256 - 128 -1));
+    erster_neuer_Layer = LayerKopieren(erster_Layer, layerName);
+
+    strncpy(layerName, namensZusatzchar, 128);
+    strncat(layerName, "_", (256 - 128));
+    strncat(layerName, zweiter_Layer->HoleName(), (256 - 128 -1));
+    zweiter_neuer_Layer = LayerKopieren(zweiter_Layer, layerName);
+
+    if((!erster_neuer_Layer)||(!zweiter_neuer_Layer))return;
+    /*ENDE Die zu verschneidenden Layer auswählen*/
+
+    /*Das eigentliche Verschneiden*/
+		thread_info_verschnitt thInf(erster_neuer_Layer, zweiter_neuer_Layer);
+		//RUZ_Layer *hilfsLayer, *randLayer1, *randLayer2;
+		//thInf.HoleLayer(&hilfsLayer, &randLayer1, &randLayer2, &erster_neuer_Layer, &zweiter_neuer_Layer);
+		int t_genauigkeit = m_anzeigeGenauigkeit+3;
+		std::thread thVerschnitt(&RUZ_Layer::Verschneiden, erster_neuer_Layer, zweiter_neuer_Layer, &thInf, &t_genauigkeit);
+		thVerschnitt.detach();
+
+		RUZThreadCtrl(&thInf, 200, this, wxID_ANY, wxString::Format("Layer verschneiden")).ShowModal();
+    /*ENDE Das eigentliche Verschneiden*/
+    return;
+}
+
+void RUZmBIFrame::OnLoescheLayer(wxCommandEvent &event)
+{
+    AuswahlLeeren();
+    LayerLoeschen(wxT("Wollen Sie ALLE Layer\nunwiederbringlich löschen?"));
+    return;
+}
+
+void RUZmBIFrame::OnLoescheStriche(wxCommandEvent &event)
+{
+		if(!aktLayer)return;
+		Liste<Strich> *LstStriche = aktLayer->HoleStriche();
+		LstStriche->ListeLoeschen("RUZmBIFrame::OnLoescheStriche");
+		return;
+}
+
+void RUZmBIFrame::OnMouseLDClick(wxMouseEvent& event)
+{
+    wxClientDC dc(this);
+    AlteMousePosition = event.GetLogicalPosition(dc);
+    if(markiertesObjekt)
+    {
+        int objTyp = markiertesObjekt->HoleTyp();
+        if(objTyp == RUZ_Kreis)
+        {
+            Kreis* t_aktKreis = static_cast<Kreis*>(markiertesObjekt);
+            int naehe = t_aktKreis->IstNahebei((AlteMousePosition.x / m_skalierung) + dc_Offset[0],
+                                               (AlteMousePosition.y / m_skalierung) + dc_Offset[1],
+                                               pxSuchEntfernung / m_skalierung, aktProjZ);
+            if(naehe == 1)
+            {
+                /*m_auswahl->ListeLeeren("");
+                m_auswahl->Hinzufuegen(m_aktKreis);*/
+                m_aktKreis = NULL;
+            }
+            if(naehe == 2)
+            {
+                SetStatusText(wxString::Format("Kreis markiert: %p", t_aktKreis), 1);
+                m_aktRadius = t_aktKreis->HoleRadius();
+                BefehleZuruecksetzen();
+                aktBefehl = bef_ID_kreisRadiusAendern;
+                m_aktKreis = t_aktKreis;
+                DoubleEingabe->ErscheinungAnpassen(wxString("Radius"), wxString::Format("%0.4f", m_aktRadius), aktBefehl);
+                DoubleEingabe->Show(true);
+                this->SetFocus();
+            }
+        }
+        if(objTyp == RUZ_Punkt)
+        {
+            /*m_aktPunkt = static_cast<Punkt*>(markiertesObjekt);
+            m_aktPosition = m_aktPunkt->HolePosition();*/
+        }
+    }
     event.Skip();
     return;
 }
@@ -5670,6 +4919,176 @@ void RUZmBIFrame::OnMouseMiddleClick(wxMouseEvent& event)
     return;
 }
 
+void RUZmBIFrame::OnMouseMove(wxMouseEvent& event)
+{
+    wxClientDC dc(this);
+    NeueMousePosition = event.GetLogicalPosition(dc);
+
+    double dX = NeueMousePosition.x / m_skalierung + dc_Offset[0];
+    double dY = -(NeueMousePosition.y / m_skalierung + dc_Offset[1]);
+    SetStatusText(wxString::Format("Cursor (x/y): %.3f/%.3f", dX, dY), 3);
+
+    if(event.Dragging() && event.MiddleIsDown())
+    {
+        dc_Offset[0] -= ((NeueMousePosition.x-AlteMousePosition.x)/m_skalierung);
+        dc_Offset[1] -= ((NeueMousePosition.y-AlteMousePosition.y)/m_skalierung);
+
+        AlteMousePosition = NeueMousePosition;
+        Refresh();
+        event.Skip();
+        return;
+    }
+    if(event.Dragging() && event.LeftIsDown())
+    {
+        if(aktBefehl == bef_ID_verschieben)
+        {
+            if(m_markierModus)
+            {
+                if(markiertesObjekt != NULL)
+                {
+                    markiertesObjekt->Verschieben(Vektor(((NeueMousePosition.x-AlteMousePosition.x)/m_skalierung), ((NeueMousePosition.y-AlteMousePosition.y)/m_skalierung), 0));
+                    m_auswahl->Entfernen(markiertesObjekt);
+                    AlteMousePosition = NeueMousePosition;
+                }
+            }
+            else
+            {
+                for(RUZ_Objekt* obj = m_auswahl->GetErstesElement(); obj != NULL; obj = m_auswahl->GetNaechstesElement())
+                {
+                    obj->Verschieben(Vektor(((NeueMousePosition.x-AlteMousePosition.x)/m_skalierung), ((NeueMousePosition.y-AlteMousePosition.y)/m_skalierung), 0));
+                }
+                if(vVerschubStart)
+                {
+                    delete vVerschubStart;
+                    vVerschubStart = NULL;
+                }
+                AlteMousePosition = NeueMousePosition;
+            }
+        }
+        Refresh();
+        event.Skip();
+        return;
+    }else{
+        if(aktBefehl == bef_ID_verschieben)
+        {
+            Vschb_Verschieben(Vektor(((NeueMousePosition.x)/m_skalierung) + dc_Offset[0], ((NeueMousePosition.y)/m_skalierung) + dc_Offset[1], 0));
+        }
+        if((aktBefehl == bef_ID_kopieren)||(aktBefehl == bef_ID_kopierenNachLayer))
+        {
+            Kop_Verschieben(Vektor(((NeueMousePosition.x)/m_skalierung) + dc_Offset[0], ((NeueMousePosition.y)/m_skalierung) + dc_Offset[1], 0));
+        }
+    }
+
+    MarkierMousePosition = NeueMousePosition;
+    if(aktLayer != NULL)
+    {
+        if(aktBefehl == bef_ID_drehen)
+        {
+            (this->*DrehungMouseMove)(event);
+        }
+        if(aktBefehl == bef_ID_SchnittPunktFlaeche && !m_markierModus2)
+        {
+            if(m_schP_OrgPkt && m_schP_Dr && m_schP_Obj && m_schP_Richtung_2)
+            {
+                int objTyp = m_schP_Obj->HoleTyp();
+                if(objTyp == RUZ_Dreieck || objTyp == RUZ_Viereck)
+                {
+                    m_schP_Richtung_2->Positionieren(Vektor((NeueMousePosition.x / m_skalierung) + dc_Offset[0],
+                                                        (NeueMousePosition.y / m_skalierung) + dc_Offset[1], 0));
+                    Vektor t_r2 = m_schP_Richtung_2->HolePosition();
+
+                    if(m_normale.GetKoordinaten(2) != 0.0)
+                    {
+                        double t_z = (m_Abstand - m_normale.GetKoordinaten(0) * t_r2.GetKoordinaten(0)
+                                      - m_normale.GetKoordinaten(1) * t_r2.GetKoordinaten(1)) / m_normale.GetKoordinaten(2);
+                        t_r2.SetKoordinaten(2, t_z);
+                        m_schP_Richtung_2->Positionieren(t_r2);
+                        if((static_cast<Flaeche*>(m_schP_Obj))->DurchstossPunkt(m_schP_Ln, m_vktSchnittPkt1, m_vktSchnittPkt2, true))
+                        {
+                            m_schP_OrgPkt->Positionieren(m_vktSchnittPkt1);
+                        }
+                    }
+                }
+            }
+        }
+        if(m_aktKreis)
+        {
+            Vektor t_vkt = Vektor(((NeueMousePosition.x) / m_skalierung) + dc_Offset[0],
+                                     ((NeueMousePosition.y) / m_skalierung) + dc_Offset[1], 0.0);
+            SetStatusText(wxString::Format("Kreis aktiv - Mouse bei %.3f - %.3f", t_vkt.x(), t_vkt.y()), 1);
+            KreisPunktEingabe(t_vkt, false);
+        }
+        if(m_aktPunkt)
+        {
+            Vektor t_vkt;
+            t_vkt.SetKoordinaten(aktProjX, NeueMousePosition.x / m_skalierung + dc_Offset[0]);
+            t_vkt.SetKoordinaten(aktProjY, NeueMousePosition.y / m_skalierung + dc_Offset[1]);
+            if(KoordinatenMaske->IsShown())
+            {
+                t_vkt.SetKoordinaten(aktProjZ, KoordinatenMaske->HoleKoordinaten(aktProjZ));
+            }else
+            {
+                t_vkt.SetKoordinaten(aktProjZ, 0.0);
+            }
+            if(markiertesObjekt)
+            {
+                markiertesObjekt->HolePosition(t_vkt);
+            }
+
+            if(m_kreuzen && aktBefehl == bef_ID_linieZeichnen)
+            {
+                double dProjektionslaenge[2];
+                Vektor vTemp1;
+                vTemp1 = (t_vkt - m_aktPosition);
+
+                Vektor vCaRichtung(1, 0, 0);
+                dProjektionslaenge[0] = vTemp1 * vCaRichtung;
+
+                Vektor vAndereRichtung(0, 1, 0);
+                dProjektionslaenge[1] = vTemp1 * vAndereRichtung;
+
+                if(abs(dProjektionslaenge[0]) < abs(dProjektionslaenge[1]))
+                {
+                    vCaRichtung = vAndereRichtung;
+                    dProjektionslaenge[0] = dProjektionslaenge[1];
+                }
+                t_vkt = vCaRichtung * dProjektionslaenge[0];
+                if(KoordinatenMaske->IsShown())
+                {
+                    t_vkt.SetKoordinaten(aktProjZ, KoordinatenMaske->HoleKoordinaten(aktProjZ));
+                }else
+                {
+                    t_vkt.SetKoordinaten(aktProjZ, 0.0);
+                }
+                t_vkt += m_aktPosition;
+            }
+            m_aktPunkt->Positionieren(t_vkt);
+        }
+
+        if(ObjektMarkieren(NeueMousePosition.x, NeueMousePosition.y))
+        {
+            if(gefaelleAnzeigen && (markiertesObjekt != NULL))
+            {
+                Vektor t_vkt((NeueMousePosition.x / m_skalierung) + dc_Offset[0],
+                             (NeueMousePosition.y / m_skalierung) + dc_Offset[1], 0);
+                if(markiertesObjekt->HoleTyp() == RUZ_Dreieck || markiertesObjekt->HoleTyp() == RUZ_Viereck)
+                {
+                    if(!(static_cast<Flaeche*>(markiertesObjekt))->Gefaelle(t_vkt, m_aktGefaelle, aktProjZ))
+                    {
+                        m_aktGefaelle = NULL_VEKTOR;
+                    }
+                }
+            }
+        }else
+        {
+            if(gefaelleAnzeigen)m_aktGefaelle = NULL_VEKTOR;
+        }
+    }
+    event.Skip();
+    Refresh();
+    return;
+}
+
 void RUZmBIFrame::OnMouseRightClick(wxMouseEvent& event)
 {
     wxClientDC dc(this);
@@ -5687,47 +5106,6 @@ void RUZmBIFrame::OnMouseRightClick(wxMouseEvent& event)
         }
     }
     AlteMousePosition = event.GetLogicalPosition(dc);
-    event.Skip();
-    return;
-}
-
-void RUZmBIFrame::OnMouseLDClick(wxMouseEvent& event)
-{
-    wxClientDC dc(this);
-    AlteMousePosition = event.GetLogicalPosition(dc);
-    if(markiertesObjekt)
-    {
-        int objTyp = markiertesObjekt->HoleTyp();
-        if(objTyp == RUZ_Kreis)
-        {
-            Kreis* t_aktKreis = static_cast<Kreis*>(markiertesObjekt);
-            int naehe = t_aktKreis->IstNahebei((AlteMousePosition.x / m_skalierung) + dc_Offset[0],
-                                               (AlteMousePosition.y / m_skalierung) + dc_Offset[1],
-                                               pxSuchEntfernung / m_skalierung, aktProjZ);
-            if(naehe == 1)
-            {
-                /*m_auswahl->ListeLeeren("");
-                m_auswahl->Hinzufuegen(m_aktKreis);*/
-                m_aktKreis = NULL;
-            }
-            if(naehe == 2)
-            {
-                SetStatusText(wxString::Format("Kreis markiert: %p", t_aktKreis), 1);
-                m_aktRadius = t_aktKreis->HoleRadius();
-                BefehleZuruecksetzen();
-                aktBefehl = bef_ID_kreisRadiusAendern;
-                m_aktKreis = t_aktKreis;
-                DoubleEingabe->ErscheinungAnpassen(wxString("Radius"), wxString::Format("%0.4f", m_aktRadius), aktBefehl);
-                DoubleEingabe->Show(true);
-                this->SetFocus();
-            }
-        }
-        if(objTyp == RUZ_Punkt)
-        {
-            /*m_aktPunkt = static_cast<Punkt*>(markiertesObjekt);
-            m_aktPosition = m_aktPunkt->HolePosition();*/
-        }
-    }
     event.Skip();
     return;
 }
@@ -5803,379 +5181,1849 @@ void RUZmBIFrame::OnMouseRDClick(wxMouseEvent& event)
     return;
 }
 
-void RUZmBIFrame::Vschb_Auswahl_Bestaetigung(void)
+void RUZmBIFrame::OnMouseWheel(wxMouseEvent& event)
 {
-    if(m_markierModus)
+    wxClientDC dc(this);
+    wxPoint MousePosition = event.GetLogicalPosition(dc);
+    double alteSkalierung = m_skalierung;
+    double verschub = 0.0;
+    if(event.GetWheelRotation() < 0)
     {
-        m_markierModus = false;
-        Vschb_Punktspeicher_Schreiben();
-        KoordinatenMaske->Show();
-        SetStatusText(wxT("Objekte verschieben: 'Von' (Punkt wählen / eingeben)"), 2);
+        verschub = (m_verschubWeite * wertFkt);
     }
-    else
+    if(event.GetWheelRotation() > 0)
     {
-        m_markierModus = true;
-        KoordinatenMaske->Show(false);
-        m_verschubAuswahlOrte->ListeLoeschen("");
-        SetStatusText(wxT("Objekte zum Verschieben auswählen"), 2);
+        verschub = -(m_verschubWeite * wertFkt);
     }
-    return;
-}
-
-void RUZmBIFrame::Vschb_Punktspeicher_Schreiben(void)
-{
-    m_verschubAuswahlOrte->ListeLoeschen("Vschb_Punktspeicher_Schreiben");
-    PunktSpeicher* pktSp = NULL;
-
-    for(RUZ_Objekt* obj = m_auswahl->GetErstesElement(); obj != NULL; obj = m_auswahl->GetNaechstesElement())
+    if(anzeigeSkalieren)
     {
-        if(obj->HoleTyp() == RUZ_Punkt)
+       if(KoordinatenMaske->IsShown() && !m_markierModus)
         {
-            pktSp = new PunktSpeicher(static_cast<Punkt*>(obj));
-            if(!(Vschb_Ort_Exklusiv_Hinzufuegen(pktSp)))
-            {
-                delete pktSp;
-                pktSp = NULL;
-            }
-        }else
-        if(obj->HoleTyp() == RUZ_Linie)
-        {
-            Linie* ln = static_cast<Linie*>(obj);
-            //m_auswahl->Entfernen(obj);
-            for (int i = 0; i < 2; i++)
-            {
-                pktSp = new PunktSpeicher(ln->HolePunkt(i));
-                if(!(Vschb_Ort_Exklusiv_Hinzufuegen(pktSp)))
-                {
-                    delete pktSp;
-                    pktSp = NULL;
-                }
-            }
-        }else
-        if(obj->HoleTyp() == RUZ_Dreieck)
-        {
-            Dreieck* drk = static_cast<Dreieck*>(obj);
-            //m_auswahl->Entfernen(obj);
-            for (int i = 0; i < 3; i++)
-            {
-                pktSp = new PunktSpeicher(drk->HolePunkt(i));
-                if(!(Vschb_Ort_Exklusiv_Hinzufuegen(pktSp)))
-                {
-                    delete pktSp;
-                    pktSp = NULL;
-                }
-            }
-        }else
-        if(obj->HoleTyp() == RUZ_Viereck)
-        {
-            Viereck* vrk = static_cast<Viereck*>(obj);
-            //m_auswahl->Entfernen(obj);
-            for (int i = 0; i < 4; i++)
-            {
-                pktSp = new PunktSpeicher(vrk->HolePunkt(i));
-                if(!(Vschb_Ort_Exklusiv_Hinzufuegen(pktSp)))
-                {
-                    delete pktSp;
-                    pktSp = NULL;
-                }
-            }
-        }else
-        if(obj->HoleTyp() == RUZ_HoehenMarke)
-        {
-            pktSp = new PunktSpeicher(static_cast<HoehenMarke*>(obj));
-            if(!(Vschb_Ort_Exklusiv_Hinzufuegen(pktSp)))
-            {
-                delete pktSp;
-                pktSp = NULL;
-            }
-        }else
-        if(obj->HoleTyp() == RUZ_Kreis)
-        {
-            pktSp = new PunktSpeicher(static_cast<Kreis*>(obj));
-            if(!(Vschb_Ort_Exklusiv_Hinzufuegen(pktSp)))
-            {
-                delete pktSp;
-                pktSp = NULL;
-            }
-        }else
-        if(obj->HoleTyp() == RUZ_Fangpunkt)
-        {
-            pktSp = new PunktSpeicher(static_cast<Fangpunkt*>(obj));
-            if(!(Vschb_Ort_Exklusiv_Hinzufuegen(pktSp)))
-            {
-                delete pktSp;
-                pktSp = NULL;
-            }
-        }else
-        {
-            m_auswahl->Entfernen(obj);
+            KoordinatenMaske->SetzeKoordinaten(z, KoordinatenMaske->HoleKoordinaten(aktProjZ) + verschub);
         }
-    }
-    return;
-}
-
-bool RUZmBIFrame::Vschb_Ort_Exklusiv_Hinzufuegen(PunktSpeicher* _pktSp)
-{
-    for(PunktSpeicher* aktPktSp = m_verschubAuswahlOrte->GetErstesElement(); aktPktSp != NULL; aktPktSp = m_verschubAuswahlOrte->GetNaechstesElement())
-    {
-        if(aktPktSp->HoleObj() == _pktSp->HoleObj())
-            return 0;
-    }
-    m_verschubAuswahlOrte->Hinzufuegen(_pktSp);
-    return 1;
-}
-
-void RUZmBIFrame::Vschb_Punkt_Festlegen(Vektor vkt)
-{
-    if(vVerschubStart)
-    {
-        Vschb_Verschieben(vkt);
-        delete vVerschubStart;
-        vVerschubStart = NULL;
-
-        m_markierModus = true;
-        KoordinatenMaske->Show(false);
-        m_verschubAuswahlOrte->ListeLoeschen("");
-        SetStatusText(wxT("Auswahl verschieben: 'Von' (Punkt wählen / eingeben)"), 2);
+        if((aktBefehl == bef_ID_verschieben)||(aktBefehl == bef_ID_kopieren)||(aktBefehl == bef_ID_kopierenNachLayer))
+        {
+            for(RUZ_Objekt* obj = m_auswahl->GetErstesElement(); obj != NULL; obj = m_auswahl->GetNaechstesElement())
+            {
+                obj->Verschieben(Vektor(0, 0, verschub));
+            }
+        }
     }else
     {
-        vVerschubStart = new Vektor(vkt);
-        if(vVerschubStart)
-            SetStatusText(wxT("Auswahl verschieben: 'Nach' (Punkt wählen / eingeben)"), 2);
+		if(event.GetWheelRotation() < 0)
+		{
+			SkalierungSetzen(m_skalierung / (1 + 0.1 * wertFkt));
+		}
+        if(event.GetWheelRotation() > 0)
+		{
+			SkalierungSetzen(m_skalierung * (1 + 0.1 * wertFkt));
+        }
+
+        dc_Offset[0] += MousePosition.x * ((1/alteSkalierung)-(1/m_skalierung));
+        dc_Offset[1] += MousePosition.y * ((1/alteSkalierung)-(1/m_skalierung));
+        SetStatusText(wxString::Format("Offset: %1.5f - %1.5f / Skalierung: %5.5f", dc_Offset[0], dc_Offset[1], m_skalierung), 1);
     }
+    Refresh();
+    event.Skip();
     return;
 }
 
-void RUZmBIFrame::Vschb_Verschieben(Vektor vkt)
+void RUZmBIFrame::OnObjekteWaehlen(wxCommandEvent& event)
 {
+    int aktID = event.GetId();
+    switch(aktID)
+    {
+    case idWaehleBogen:
+        m_waehleBogen == false ? m_waehleBogen = true : m_waehleBogen = false;
+        break;
+    case idWaehleFlaeche:
+        m_waehleFlaeche == false ? m_waehleFlaeche = true : m_waehleFlaeche = false;
+        break;
+    case idWaehleHoehenmarke:
+        m_waehleHoehenmarke == false ? m_waehleHoehenmarke = true : m_waehleHoehenmarke = false;
+        break;
+    case idWaehleLinie:
+        m_waehleLinie == false ? m_waehleLinie = true : m_waehleLinie = false;
+        break;
+    case idWaehlePunkt:
+        m_waehlePunkt == false ? m_waehlePunkt = true : m_waehlePunkt = false;
+        break;
+    case idWaehleStrich:
+        m_waehleStrich == false ? m_waehleStrich = true : m_waehleStrich = false;
+        break;
+    case idWaehleKreis:
+        m_waehleKreis == false ? m_waehleKreis = true : m_waehleKreis = false;
+        break;
+    case idWaehleFangpunkt:
+        m_waehleFangpunkt == false ? m_waehleFangpunkt = true : m_waehleFangpunkt = false;
+        break;
+    default:
+        ;
+    }
+    Refresh();
+    return;
+}
+
+void RUZmBIFrame::OnObjekteZeigen(wxCommandEvent& event)
+{
+    int aktID = event.GetId();
+    switch(aktID)
+    {
+    case idZeigeBogen:
+        m_zeigeBogen == false ? m_zeigeBogen = true : m_zeigeBogen = false;
+        break;
+    case idZeigeFlaeche:
+        m_zeigeFlaeche == false ? m_zeigeFlaeche = true : m_zeigeFlaeche = false;
+        break;
+    case idZeigeHoehe:
+        m_zeigeHoehe == false ? m_zeigeHoehe = true : m_zeigeHoehe = false;
+        break;
+    case idZeigeHoehenmarke:
+        m_zeigeHoehenmarke == false ? m_zeigeHoehenmarke = true : m_zeigeHoehenmarke = false;
+        break;
+    case idZeigeLinie:
+        m_zeigeLinie == false ? m_zeigeLinie = true : m_zeigeLinie = false;
+        break;
+    case idZeigePunkt:
+        m_zeigePunkt == false ? m_zeigePunkt = true : m_zeigePunkt = false;
+        break;
+    case idZeigeStrich:
+        m_zeigeStrich == false ? m_zeigeStrich = true : m_zeigeStrich = false;
+        break;
+    case idZeigeKreis:
+        m_zeigeKreis == false ? m_zeigeKreis = true : m_zeigeKreis = false;
+        break;
+    case idZeigeFangpunkt:
+        m_zeigeFangpunkt == false ? m_zeigeFangpunkt = true : m_zeigeFangpunkt = false;
+        break;
+    default:
+        ;
+    }
+    Refresh();
+    return;
+}
+
+void RUZmBIFrame::OnOpenFile(wxCommandEvent &event)
+{
+    if(event.GetId() == idMenuRuzImport)
+    {
+        FileOpener->SetWildcard(wxT("RUZ-Datei (*.ruz)|*.ruz"));
+    }else if(event.GetId() == idMenuD45Import)
+    {
+        FileOpener->SetWildcard(wxT("D45-Datei (*.d45)|*.d45"));
+    }else if(event.GetId() == idMenuD58Import)
+    {
+        FileOpener->SetWildcard(wxT("D58-Datei (*.d58)|*.d58"));
+    }else{
+
+        FileOpener->SetWildcard(wxT("DXF-Datei (*.dxf)|*.dxf"));
+    }
+    int Rueckgabe = FileOpener->ShowModal();
+    if(Rueckgabe==wxID_CANCEL)return;
+    SetStatusText(FileOpener->GetPath(), 1);
+
+    /*DXF Einlesen*/
+    if((FileOpener->GetPath()).EndsWith(wxT("f"))||(FileOpener->GetPath()).EndsWith(wxT("F")))/*Wenn dxf ausgewählt wurde*/
+    {
+        Rueckgabe = dxfParameterDlg->ShowModal();
+
+        //abteil = NULL;
+        char x_kennung[64], y_kennung[64], z_kennung[64], sw_kennung[64];
+        dxfParameterDlg->HoleKennung(x_kennung, IDpktXKenn);
+        dxfParameterDlg->HoleKennung(y_kennung, IDpktYKenn);
+        dxfParameterDlg->HoleKennung(z_kennung, IDpktZKenn);
+        dxfParameterDlg->HoleKennung(sw_kennung, IDpktSW);
+
+        DXF_Import *dxfImporteur = new DXF_Import((char*)static_cast<const char*>(FileOpener->GetPath().c_str()),
+                                                         x_kennung, y_kennung, z_kennung, sw_kennung);
+        Liste<Char_Speicher>* layerNamenListe = dxfImporteur->HoleLayerNamen();
+        DXF_Import_Auswahl_Dialog(this, layerNamenListe).ShowModal();
+
+        if(event.GetId() == idMenuDxfImp_mitLay_Ln_Pkt)
+        {
+            if(!dxfImporteur->EinlesenPunkteKanten(m_layer, layerNamenListe))
+            {
+                wxMessageDialog(this, wxString::FromUTF8("Beim Einlesen ist ein Fehler aufgetreten.\nEvtl. wurde nicht alles eingelesen")).ShowModal();
+            }
+            aktLayer = m_layer->GetErstesElement();
+        }else
+        if(event.GetId() == idMenuDxfImp_mitLay_Pkt)
+        {
+            if(!dxfImporteur->EinlesenPunkte(m_layer, layerNamenListe))
+            {
+                wxMessageDialog(this, wxString::FromUTF8("Beim Einlesen ist ein Fehler aufgetreten.\nEvtl. wurde nicht alles eingelesen")).ShowModal();
+            }
+            aktLayer = m_layer->GetErstesElement();
+        }else
+        if((event.GetId() == idMenuDxfImp_ohneLay_Ln_Pkt)||(event.GetId() == idMenuDxfImp_ohneLay_Pkt))
+        {
+            wxString t_Pfad = FileOpener->GetPath().c_str();
+            int t_pos = t_Pfad.Find('.', true);
+            t_Pfad = t_Pfad.Left(t_pos);
+            t_pos = t_Pfad.Find('\\', true);
+            t_Pfad = t_Pfad.Right(t_Pfad.Len() - t_pos -1);
+
+            aktLayer = NULL;
+            aktLayer = new RUZ_Layer((char*)static_cast<const char*>(t_Pfad));
+            if(aktLayer!=NULL)
+            {
+                m_layer->Hinzufuegen(aktLayer);
+                LayerAuswahl->LayerHinzufuegen(wxString(aktLayer->HoleName()), aktLayer);
+
+                if(event.GetId() == idMenuDxfImp_ohneLay_Ln_Pkt)
+                {
+                    if(!dxfImporteur->EinlesenPunkteKanten(aktLayer, layerNamenListe))
+                    {
+                        wxMessageDialog(this, wxString::FromUTF8("Beim Einlesen ist ein Fehler aufgetreten.\nEvtl. wurde nicht alles eingelesen")).ShowModal();
+                    }
+                }else
+                if(event.GetId() == idMenuDxfImp_ohneLay_Pkt)
+                {
+                    if(!dxfImporteur->EinlesenPunkte(aktLayer, layerNamenListe))
+                    {
+                        wxMessageDialog(this, wxString::FromUTF8("Beim Einlesen ist ein Fehler aufgetreten.\nEvtl. wurde nicht alles eingelesen")).ShowModal();
+                    }
+                }
+            }
+        }
+        LayerauswahlAktualisieren();
+        AusdehnungFinden();
+        delete dxfImporteur;
+    }/*ENDE DXF Einlesen*/
+    else if((FileOpener->GetPath()).EndsWith(wxT("45")))/*m_zeigeStrichWenn d45 ausgewählt wurde*/
+    {
+        LeseAusD45((char*)static_cast<const char*>(FileOpener->GetPath().c_str()));
+        if(aktLayer!=NULL)
+        {
+            AusdehnungFinden();
+        }
+    }
+    else if((FileOpener->GetPath()).EndsWith(wxT("58")))/*Wenn d45 ausgewählt wurde*/
+    {
+        LeseAusD58((char*)static_cast<const char*>(FileOpener->GetPath().c_str()));
+        if(aktLayer!=NULL)
+        {
+            AusdehnungFinden();
+        }
+    }
+    else/*Ansonsten ist es eine ruz-datei*/
+    {
+        LeseAusRUZ((char*)static_cast<const char*>(FileOpener->GetPath().c_str()));
+        if(aktLayer!=NULL)
+        {
+            AusdehnungFinden();
+        }
+    }
+    AuswahlLeeren();
+    markiertesObjekt = NULL;
+    Refresh();
+    return;
+}
+
+void RUZmBIFrame::OnPaint(wxPaintEvent &event)
+{
+    wxClientDC CL_dc(this);
+    if(CL_dc.GetSize().GetHeight() == 0)return;
+    if(CL_dc.GetSize().GetWidth() == 0)return;
+
+    wxBufferedPaintDC dc(this);
+
+    RUZ_Layer* tempLayer;
+    wxColor loc_col_Pkt_Ln, loc_col_HoehenMarke, loc_col_Hoehenlinie, loc_col_Strich, loc_col_Fangpunkt;
+    char r, g, b;
+    int posX, posY;
+
+    /*Hintergrund zeichnen*/
+    wxRect rect(wxPoint(0, 0), CL_dc.GetSize());
+    dc.SetBrush(wxBrush(col_ZeichenHintergrund));
+    dc.SetPen(wxPen(col_ZeichenHintergrund, 1));
+    dc.DrawRectangle(rect);
+
+    if(lwBild.ucLeinwand)//Wenn die Leinwand Daten enthaelt, zeichnen!
+    {
+        if(lwBild.dSkalierung)
+        {
+            wxImage imBild = wxImage(lwBild.iBreite, lwBild.iHoehe, lwBild.ucLeinwand, true);
+
+            double oleX, oleY, ureX, ureY;//obere Linke und untere rechte Ecke des Zuschnitts
+            oleX = (lwBild.dOffsetX > dc_Offset[0]) ? 0.0 : (dc_Offset[0] - lwBild.dOffsetX);
+            oleY = (lwBild.dOffsetY > dc_Offset[1]) ? 0.0 : (dc_Offset[1] - lwBild.dOffsetY);
+
+            ureX = (lwBild.iBreite / lwBild.dSkalierung);
+            if(ureX > dc_Offset[0]+ CL_dc.GetSize().GetWidth() / m_skalierung - lwBild.dOffsetX)
+                ureX = dc_Offset[0] + CL_dc.GetSize().GetWidth() / m_skalierung - lwBild.dOffsetX ;
+
+            ureY = (lwBild.iHoehe / lwBild.dSkalierung);
+            if(ureY > dc_Offset[1] + CL_dc.GetSize().GetHeight() / m_skalierung - lwBild.dOffsetY)
+                ureY = dc_Offset[1] + CL_dc.GetSize().GetHeight() / m_skalierung - lwBild.dOffsetY;
+
+            if((oleX < ureX)&&(oleY < ureY))
+            {
+                int iB, iH;
+                iB = (ureX-oleX)*lwBild.dSkalierung;
+                iH = (ureY-oleY)*lwBild.dSkalierung;
+                if(iB!=0 && iH!=0)
+                {
+                    imBild = imBild.Resize(wxSize(iB, iH), wxPoint(-(oleX)*lwBild.dSkalierung, -(oleY)*lwBild.dSkalierung), 128, 0,76);
+                    iB = (ureX-oleX)*m_skalierung;
+                    iH = (ureY-oleY)*m_skalierung;
+                    if(iB!=0 && iH!=0)
+                    {
+                        imBild.Rescale(iB, iH);
+                        dc.DrawBitmap(wxBitmap(imBild, dc), (lwBild.dOffsetX + oleX - dc_Offset[0])*m_skalierung,
+							(lwBild.dOffsetY + oleY - dc_Offset[1])*m_skalierung);
+                    }
+                }
+            }
+        }
+    }
+
+    Punkt* tempPunkt;
+    Linie* tempLinie;
+    Strich* tempStrich;
+    Flaeche* tempFlaeche;
+    HoehenMarke* tempHM;
+    Kreis* tempKreis;
+    Fangpunkt* tempFangpunkt;
+    wxPoint dP[4];
+    int anzEcken;
+
+    if(aktLayer)
+    {
+        SetStatusText(wxT("Aktiver Layer: " + wxString::FromUTF8(aktLayer->HoleName())));
+        if(m_zeigeFlaeche)aktLayer->FlaechenAktualisieren(hlAnzeigen);
+    }else{
+        SetStatusText("Kein aktiver Layer");
+    }
+
+    if((aktuelleAnsicht == ansicht_ID_normal)||(aktuelleAnsicht == ansicht_ID_hoehenkarte))
+    {
+        /*Farbige Flächen malen*/
+        if(aktLayer)
+        {
+            if(m_zeigeFlaeche)
+            {
+                Liste<Flaeche> *flLst = aktLayer->HoleFlaechen();
+                for(Flaeche *aktFl = flLst->GetErstesElement(); aktFl; aktFl = flLst->GetNaechstesElement())
+                {
+                    unsigned char r, g, b;
+                    if(aktFl->HoleFarbe(r, g, b))
+                    {
+                        dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
+                        dc.SetBrush(wxBrush(wxColour(r, g, b)));
+                        if(aktFl->HoleTyp() == RUZ_Dreieck)
+                        {
+                            Dreieck* obj = static_cast<Dreieck*> (aktFl);
+                            if(obj)
+                            {
+                                for(int k=0; k<3; k++)
+                                {
+                                    dP[k] = wxPoint((int)((obj->HolePunkt(k)->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung),
+                                                    (int)((obj->HolePunkt(k)->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung));
+                                }
+                                dc.DrawPolygon(3, dP, 0, 0, wxODDEVEN_RULE);
+                            }
+                        }else
+                        if(aktFl->HoleTyp() == RUZ_Viereck)
+                        {
+                            Viereck* obj = static_cast<Viereck*> (aktFl);
+                            if(obj)
+                            {
+                                for(int k=0; k<4; k++)
+                                {
+                                    dP[k] = wxPoint((int)((obj->HolePunkt(k)->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung),
+                                                    (int)((obj->HolePunkt(k)->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung));
+                                }
+                                dc.DrawPolygon(4, dP, 0, 0, wxODDEVEN_RULE);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        /*ENDE Farbige Flächen malen*/
+
+        /*Markierung Malen - Flaechen*/
+        dc.SetPen(wxPen(col_markiert_Obj, 5));
+        dc.SetBrush(wxBrush(col_markiert_Obj));
+        if(markiertesObjekt)
+        {
+            if(markiertesObjekt->HoleTyp() == RUZ_Dreieck && m_zeigeFlaeche)
+            {
+                Dreieck* obj = static_cast<Dreieck*> (markiertesObjekt);
+                if(obj)
+                {
+                    for(int k=0; k<3; k++)
+                    {
+                        dP[k] = wxPoint((int)((obj->HolePunkt(k)->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung),
+                                        (int)((obj->HolePunkt(k)->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung));
+                    }
+                    dc.DrawPolygon(3, dP, 0, 0, wxODDEVEN_RULE);
+                }
+            }else
+            if(markiertesObjekt->HoleTyp() == RUZ_Viereck  && m_zeigeFlaeche)
+            {
+                Viereck* obj = static_cast<Viereck*> (markiertesObjekt);
+                if(obj)
+                {
+                    for(int k=0; k<4; k++)
+                    {
+                        dP[k] = wxPoint((int)((obj->HolePunkt(k)->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung),
+                                        (int)((obj->HolePunkt(k)->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung));
+                    }
+                    dc.DrawPolygon(4, dP, 0, 0, wxODDEVEN_RULE);
+                }
+            }
+        }
+        /*ENDE Markierung Malen - Flaechen*/
+
+        /*Auswahl malen*/
+        dc.SetPen(wxPen(col_ausgewaehlt_Obj, 3));
+        dc.SetBrush(wxBrush(col_ausgewaehlt_Obj));
+
+        Liste<RUZ_Objekt> *t_auswahl = m_auswahl;
+        if(m_kopierAuswahl->GetListenGroesse() != 0)
+            t_auswahl = m_kopierAuswahl;
+
+        for(RUZ_Objekt* RUZobj = t_auswahl->GetErstesElement(); RUZobj != NULL; RUZobj = t_auswahl->GetNaechstesElement())
+        {
+            Punkt* objPkt;
+            HoehenMarke* objHM;
+            Linie* objLn;
+            Kreis* objKr;
+            Fangpunkt* objFP;
+            Dreieck* objDr;
+            Viereck* objVck;
+
+            int objTyp = RUZobj->HoleTyp();
+            switch(objTyp)
+            {
+            case RUZ_Punkt:
+                objPkt = static_cast<Punkt*> (RUZobj);
+                dc.DrawCircle((objPkt->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung,
+                          (objPkt->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung, pxSuchEntfernung);
+                break;
+            case RUZ_HoehenMarke:
+                objHM = static_cast<HoehenMarke*> (RUZobj);
+                dc.DrawCircle((objHM->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung,
+                          (objHM->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung, (int)(pxSuchEntfernung/3));
+                break;
+            case RUZ_Kreis:
+                dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
+                objKr = static_cast<Kreis*> (RUZobj);
+                dc.DrawCircle((objKr->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung,
+                                  (objKr->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung,
+                                  (int)(objKr->HoleRadius()*m_skalierung));
+                dc.SetBrush(wxBrush(col_ausgewaehlt_Obj));
+                break;
+            case RUZ_Fangpunkt:
+                objFP = static_cast<Fangpunkt*>(RUZobj);
+                posX = (objFP->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung;
+                posY = (objFP->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung;
+                {
+                    int symbolGroesse = 1.2f * pxSuchEntfernung;
+                    dc.DrawLine(posX - symbolGroesse, posY - symbolGroesse, posX + symbolGroesse, posY + symbolGroesse);
+                    dc.DrawLine(posX + symbolGroesse, posY - symbolGroesse, posX - symbolGroesse, posY + symbolGroesse);
+                }
+                break;
+            case RUZ_Linie:
+                objLn = static_cast<Linie*> (RUZobj);
+                dc.DrawLine((objLn->HolePunkt(0)->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung, (objLn->HolePunkt(0)->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung,
+                            (objLn->HolePunkt(1)->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung, (objLn->HolePunkt(1)->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung);
+                break;
+            case RUZ_Dreieck:
+                objDr = static_cast<Dreieck*> (RUZobj);
+                for(int k=0; k<3; k++)
+                {
+                    dP[k] = wxPoint((int)((objDr->HolePunkt(k)->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung),
+                                    (int)((objDr->HolePunkt(k)->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung));
+                }
+                dc.DrawPolygon(3, dP, 0, 0, wxODDEVEN_RULE);
+                break;
+            case RUZ_Viereck:
+                objVck = static_cast<Viereck*> (RUZobj);
+                for(int k=0; k<4; k++)
+                {
+                    dP[k] = wxPoint((int)((objVck->HolePunkt(k)->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung),
+                                    (int)((objVck->HolePunkt(k)->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung));
+                }
+                dc.DrawPolygon(4, dP, 0, 0, wxODDEVEN_RULE);
+                break;
+            default:
+                break;
+            }
+        }
+        if(m_schP_OrgPkt)
+        {
+            dc.DrawCircle((m_schP_OrgPkt->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung,
+                          (m_schP_OrgPkt->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung, pxSuchEntfernung);
+        }
+        if(m_schP_Ln)
+        {
+            dc.DrawLine((m_schP_Ln->HolePunkt(0)->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung,
+                        (m_schP_Ln->HolePunkt(0)->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung,
+                        (m_schP_Ln->HolePunkt(1)->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung,
+                        (m_schP_Ln->HolePunkt(1)->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung);
+        }
+        /*ENDE Auswahl malen*/
+
+        /*Schnittpunkt Flächen malen*/
+        dc.SetPen(wxPen(col_markiert_Obj, 3));
+        dc.SetBrush(wxBrush(col_markiert_Obj));
+        if(m_schP_Dr)
+        {
+            for(int k=0; k<3; k++)
+                {
+                    dP[k] = wxPoint((int)((m_schP_Dr->HolePunkt(k)->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung),
+                                    (int)((m_schP_Dr->HolePunkt(k)->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung));
+                }
+                dc.DrawPolygon(3, dP, 0, 0, wxODDEVEN_RULE);
+        }
+        if(m_schP_Obj)
+        {
+            Flaeche* objFl;
+            Linie* objLn;
+
+            int objTyp = m_schP_Obj->HoleTyp();
+            switch(objTyp)
+            {
+            case RUZ_Dreieck:
+            case RUZ_Viereck:
+                objTyp == RUZ_Dreieck ? anzEcken = 3 : anzEcken = 4;
+                objFl = static_cast<Flaeche*> (m_schP_Obj);
+                for(int k=0; k<anzEcken; k++)
+                    {
+                        dP[k] = wxPoint((int)((objFl->HolePunkt(k)->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung),
+                                        (int)((objFl->HolePunkt(k)->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung));
+                    }
+                dc.DrawPolygon(anzEcken, dP, 0, 0, wxODDEVEN_RULE);
+                break;
+            case RUZ_Linie:
+                objLn = static_cast<Linie*> (m_schP_Obj);
+                dc.DrawLine((objLn->HolePunkt(0)->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung, (objLn->HolePunkt(0)->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung,
+                            (objLn->HolePunkt(1)->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung, (objLn->HolePunkt(1)->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung);
+                            break;
+            default:
+                break;
+            }
+        }
+        /*ENDE Schnittpunkt Flächen malen*/
+
+        Liste<Strich>* strSammlung;
+
+        /*Hintergrundlayer malen*/
+        if(m_hintergrundMalen)
+        {
+            dc.SetPen(wxPen(col_HintergrundLayer, 1));
+            dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
+
+            strSammlung = m_hintergrundLayer->HoleStriche();
+            Liste<Bogen>* bogSammlung = m_hintergrundLayer->HoleBoegen();
+            if(m_zeigeStrich)
+            {
+                for(tempStrich = strSammlung->GetErstesElement(); tempStrich != NULL; tempStrich = strSammlung->GetNaechstesElement())
+                {
+                    dc.DrawLine((tempStrich->Xa()-dc_Offset[0])*m_skalierung, (tempStrich->Ya()-dc_Offset[1])*m_skalierung,
+                                (tempStrich->Xe()-dc_Offset[0])*m_skalierung, (tempStrich->Ye()-dc_Offset[1])*m_skalierung);
+                }
+            }
+            if(m_zeigeBogen)
+            {
+                for(Bogen* tempBogen = bogSammlung->GetErstesElement(); tempBogen != NULL; tempBogen = bogSammlung->GetNaechstesElement())
+                {
+                    dc.DrawArc((tempBogen->Xa()-dc_Offset[0])*m_skalierung, (tempBogen->Ya()-dc_Offset[1])*m_skalierung,
+                               (tempBogen->Xe()-dc_Offset[0])*m_skalierung, (tempBogen->Ye()-dc_Offset[1])*m_skalierung,
+                               (tempBogen->Xm()-dc_Offset[0])*m_skalierung, (tempBogen->Ym()-dc_Offset[1])*m_skalierung);
+                }
+            }
+        }
+        /*ENDE Hintergrundlayer malen*/
+
+        /*Alle Layer malen*/
+        int nFntSize = dc.GetFont().GetPointSize();
+        for(tempLayer = m_layer->GetErstesElement(); tempLayer != NULL; tempLayer = m_layer->GetNaechstesElement())
+        {
+            if(tempLayer->IstSichtbar() == false)continue;
+            if(tempLayer == aktLayer)/*evtl. aktLayer noch nach hinten schieben*/
+            {
+                loc_col_Pkt_Ln = col_Pkt_Ln;
+                loc_col_Strich = col_Strich;
+                loc_col_HoehenMarke = col_HoehenMarke;
+                loc_col_Hoehenlinie = col_Hoehenlinie;
+                loc_col_Fangpunkt = col_Fangpunkt;
+            }else
+            {
+				float delta = 0.5;
+                r = (1 - delta) * col_ZeichenHintergrund.Red() + delta * col_Pkt_Ln.Red();
+                g = (1 - delta) * col_ZeichenHintergrund.Green() + delta * col_Pkt_Ln.Green();
+                b = (1 - delta) * col_ZeichenHintergrund.Blue() + delta * col_Pkt_Ln.Blue();
+                loc_col_Pkt_Ln = wxColor(r, g, b);
+
+                r = (1 - delta) * col_ZeichenHintergrund.Red() + delta * col_Strich.Red();
+                g = (1 - delta) * col_ZeichenHintergrund.Green() + delta * col_Strich.Green();
+                b = (1 - delta) * col_ZeichenHintergrund.Blue() + delta * col_Strich.Blue();
+                loc_col_Strich = wxColor(r, g, b);
+
+                r = (1 - delta) * col_ZeichenHintergrund.Red() + delta * col_HoehenMarke.Red();
+                g = (1 - delta) * col_ZeichenHintergrund.Green() + delta * col_HoehenMarke.Green();
+                b = (1 - delta) * col_ZeichenHintergrund.Blue() + delta * col_HoehenMarke.Blue();
+                loc_col_HoehenMarke = wxColor(r, g, b);
+
+                r = (1 - delta) * col_ZeichenHintergrund.Red() + delta * col_Hoehenlinie.Red();
+                g = (1 - delta) * col_ZeichenHintergrund.Green() + delta * col_Hoehenlinie.Green();
+                b = (1 - delta) * col_ZeichenHintergrund.Blue() + delta * col_Hoehenlinie.Blue();
+                loc_col_Hoehenlinie = wxColor(r, g, b);
+
+                r = (1 - delta) * col_ZeichenHintergrund.Red() + delta * col_Fangpunkt.Red();
+                g = (1 - delta) * col_ZeichenHintergrund.Green() + delta * col_Fangpunkt.Green();
+                b = (1 - delta) * col_ZeichenHintergrund.Blue() + delta * col_Fangpunkt.Blue();
+                loc_col_Fangpunkt = wxColor(r, g, b);
+            }
+
+            Liste<Punkt>* pktSammlung = tempLayer->HolePunkte();
+            Liste<Linie>* lnSammlung = tempLayer->HoleLinien();
+            strSammlung = tempLayer->HoleStriche();
+            Liste<Flaeche>* flSammlung = tempLayer->HoleFlaechen();
+            Liste<HoehenMarke>* hmSammlung = tempLayer->HoleHoehenMarken();
+            Liste<Kreis>* krSammlung = tempLayer->HoleKreise();
+            Liste<Fangpunkt>* fngPktSammlung = tempLayer->HoleFangpunkte();
+
+            if(m_zeigeFlaeche)
+            {
+                for(tempFlaeche = flSammlung->GetErstesElement(); tempFlaeche != NULL; tempFlaeche = flSammlung->GetNaechstesElement())
+                {
+                    if(tempFlaeche->HoleTyp() == RUZ_Dreieck)
+                    {
+                        anzEcken = 3;
+                    }else{
+                        anzEcken = 4;
+                    }
+                    dc.SetPen(wxPen(loc_col_Hoehenlinie, 1));
+                    dc.SetBrush(*wxTRANSPARENT_BRUSH);
+                    if(hlAnzeigen)
+                    {
+                        Liste<RUZ_Hoehenlinie>* hlListe = tempFlaeche->HoleHL();
+                        for(RUZ_Hoehenlinie* aktHL = hlListe->GetErstesElement(); aktHL != NULL; aktHL = hlListe->GetNaechstesElement())
+                        {
+                            dc.DrawLine((aktHL->x(0)-dc_Offset[0])*m_skalierung, (aktHL->y(0)-dc_Offset[1])*m_skalierung,
+                                (aktHL->x(1)-dc_Offset[0])*m_skalierung, (aktHL->y(1)-dc_Offset[1])*m_skalierung);
+                        }
+                    }
+                }
+            }
+            if(m_zeigePunkt)
+            {
+                for(tempPunkt = pktSammlung->GetErstesElement(); tempPunkt != NULL; tempPunkt = pktSammlung->GetNaechstesElement())
+                {
+                    if(tempPunkt == markiertesObjekt)
+                    {
+                        continue;
+                    }else{
+                        dc.SetPen(wxPen(loc_col_Pkt_Ln, 1));
+                        dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
+                    }
+                    dc.DrawCircle((tempPunkt->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung,
+                              (tempPunkt->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung, pxSuchEntfernung);
+                    if(m_zeigeHoehe)
+                    {
+                        dc.SetTextForeground(loc_col_Pkt_Ln);
+                        wxString genauigkeit = wxString::Format("%1.%df", m_anzeigeGenauigkeit);
+                        dc.DrawText(wxString::Format(genauigkeit, tempPunkt->HolePosition().GetKoordinaten(aktProjZ)),
+                                    (tempPunkt->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung + 1.2f * pxSuchEntfernung,
+                                    (tempPunkt->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung - nFntSize);
+                    }
+                }
+            }
+            if(m_zeigeLinie)
+            {
+                for(tempLinie = lnSammlung->GetErstesElement(); tempLinie != NULL; tempLinie = lnSammlung->GetNaechstesElement())
+                {
+                    if(tempLinie == markiertesObjekt)
+                    {
+                        continue;
+                    }else
+                    {
+                        dc.SetPen(wxPen(loc_col_Pkt_Ln, 1));
+                        dc.SetBrush(wxBrush(loc_col_Pkt_Ln));
+                    }
+                    dc.DrawLine((tempLinie->HolePunkt(0)->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung, (tempLinie->HolePunkt(0)->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung,
+                                (tempLinie->HolePunkt(1)->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung, (tempLinie->HolePunkt(1)->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung);
+                }
+
+            }
+            dc.SetPen(wxPen(loc_col_Strich, 1));
+            dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
+            if(m_zeigeKreis)
+            {
+                for(tempKreis = krSammlung->GetErstesElement(); tempKreis != NULL; tempKreis = krSammlung->GetNaechstesElement())
+                {
+                    dc.DrawCircle((tempKreis->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung,
+                                  (tempKreis->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung,
+                                  (int)(tempKreis->HoleRadius()*m_skalierung));
+                }
+            }
+            dc.SetBrush(wxBrush(loc_col_Strich));
+            if(m_zeigeStrich)
+            {
+                for(tempStrich = strSammlung->GetErstesElement(); tempStrich != NULL; tempStrich = strSammlung->GetNaechstesElement())
+                {
+                    dc.DrawLine((tempStrich->Xa()-dc_Offset[0])*m_skalierung, (tempStrich->Ya()-dc_Offset[1])*m_skalierung,
+                                (tempStrich->Xe()-dc_Offset[0])*m_skalierung, (tempStrich->Ye()-dc_Offset[1])*m_skalierung);
+                }
+            }
+            if(m_zeigeHoehenmarke)
+            {
+                for(tempHM = hmSammlung->GetErstesElement(); tempHM != NULL; tempHM = hmSammlung->GetNaechstesElement())
+                {
+                    if(tempHM == markiertesObjekt)
+                    {
+                        continue;
+                    }else{
+                        dc.SetPen(wxPen(loc_col_HoehenMarke, 1));
+                        dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
+                    }
+                    dc.DrawCircle((tempHM->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung,
+                              (tempHM->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung, (int)(pxSuchEntfernung/3));
+                    dc.SetTextForeground(loc_col_HoehenMarke);
+                    if(tempHM->IstInFlaeche())
+                    {
+                        wxString genauigkeit = wxString::Format("%1.%df", m_anzeigeGenauigkeit);
+                        dc.DrawText(wxString::Format(genauigkeit, std::nearbyint(tempHM->HolePosition().GetKoordinaten(aktProjZ) * 100000) / 100000.0),
+                                    (tempHM->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung + 1.2f * (pxSuchEntfernung/3),
+                                    (tempHM->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung - nFntSize);
+                    }else{
+                        dc.DrawText(wxT("#NiF"),
+                                    (tempHM->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung + 1.2f * (pxSuchEntfernung/3),
+                                    (tempHM->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung - nFntSize);
+                    }
+                }
+            }
+            if(m_zeigeFangpunkt)
+            {
+                dc.SetPen(wxPen(loc_col_Fangpunkt, 1));
+                for(tempFangpunkt = fngPktSammlung->GetErstesElement(); tempFangpunkt; tempFangpunkt = fngPktSammlung->GetNaechstesElement())
+                {
+                    posX = (tempFangpunkt->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung;
+                    posY = (tempFangpunkt->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung;
+                    int symbolGroesse = 1.2f * pxSuchEntfernung;
+                    dc.DrawLine(posX - symbolGroesse, posY - symbolGroesse, posX + symbolGroesse, posY + symbolGroesse);
+                    dc.DrawLine(posX + symbolGroesse, posY - symbolGroesse, posX - symbolGroesse, posY + symbolGroesse);
+                }
+            }
+        }
+        /*ENDE Alle Layer malen*/
+
+        /*Fehler malen*/
+        Liste<Vektor>* vFehlerLst = aktLayer->HoleFehlermarken();
+        for(Vektor* vFehler = vFehlerLst->GetErstesElement(); vFehler != NULL; vFehler = vFehlerLst->GetNaechstesElement())
+        {
+            dc.SetPen(wxPen(wxColor(255, 110, 110), 3));
+            dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
+
+            dc.DrawCircle((vFehler->GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung,
+                          (vFehler->GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung, pxSuchEntfernung * 1.5);
+        }
+        Liste<Linie>* lnLst = aktLayer->HoleLinien();
+        for(Linie* lnAkt = lnLst->GetErstesElement(); lnAkt != NULL; lnAkt = lnLst->GetNaechstesElement())
+        {
+            unsigned char r, g, b;
+            if(lnAkt->HoleFarbe(r, g, b))
+            {
+                dc.SetPen(wxPen(wxColor(r, g, b), 3));
+                dc.DrawLine((lnAkt->HolePunkt(0)->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung, (lnAkt->HolePunkt(0)->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung,
+                            (lnAkt->HolePunkt(1)->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung, (lnAkt->HolePunkt(1)->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung);
+            }
+        }
+        /*ENDE Fehler malen*/
+
+        /*Markierung Malen*/
+        dc.SetPen(wxPen(col_markiert_Obj, 1));
+        dc.SetBrush(wxBrush(col_markiert_Obj));
+        if(markiertesObjekt)
+        {
+            if(markiertesObjekt->HoleTyp() == RUZ_Punkt && m_zeigePunkt)
+            {
+                Punkt* obj = static_cast<Punkt*>(markiertesObjekt);
+                if(obj)
+                {
+                    dc.DrawCircle((obj->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung,
+                              (obj->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung, pxSuchEntfernung);
+                    if(m_zeigeHoehe)
+                    {
+                        dc.SetTextForeground(col_markiert_Obj);
+                        wxString genauigkeit = wxString::Format("%1.%df", m_anzeigeGenauigkeit);
+                        wxFont fnt = dc.GetFont();
+                        int nFntSize = fnt.GetPointSize();
+                        fnt.SetPointSize((int)(nFntSize * 1.75f));
+                        dc.SetFont(fnt);
+                        dc.DrawText(wxString::Format(genauigkeit, obj->HolePosition().GetKoordinaten(aktProjZ)),
+                                    (obj->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung + 1.2f * pxSuchEntfernung,
+                                    (obj->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung - nFntSize * 4.0f);
+                        fnt.SetPointSize(nFntSize);
+                        dc.SetFont(fnt);
+                    }
+                }
+            }else
+            if(markiertesObjekt->HoleTyp() == RUZ_Kreis && m_zeigeKreis)
+            {
+                dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
+                Kreis* objKr = static_cast<Kreis*> (markiertesObjekt);
+                if(objKr->HoleRadius()>0)
+                    dc.DrawCircle((objKr->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung,
+                                      (objKr->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung,
+                                      (int)(objKr->HoleRadius()*m_skalierung));
+                dc.SetBrush(wxBrush(col_markiert_Obj));
+            }else
+            if(markiertesObjekt->HoleTyp() == RUZ_Linie && m_zeigeLinie)
+            {
+                Linie* obj = static_cast<Linie*> (markiertesObjekt);
+                if(obj)
+                {
+                    dc.DrawLine((obj->HolePunkt(0)->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung, (obj->HolePunkt(0)->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung,
+                                (obj->HolePunkt(1)->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung, (obj->HolePunkt(1)->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung);
+                }
+            }else
+            if(markiertesObjekt->HoleTyp() == RUZ_HoehenMarke && m_zeigeHoehenmarke)
+            {
+                HoehenMarke* obj = static_cast<HoehenMarke*> (markiertesObjekt);
+                if(obj)
+                {
+                    dc.DrawCircle((obj->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung,
+                              (obj->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung, (int)(pxSuchEntfernung/3));
+                    dc.SetTextForeground(col_markiert_Obj);
+                    wxString genauigkeit = wxString::Format("%1.%df", m_anzeigeGenauigkeit);
+                    wxFont fnt = dc.GetFont();
+                    int nFntSize = fnt.GetPointSize();
+                    fnt.SetPointSize((int)(nFntSize * 1.75f));
+                    dc.SetFont(fnt);
+                    dc.DrawText(wxString::Format(genauigkeit, obj->HolePosition().GetKoordinaten(aktProjZ)),
+                                (obj->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung + 1.2f * pxSuchEntfernung,
+                                (obj->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung - nFntSize * 4.0f);
+                    fnt.SetPointSize(nFntSize);
+                    dc.SetFont(fnt);
+                }
+            }else
+            if(markiertesObjekt->HoleTyp() == RUZ_Fangpunkt)
+            {
+                Fangpunkt* obj = static_cast<Fangpunkt*> (markiertesObjekt);
+                if(obj)
+                {
+                    posX = (obj->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung;
+                    posY = (obj->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung;
+                    int symbolGroesse = 1.2f * pxSuchEntfernung;
+                    dc.DrawLine(posX - symbolGroesse, posY - symbolGroesse, posX + symbolGroesse, posY + symbolGroesse);
+                    dc.DrawLine(posX + symbolGroesse, posY - symbolGroesse, posX - symbolGroesse, posY + symbolGroesse);
+                }
+            }
+        }
+        /*ENDE Markierung Malen*/
+
+        /*Gefälle malen*/
+        if(gefaelleAnzeigen)
+        {
+            dc.SetPen(wxPen(col_Gefaelle, 1));
+            dc.SetBrush(wxBrush(col_Gefaelle));
+            wxPoint ln_start, ln_ende;
+            ln_start = NeueMousePosition;
+            ln_ende = wxPoint(NeueMousePosition.x - (m_aktGefaelle.GetKoordinaten(aktProjX)*suchRadius)*m_skalierung,
+                              NeueMousePosition.y - (m_aktGefaelle.GetKoordinaten(aktProjY)*suchRadius)*m_skalierung);
+                dc.DrawLine(ln_start, ln_ende);
+            wxString t_text = wxString::Format("%0.2f\%", m_aktGefaelle.GetKoordinaten(aktProjZ)*100);
+            dc.DrawText(t_text, ln_start.x+5, ln_start.y-15);
+        }
+        if(gefaelleRasterAnzeigen)
+        {
+            if(aktLayer)
+            {
+                dc.SetBrush(*wxTRANSPARENT_BRUSH);
+                unsigned char *uchFarbe;
+                wxPoint ln_start, ln_ende;
+                double dLaenge;
+                Vektor vAktOrt, vGefaelle;
+                Liste<GefaelleMarke>* gmSammlung = aktLayer->HoleGefaelleMarken();
+
+                for(GefaelleMarke* gmLaeufer = gmSammlung->GetErstesElement(); gmLaeufer != NULL; gmLaeufer = gmSammlung->GetNaechstesElement())
+                {
+                    uchFarbe = gmLaeufer->HoleFarbe();
+                    vAktOrt = gmLaeufer->HolePosition();
+                    vGefaelle = gmLaeufer->HoleGefaelle();
+                    dc.SetPen(wxPen(wxColor(uchFarbe[0], uchFarbe[1], uchFarbe[2]), 1));
+
+                    ln_start = wxPoint((vAktOrt.GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung, (vAktOrt.GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung);
+                    dLaenge = vGefaelle.ProjLaenge(aktProjZ);
+                    if(dLaenge)
+                    {
+                        ln_ende = wxPoint(ln_start.x - (vGefaelle.GetKoordinaten(aktProjX)*m_gefaelleRaster)*m_skalierung/dLaenge/2,
+                                      ln_start.y - (vGefaelle.GetKoordinaten(aktProjY)*m_gefaelleRaster)*m_skalierung/dLaenge/2);
+                        dc.DrawLine(ln_start, ln_ende);
+                        dc.DrawCircle(ln_start, m_gefaelleRaster*m_skalierung*0.075);
+                    }
+                }
+            }
+        }
+        /*ENDEGefälle malen*/
+    }else
+    if(aktuelleAnsicht == ansicht_ID_pseudoschatten)
+    {
+        dc.SetPen(wxPen(wxColour(255, 0, 128), 1));
+        dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
+        dc.DrawText(wxString::Format("Pseudoschattenfaktor: %0.3f", m_pseudoSchattenFkt), wxPoint(0, 0));
+        for(tempLayer = m_layer->GetErstesElement(); tempLayer != NULL; tempLayer = m_layer->GetNaechstesElement())
+        {
+            if(tempLayer->IstSichtbar() == false)continue;
+            if(tempLayer == aktLayer)continue;
+            loc_col_Hoehenlinie = col_Hoehenlinie;
+            Liste<Flaeche>* flSammlung = tempLayer->HoleFlaechen();
+
+
+            for(tempFlaeche = flSammlung->GetErstesElement(); tempFlaeche != NULL; tempFlaeche = flSammlung->GetNaechstesElement())
+            {
+                if(tempFlaeche->HoleTyp() == RUZ_Dreieck)
+                {
+                    anzEcken = 3;
+                }else{
+                    anzEcken = 4;
+                }
+
+                Vektor tempNormale = tempFlaeche->HoleNormale();
+                double neigungsFkt = (tempNormale * m_sonnenRichtung)/(tempNormale.Laenge() * m_sonnenRichtung.Laenge());
+                neigungsFkt = acos(neigungsFkt);
+                neigungsFkt = 1 - neigungsFkt * (2 / (3.14159265358979 * m_pseudoSchattenFkt));
+                if(neigungsFkt < 0)neigungsFkt = 0.0;
+                if(neigungsFkt > 1)neigungsFkt = 1.0;
+                r = g = b = 255 * neigungsFkt;
+                dc.SetPen(wxPen(wxColour(r, g, b), 1));
+                dc.SetBrush(wxBrush(wxColour(r, g, b)));
+                for(int k=0; k<anzEcken; k++)
+                {
+                    dP[k] = wxPoint((int)((tempFlaeche->HolePunkt(k)->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung),
+                                    (int)((tempFlaeche->HolePunkt(k)->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung));
+                }
+                dc.DrawPolygon(anzEcken, dP, 0, 0, wxODDEVEN_RULE);
+
+                dc.SetPen(wxPen(loc_col_Hoehenlinie, 1));
+                dc.SetBrush(*wxTRANSPARENT_BRUSH);
+                if(hlAnzeigen)
+                {
+                    Liste<RUZ_Hoehenlinie>* hlListe = tempFlaeche->HoleHL();
+                    for(RUZ_Hoehenlinie* aktHL = hlListe->GetErstesElement(); aktHL != NULL; aktHL = hlListe->GetNaechstesElement())
+                    {
+                        dc.DrawLine((aktHL->x(0)-dc_Offset[0])*m_skalierung, (aktHL->y(0)-dc_Offset[1])*m_skalierung,
+                            (aktHL->x(1)-dc_Offset[0])*m_skalierung, (aktHL->y(1)-dc_Offset[1])*m_skalierung);
+                    }
+                }
+            }
+        }
+        if(aktLayer)
+        {
+            loc_col_Hoehenlinie = col_Hoehenlinie;
+            Liste<Flaeche>* flSammlung = aktLayer->HoleFlaechen();
+
+            for(tempFlaeche = flSammlung->GetErstesElement(); tempFlaeche != NULL; tempFlaeche = flSammlung->GetNaechstesElement())
+            {
+                if(tempFlaeche->HoleTyp() == RUZ_Dreieck)
+                {
+                    anzEcken = 3;
+                }else{
+                    anzEcken = 4;
+                }
+
+                Vektor tempNormale = tempFlaeche->HoleNormale();
+                double neigungsFkt = (tempNormale * m_sonnenRichtung)/(tempNormale.Laenge() * m_sonnenRichtung.Laenge());
+                neigungsFkt = acos(neigungsFkt);
+                neigungsFkt = 1 - neigungsFkt * (2 / (3.14159265358979 * m_pseudoSchattenFkt));
+                if(neigungsFkt < 0)neigungsFkt = 0.0;
+                if(neigungsFkt > 1)neigungsFkt = 1.0;
+                r = g = b = 255 * neigungsFkt;
+                dc.SetPen(wxPen(wxColour(r, g, b), 1));
+                dc.SetBrush(wxBrush(wxColour(r, g, b)));
+                for(int k=0; k<anzEcken; k++)
+                {
+                    dP[k] = wxPoint((int)((tempFlaeche->HolePunkt(k)->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung),
+                                    (int)((tempFlaeche->HolePunkt(k)->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung));
+                }
+                dc.DrawPolygon(anzEcken, dP, 0, 0, wxODDEVEN_RULE);
+
+                dc.SetPen(wxPen(loc_col_Hoehenlinie, 1));
+                dc.SetBrush(*wxTRANSPARENT_BRUSH);
+                if(hlAnzeigen)
+                {
+                    Liste<RUZ_Hoehenlinie>* hlListe = tempFlaeche->HoleHL();
+                    for(RUZ_Hoehenlinie* aktHL = hlListe->GetErstesElement(); aktHL != NULL; aktHL = hlListe->GetNaechstesElement())
+                    {
+                        dc.DrawLine((aktHL->x(0)-dc_Offset[0])*m_skalierung, (aktHL->y(0)-dc_Offset[1])*m_skalierung,
+                            (aktHL->x(1)-dc_Offset[0])*m_skalierung, (aktHL->y(1)-dc_Offset[1])*m_skalierung);
+                    }
+                }
+            }
+        }
+    }
+    if(m_markierungsRechteck)
+    {
+        dc.SetPen(wxPen(col_AuswahlRechteck, 1));
+        dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
+        dc.DrawRectangle(wxRect(AlteMousePosition, NeueMousePosition));
+    }
+
+    dc.SetPen(wxPen(col_markiert_Obj, 2));
     if(vVerschubStart)
     {
-        RUZ_Objekt* obj;
-        for(PunktSpeicher* aktPktSp = m_verschubAuswahlOrte->GetErstesElement(); aktPktSp != NULL; aktPktSp = m_verschubAuswahlOrte->GetNaechstesElement())
+        posX = (vVerschubStart->GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung;
+        posY = (vVerschubStart->GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung;
+        dc.DrawLine(posX - 3, posY - 3, posX + 3, posY + 3);
+        dc.DrawLine(posX + 3, posY - 3, posX - 3, posY + 3);
+    }
+    if(m_drehungDrPkt)
+    {
+        posX = (m_drehungDrPkt->GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung;
+        posY = (m_drehungDrPkt->GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung;
+        dc.DrawLine(posX - 3, posY - 3, posX + 3, posY + 3);
+        dc.DrawLine(posX + 3, posY - 3, posX - 3, posY + 3);
+    }
+    if(m_drehungRichtung1)
+    {
+        posX = (m_drehungRichtung1->GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung;
+        posY = (m_drehungRichtung1->GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung;
+        dc.DrawLine(posX - 3, posY - 3, posX + 3, posY + 3);
+        dc.DrawLine(posX + 3, posY - 3, posX - 3, posY + 3);
+    }
+    if(m_drehungRichtung2)
+    {
+        posX = (m_drehungRichtung2->GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung;
+        posY = (m_drehungRichtung2->GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung;
+        dc.DrawLine(posX - 3, posY - 3, posX + 3, posY + 3);
+        dc.DrawLine(posX + 3, posY - 3, posX - 3, posY + 3);
+    }
+	/*Masstabsbalken*/
+	dc.SetPen(wxPen(loc_col_Pkt_Ln, 1));
+	dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
+	dc.SetTextForeground(loc_col_Pkt_Ln);
+	
+	int mbStart = dc.GetSize().GetHeight() - 10;
+	dc.DrawLine(10, mbStart, 10, mbStart - 5);
+	dc.DrawLine(mbSkalierung.iLaenge1 + 10, mbStart, mbSkalierung.iLaenge1 + 10, mbStart - 5);
+	dc.DrawLine(mbSkalierung.iLaenge2 + 10, mbStart, mbSkalierung.iLaenge2 + 10, mbStart - 5);
+	dc.DrawLine(10, mbStart, mbSkalierung.iLaenge2 + 10, mbStart);
+
+	char sNachkomma1[10], sNachkomma2[10];
+	std::strcpy(sNachkomma1, "%.");
+	std::strcpy(sNachkomma2, "%.");
+	
+	char nmb[4];
+	itoa((mbSkalierung.iRes - 1) * (mbSkalierung.iRes > 0), nmb, 10);
+	std::strcat(sNachkomma1, nmb);
+	std::strcat(sNachkomma1, "f");
+	
+	itoa((mbSkalierung.iRes - 2) * (mbSkalierung.iRes - 1 > 0), nmb, 10);
+	std::strcat(sNachkomma2, nmb);
+	std::strcat(sNachkomma2, "f");
+	
+	dc.DrawText(wxString::Format(sNachkomma1, mbSkalierung.dWert1), mbSkalierung.iLaenge1 + 10, mbStart - 20);
+	dc.DrawText(wxString::Format(sNachkomma2, mbSkalierung.dWert2), mbSkalierung.iLaenge2 + 10, mbStart - 20);
+
+    return;
+}
+
+void RUZmBIFrame::OnPunkteVernetzen(wxCommandEvent &event)
+{
+    ObjekteNullen();
+    SetStatusText(wxT("Punkte vernetzen"));
+    if(aktLayer!=NULL)
+    {
+        Liste<Punkt>* pktLst = new Liste<Punkt>();
+        for(RUZ_Objekt *obj = m_auswahl->GetErstesElement(); obj != NULL; obj = m_auswahl->GetNaechstesElement())
         {
-            obj = aktPktSp->HoleObj();
             if(obj->HoleTyp() == RUZ_Punkt)
-                static_cast<Punkt*>(obj)->Positionieren(aktPktSp->HoleOrt() + (vkt - *vVerschubStart));
-
-            if(obj->HoleTyp() == RUZ_HoehenMarke)
-                static_cast<HoehenMarke*>(obj)->Positionieren(aktPktSp->HoleOrt() + (vkt - *vVerschubStart));
-
-            if(obj->HoleTyp() == RUZ_Kreis)
-                static_cast<Kreis*>(obj)->Positionieren(aktPktSp->HoleOrt() + (vkt - *vVerschubStart));
-
-            if(obj->HoleTyp() == RUZ_Fangpunkt)
-                static_cast<Fangpunkt*>(obj)->Positionieren(aktPktSp->HoleOrt() + (vkt - *vVerschubStart));
+            {
+                pktLst->Hinzufuegen(static_cast<Punkt*>(obj));
+            }
         }
-    }
-    return;
-}
-
-void RUZmBIFrame::Vschb_Abbrechen(void)
-{
-    if(vVerschubStart)
-    {
-        Vschb_Verschieben(*vVerschubStart);
-        delete vVerschubStart;
-        vVerschubStart = NULL;
-        m_markierModus = true;
-        KoordinatenMaske->Show(false);
-        m_verschubAuswahlOrte->ListeLoeschen("");
-        SetStatusText(wxT("Objekte zum Verschieben auswählen"), 2);
-    }else
-    if(m_markierModus)
-    {
-        if(m_auswahl->GetListenGroesse() != 0)
-        {
-            m_auswahl->ListeLeeren("");
-        }else
-        {
-            BefehleZuruecksetzen();
-        }
-    }else
-    {
-        m_markierModus = true;
-        KoordinatenMaske->Show(false);
-        m_verschubAuswahlOrte->ListeLoeschen("");
-        SetStatusText(wxT("Objekte zum Verschieben auswählen"), 2);
-    }
-    return;
-}
-
-void RUZmBIFrame::Kop_Auswahl_Bestaetigung(void)
-{
-    if(m_markierModus)
-    {
-        m_markierModus = false;
-        AuswahlKopieren();
-        Kop_Punktspeicher_Schreiben();
-        KoordinatenMaske->Show();
-        SetStatusText(wxT("Kopierte Objekte verschieben: 'Von' (Punkt wählen / eingeben)"), 2);
-    }else
-    {
-        m_markierModus = true;
-        KoordinatenMaske->Show(false);
-        m_verschubAuswahlOrte->ListeLoeschen("");
         m_auswahl->ListeLeeren("");
-        if(aktBefehl == bef_ID_kopieren)
+        double dauer;
+        if(pktLst->GetListenGroesse() == 0)
         {
-            for(RUZ_Objekt* obj = m_kopierAuswahl->GetErstesElement(); obj; obj = m_kopierAuswahl->GetNaechstesElement())
-                m_auswahl->ExklusivHinzufuegen(obj);
+            dauer = aktLayer->PunkteVernetzen();
+        }else{
+            dauer = aktLayer->PunkteVernetzen(pktLst);
         }
-        m_kopierAuswahl->ListeLeeren("");
-        SetStatusText(wxT("Objekte zum Kopieren auswählen"), 2);
-        if(aktBefehl == bef_ID_kopierenNachLayer)
-        {
-            BefehleZuruecksetzen();
-        }
+        delete pktLst;
+        SetStatusText(wxString::Format("Vernetzen dauerte %1.5f Sekunden", dauer), 1);
+        Refresh();
+    }else{
+        SetStatusText(wxT("Kein aktueller Layer vorhanden!"), 1);
     }
     return;
 }
 
-void RUZmBIFrame::Kop_Punkt_Festlegen(Vektor vkt)
+void RUZmBIFrame::OnQuit(wxCommandEvent &event)
 {
-    if(vVerschubStart)
+    Destroy();
+}
+
+void RUZmBIFrame::OnSaveFile(wxCommandEvent &event)
+{
+    if(event.GetId() == idMenuExportPrismen)
     {
-        Vschb_Verschieben(vkt);
-        delete vVerschubStart;
-        vVerschubStart = NULL;
-        SetStatusText(wxT("Kopierte Objekte verschieben: 'Von' (Punkt wählen / eingeben)"), 2);
+        FileSaver->SetWildcard(wxT("Prismen (*.prs)|*.prs"));
+        FileSaver->SetMessage(wxT("Dreiecksprismen in Datei speichern"));
+    }else
+    if(event.GetId() == idMenuExportPunkte)
+    {
+        FileSaver->SetWildcard(wxT("Punkte (*.pnt)|*.pnt"));
+        FileSaver->SetMessage(wxT("Punkte in Datei speichern"));
+    }else
+    if(event.GetId() == idMenuQuickSave)
+    {
+        if(strAktuellerSpeicherpfad != wxEmptyString)
+        {
+            SchreibeInDatei((char*)static_cast<const char*>(strAktuellerSpeicherpfad.c_str()));
+            return;
+        }
+        FileSaver->SetWildcard(wxT("RUZ-Datei (*.ruz)|*.ruz"));
+        FileSaver->SetMessage(wxT("Zeichnung in RUZ-Datei speichern"));
     }else
     {
-        vVerschubStart = new Vektor(vkt);
-        if(vVerschubStart)
-            SetStatusText(wxT("Kopierte Objekte verschieben: 'Nach' (Punkt wählen / eingeben)"), 2);
+        FileSaver->SetWildcard(wxT("DXF-Datei (*.dxf)|*.dxf|RUZ-Datei (*.ruz)|*.ruz"));
+        FileSaver->SetMessage(wxT("Zeichnung in DXF-Datei speichern"));
+    }
+
+    int Rueckgabe = FileSaver->ShowModal();
+    if(Rueckgabe==wxID_CANCEL)return;
+    SetStatusText(FileSaver->GetPath(), 1);
+
+    if(event.GetId() == idMenuExportPrismen)
+    {
+        ExportiereDreiecksPrismen((char*)static_cast<const char*>(FileSaver->GetPath().c_str()));
+    }else
+    if(event.GetId() == idMenuExportPunkte)
+    {
+        ExportierePunkte((char*)static_cast<const char*>(FileSaver->GetPath().c_str()));
+    }else
+    {
+        if((FileSaver->GetPath()).EndsWith(wxT("ruz"))||(FileSaver->GetPath()).EndsWith(wxT("RUZ")))
+        {
+            strAktuellerSpeicherpfad = FileSaver->GetPath();
+            SchreibeInDatei((char*)static_cast<const char*>(FileSaver->GetPath().c_str()));
+        }
+        if((FileSaver->GetPath()).EndsWith(wxT("dxf"))||(FileSaver->GetPath()).EndsWith(wxT("DXF")))
+        {
+            Liste<RUZ_Layer>* exportListe = new Liste<RUZ_Layer>;
+            for(RUZ_Layer* t_lay = m_layer->GetErstesElement(); t_lay; t_lay = m_layer->GetNaechstesElement())
+            {
+                if(t_lay->IstSichtbar())exportListe->Hinzufuegen(t_lay);
+            }
+            if(m_hintergrundMalen)exportListe->Hinzufuegen(m_hintergrundLayer);
+						/*Sichtbarkeitsflags setzen*/
+						unsigned int cSichtbar = 0x0000;
+						cSichtbar = (m_zeigePunkt | (m_zeigeLinie << 1) | (m_zeigeFlaeche << 2) |
+												(hlAnzeigen << 3) | (m_zeigeStrich << 4) | (m_zeigeBogen << 5) |
+												(m_zeigeHoehenmarke << 6));
+						/*ENDE Sichtbarkeitsflags setzen*/
+            DXF_Export(exportListe, (char*)static_cast<const char*>(FileSaver->GetPath().c_str()), m_anzeigeGenauigkeit, cSichtbar);
+            exportListe->ListeLeeren("");
+            delete exportListe;
+        }
     }
     return;
 }
 
-void RUZmBIFrame::Kop_Verschieben(Vektor vkt)
+void RUZmBIFrame::OnSize(wxSizeEvent& event)
 {
-    Vschb_Verschieben(vkt);
+    Refresh();
+}
+
+void RUZmBIFrame::OnSkalierfaktor(wxCommandEvent &event)
+{
+	bool exitSchleife = false;
+	while(!exitSchleife)
+	{
+		wxTextEntryDialog abfrage(this, wxT("Bitte geben Sie den gewünschten Skalierfaktor ein."),
+								  wxT("Anzeigeskalierung"), wxString::Format(wxT("%0.2f"), 1.0));
+		if(abfrage.ShowModal() == wxID_ABORT)return;
+		wxString number = abfrage.GetValue();
+		/*komma gegen punkt tauschen*/
+		wxString punkt = wxT(".");
+		wxString komma = wxT(",");
+		number.Replace(komma, punkt);
+		double t_skal = 1.0;
+		if(!number.ToDouble(&t_skal))
+		{
+			if(wxMessageDialog(this, wxT("Bitte geben Sie eine Zahl ein"), wxT("Eingabe fehlerhaft")).ShowModal() == wxID_ABORT)break;
+			continue;
+		}else
+		{
+			SkalierungSetzen(t_skal);
+			exitSchleife = true;
+		}
+	}
+	SetStatusText(wxString::Format("Offset: %1.5f - %1.5f / Skalierung: %5.5f", dc_Offset[0], dc_Offset[1], m_skalierung), 1);
+	Refresh();
+	return;
+}
+
+void RUZmBIFrame::OnSonnenstandEinstellen(wxCommandEvent &event)
+{
+    Sonnenstand_Dialog(this, m_sonnenRichtung).ShowModal();
     return;
 }
 
-void RUZmBIFrame::Kop_Abbrechen(void)
+void RUZmBIFrame::OnToggleHintergrund(wxCommandEvent &event)
 {
-    if(m_markierModus)
+    m_hintergrundMalen == true? m_hintergrundMalen = false : m_hintergrundMalen = true;
+    menuHintergrundMalen->Check(m_hintergrundMalen);
+    Refresh();
+    return;
+}
+
+void RUZmBIFrame::OnUeberlappungFinden(wxCommandEvent& event)
+{
+    Liste<Flaeche>* flLst = aktLayer->HoleFlaechen();
+    Liste<Linie>* lnLst = aktLayer->HoleLinien();
+    Flaeche *flAkt, *flVergleich;
+    int iEckenAkt, iEckenVergleich;
+    for(Listenelement<Flaeche>* flLEAkt = flLst->GetErstesListenelement(); flLEAkt != NULL; flLEAkt = flLEAkt->GetNachfolger())
     {
-        if(m_auswahl->GetListenGroesse() != 0)
+        flAkt = flLEAkt->GetElement();
+        flAkt->LoescheFarbe();
+        flAkt->SetzeBesucht('-');
+    }
+    for(Linie* lnAkt = lnLst->GetErstesElement(); lnAkt != NULL; lnAkt = lnLst->GetNaechstesElement())
+    {
+        lnAkt->LoescheFarbe();
+    }
+    aktLayer->FehlerEntfernen();
+
+    bool weiter;
+    double dFlaechenInhaltAkt, dFlaechenInhalteVergleich;
+    for(Listenelement<Flaeche>* flLEAkt = flLst->GetErstesListenelement(); flLEAkt != NULL; flLEAkt = flLEAkt->GetNachfolger())
+    {
+        flAkt = flLEAkt->GetElement();
+        dFlaechenInhaltAkt = flAkt->FlaechenInhalt(aktProjZ);
+        (flAkt->HoleTyp() == RUZ_Dreieck) ? iEckenAkt = 3 : iEckenAkt = 4;
+        for(Listenelement<Flaeche>* flLEVergleich = flLEAkt->GetNachfolger(); flLEVergleich != NULL; flLEVergleich = flLEVergleich->GetNachfolger())
         {
-            m_auswahl->ListeLeeren("");
-        }else
-        {
-            BefehleZuruecksetzen();
+            flVergleich = flLEVergleich->GetElement();
+            dFlaechenInhalteVergleich = flVergleich->FlaechenInhalt(aktProjZ);
+            (flVergleich->HoleTyp() == RUZ_Dreieck) ? iEckenVergleich = 3 : iEckenVergleich = 4;
+
+            for(int i = 0; i < iEckenAkt; i++)
+            {
+                weiter = false;
+                Punkt* pktTemp = flAkt->HolePunkt(i);
+                for(int k = 0; k < iEckenVergleich; k++)
+                {
+                    if(pktTemp == flVergleich->HolePunkt(k))
+                    {
+                        weiter = true;
+                        break;
+                    }
+                }
+                if(weiter)continue;
+                if(flVergleich->IstInnerhalb(pktTemp))
+                {
+                    if(dFlaechenInhaltAkt > dFlaechenInhalteVergleich)
+                    {
+                        flVergleich->SetzeBesucht('+');
+                    }else{
+                        flAkt->SetzeBesucht('+');
+                    }
+                    flVergleich->SetzeFarbe(128, 55, 55);
+                    flAkt->SetzeFarbe(128, 55, 55);
+
+                    aktLayer->Hinzufuegen(new Vektor(pktTemp->HolePosition()));
+                }
+                for(int k = 0; k < iEckenVergleich; k++)
+                {
+                    if(flVergleich->HoleLinie(k)->schneidet(flAkt->HoleLinie(i), aktProjZ))
+                    {
+                        if(dFlaechenInhaltAkt > dFlaechenInhalteVergleich)
+                        {
+                            flVergleich->SetzeBesucht('+');
+                        }else{
+                            flAkt->SetzeBesucht('+');
+                        }
+                        flVergleich->SetzeFarbe(128, 55, 55);
+                        flAkt->SetzeFarbe(128, 55, 55);
+
+                        flVergleich->HoleLinie(k)->SetzeFarbe(255, 110, 110);
+                        flAkt->HoleLinie(i)->SetzeFarbe(255, 110, 110);
+                    }
+                }
+            }
+
+            for(int i = 0; i < iEckenVergleich; i++)
+            {
+                weiter = false;
+                Punkt* pktTemp = flVergleich->HolePunkt(i);
+                for(int k = 0; k < iEckenAkt; k++)
+                {
+                    if(pktTemp == flAkt->HolePunkt(k))
+                    {
+                        weiter = true;
+                        break;
+                    }
+                }
+                if(weiter)continue;
+                if(flAkt->IstInnerhalb(flVergleich->HolePunkt(i)))
+                {
+                    if(dFlaechenInhaltAkt > dFlaechenInhalteVergleich)
+                    {
+                        flVergleich->SetzeBesucht('+');
+                    }else{
+                        flAkt->SetzeBesucht('+');
+                    }
+                    flVergleich->SetzeFarbe(128, 55, 55);
+                    flAkt->SetzeFarbe(128, 55, 55);
+
+                    aktLayer->Hinzufuegen(new Vektor(pktTemp->HolePosition()));
+                }
+            }
         }
+    }
+    Refresh();
+
+    if(wxMessageDialog(this, wxT("Soll die Überlappung gelöscht werden?\n(kleinere Fläche wird gelöscht)")
+                       , wxT("Überlappung löschen"), wxYES_NO).ShowModal() == wxID_YES)
+    {
+        for(Flaeche* flAkt = flLst->GetErstesElement(); flAkt != NULL; flAkt = flLst->GetNaechstesElement())
+        {
+            if(flAkt->HoleBesucht() == '+')
+            {
+                flLst->Entfernen(flAkt);
+                delete flAkt;
+            }
+        }
+        Refresh();
+    }
+    return;
+}
+
+void RUZmBIFrame::OnViereckeFinden(wxCommandEvent &event)
+{
+    AuswahlLeeren();
+    if(aktLayer!=NULL)
+    {
+        aktLayer->ViereckeFinden();
+        Refresh();
+    }else{
+        SetStatusText(wxT("Kein Layer vorhanden!"), 1);
+    }
+    return;
+}
+
+void RUZmBIFrame::OnVolumenZwischenLayern(wxCommandEvent &event)
+{
+    /*Die Layer auswählen zwischen denen das Volumen ermittelt werden soll*/
+    int layNr1 = Layer_Auswahl_Dialog(this, m_layer, wxT("Layer wählen (Ursprungsgelände)")).ShowModal();
+    int layNr2;
+    if(layNr1 == -1)return;
+    do
+    {
+        layNr2 = Layer_Auswahl_Dialog(this, m_layer, wxT("Layer wählen (Neues Gelände)")).ShowModal();
+        if(layNr2 == -1)return;
+        if(layNr1 == layNr2)
+        {
+            if(wxMessageDialog(this, wxT("Zweimal derselbe Layer gewählt!\nBitte neuen zweiten Layer wählen."), wxT("Layer identisch"), wxOK|wxCANCEL).ShowModal() == wxID_CANCEL)
+            {
+                return;
+            }
+        }
+    }while(layNr1 == layNr2);
+
+    RUZ_Layer* erster_Layer = NULL;
+    RUZ_Layer* zweiter_Layer = NULL;
+    //RUZ_Layer *erster_neuer_Layer, *zweiter_neuer_Layer;
+
+    for(Listenelement<RUZ_Layer>* layer_LE = m_layer->GetErstesListenelement(); layer_LE; layer_LE = layer_LE->GetNachfolger())
+    {
+        if(layer_LE->Wert() == layNr1)
+        {
+            erster_Layer = layer_LE->GetElement();
+        }
+        if(layer_LE->Wert() == layNr2)
+        {
+            zweiter_Layer = layer_LE->GetElement();
+        }
+        if(erster_Layer && zweiter_Layer)break;
+    }
+    if(!erster_Layer || !zweiter_Layer)
+    {
+        wxMessageDialog(this, wxT("Layerauswahl war nicht erfolgreich."), wxT("Abbruch")).ShowModal();
         return;
     }
-    if(vVerschubStart)
+
+    /*Volumen ermitteln*/
+    clock_t tLaufzeit;
+
+    double dAuftrag, dAbtrag, dOffsetNeu, dOffsetUr;
+    dAuftrag = dAbtrag = 0.0;
+    dOffsetNeu = dOffsetUr = 0.0;
+
+    if(event.GetId() == idVolumenZwischenLayern_Integral)
     {
-        Kop_Verschieben(*vVerschubStart);
-        delete vVerschubStart;
-        vVerschubStart = NULL;
-        SetStatusText(wxT("Kopierte Objekte verschieben: 'Von' (Punkt wählen / eingeben)"), 2);
+        /*Höhenverschub der Layer*/
+        bool exitSchleife = false;
+        while(!exitSchleife) //dOffsetNeu
+        {
+            wxTextEntryDialog abfrage(this, wxT(" (Neues Gelände):\nHöhen für für die Berechnung anpassen"),
+                                      wxT("Höhenverschub"), wxString::Format(wxT("%0.2f"), 0.0));
+            if(abfrage.ShowModal() == wxID_ABORT)return;
+            wxString number = abfrage.GetValue();
+            /*komma gegen punkt tauschen*/
+            wxString punkt = wxT(".");
+            wxString komma = wxT(",");
+            number.Replace(komma, punkt);
+            if(!number.ToDouble(&dOffsetNeu))
+            {
+                if(strcmp(number, "")!=0)
+                {
+                    if(wxMessageDialog(this, wxT("Bitte geben Sie eine Zahl ein"), wxT("Eingabe fehlerhaft")).ShowModal() == wxID_ABORT)break;
+                }else{
+                    dOffsetNeu = 0.0;
+                    exitSchleife = true;
+                }
+            }
+            exitSchleife = true;
+        }
+        exitSchleife = false;
+        while(!exitSchleife) //dOffsetUr
+        {
+            wxTextEntryDialog abfrage(this, wxT(" (Urgelände):\nHöhen für für die Berechnung anpassen"),
+                                      wxT("Höhenverschub"), wxString::Format(wxT("%0.2f"), 0.0));
+            if(abfrage.ShowModal() == wxID_ABORT)return;
+            wxString number = abfrage.GetValue();
+            /*komma gegen punkt tauschen*/
+            wxString punkt = wxT(".");
+            wxString komma = wxT(",");
+            number.Replace(komma, punkt);
+            if(!number.ToDouble(&dOffsetUr))
+            {
+                if(strcmp(number, "")!=0)
+                {
+                    if(wxMessageDialog(this, wxT("Bitte geben Sie eine Zahl ein"), wxT("Eingabe fehlerhaft")).ShowModal() == wxID_ABORT)break;
+                }else{
+                    dOffsetUr = 0.0;
+                    exitSchleife = true;
+                }
+            }
+            exitSchleife = true;
+        }
+        /*ENDE Höhenverschub der Layer*/
+
+        double minX, minY, maxX, maxY, minZ, maxZ;
+		long long int anzAuftragsflaechen = 0;
+		long long int anzAbtragsflaechen = 0;
+        if(zweiter_Layer->AusdehnungFinden(minX, minY, maxX, maxY, minZ, maxZ))
+        {
+            SetStatusText(wxT("Starte Integration (Neues Gelände)"), 1);
+            Refresh();
+
+            double* dIntegral_NeuesGelaende = NULL;
+            aruIntegral tempIntegral_Neu(dIntegral_NeuesGelaende, minX, minY, maxX, maxY, m_flaechenRaster, aktProjZ);
+            dIntegral_NeuesGelaende = tempIntegral_Neu.HoleIntegral();
+            if(!dIntegral_NeuesGelaende)
+            {
+                wxMessageDialog(this, wxT("Fehler beim Anlegen des Integrals\n(evtl. zu wenig Speicher?)"), wxT("Abbruch der Berechnung")).ShowModal();
+                return;
+            }
+
+            Liste<Flaeche>* lstFl = zweiter_Layer->HoleFlaechen();
+            int iAktFlaeche = 0;
+            for(Flaeche* aktFl = lstFl->GetErstesElement(); aktFl != NULL; aktFl = lstFl->GetNaechstesElement())
+            {
+                if(aktFl->HoleTyp() == RUZ_Dreieck)
+                {
+                    Vektor vNormale = aktFl->HoleNormale();
+                    Vektor vSenkrechte(0, 0, 0);
+                    vSenkrechte.SetKoordinaten(aktProjZ, 1.0);
+                    if(vNormale*vSenkrechte < 0.05)continue;//0.05 = ca. cos(87°) - fast senkrechte Flächen überspringen (ergibt an den Rändern unbrauchbar hohe Werte)
+                }
+                tempIntegral_Neu.IntegriereFlaeche(aktFl);
+            }
+
+            SetStatusText(wxT("Starte Integration (Urgelände)"), 1);
+            Refresh();
+
+            double* dIntegral_Urgelaende = NULL;
+            aruIntegral tempIntegral_Ur(dIntegral_Urgelaende, minX, minY, maxX, maxY, m_flaechenRaster, aktProjZ);
+            dIntegral_Urgelaende = tempIntegral_Ur.HoleIntegral();
+            if(!dIntegral_Urgelaende)
+            {
+                wxMessageDialog(this, wxT("Fehler beim Anlegen des Integrals\n(evtl. zu wenig Speicher?)"), wxT("Abbruch der Berechnung")).ShowModal();
+                return;
+            }
+
+            lstFl = erster_Layer->HoleFlaechen();
+            tLaufzeit = clock();
+            iAktFlaeche = 0;
+            for(Flaeche* aktFl = lstFl->GetErstesElement(); aktFl != NULL; aktFl = lstFl->GetNaechstesElement())
+            {
+                if(aktFl->HoleTyp() == RUZ_Dreieck)
+                {
+                    Vektor vNormale = aktFl->HoleNormale();
+                    Vektor vSenkrechte(0, 0, 0);
+                    vSenkrechte.SetKoordinaten(aktProjZ, 1.0);
+                    if(vNormale*vSenkrechte < 0.05)continue;//0.05 = ca. cos(87°) - fast senkrechte Flächen überspringen (ergibt an den Rändern unbrauchbar hohe Werte)
+                }
+                tempIntegral_Ur.IntegriereFlaeche(aktFl);
+            }
+
+            double maxWert, minWert;
+            int iB = tempIntegral_Neu.HoleBreite();
+            int iH = tempIntegral_Neu.HoleHoehe();
+
+            maxWert = minWert = 0.0;
+            bool nochNAN = true;
+
+            SetStatusText(wxT("Stopfe Löcher (Neues Gelände)"), 1);
+            Refresh();
+            for(int i = 0; i < iB; i++)
+            {
+                for(int k = 0; k < iH; k++)
+                {
+                    if(!isnan(dIntegral_NeuesGelaende[i+k*iB]))
+                    {
+
+                        if(nochNAN)
+                        {
+                            maxWert = minWert = dIntegral_NeuesGelaende[i+k*iB];
+                            nochNAN = false;
+                        }
+                        if(maxWert < dIntegral_NeuesGelaende[i+k*iB])maxWert = dIntegral_NeuesGelaende[i+k*iB];
+                        if(minWert > dIntegral_NeuesGelaende[i+k*iB])minWert = dIntegral_NeuesGelaende[i+k*iB];
+                    }else
+                    {
+                        //Löcher stopfen
+                        if((i>0)&&(k>0)&&(i<iB-1)&&(k<iH-1))
+                        {
+                            int iNachbarn = 0;
+                            double dSumme = 0;
+                            for(int di = -1; di < 2; di++)
+                                for(int dk = -1; dk < 2; dk++)
+                                {
+                                    if(!isnan(dIntegral_NeuesGelaende[i+di+(k+dk)*iB]))
+                                    {
+                                        iNachbarn++;
+                                        dSumme += dIntegral_NeuesGelaende[i+di+(k+dk)*iB];
+                                    }
+                                }
+                            if(iNachbarn > 5)//Loch ist (vermutlich) in Fläche und nicht am Rand
+                            {
+                                dIntegral_NeuesGelaende[i+k*iB] = dSumme/iNachbarn;
+                            }
+                        }
+                    }
+                }
+            }
+
+            SetStatusText(wxT("Stopfe Löcher (Urgelände)"), 1);
+            Refresh();
+
+            for(int i = 0; i < iB; i++)
+            {
+                for(int k = 0; k < iH; k++)
+                {
+                    if(!isnan(dIntegral_Urgelaende[i+k*iB]))
+                    {
+                        if(nochNAN)
+                        {
+                            maxWert = minWert = dIntegral_Urgelaende[i+k*iB];
+                            nochNAN = false;
+                        }
+                        if(maxWert < dIntegral_Urgelaende[i+k*iB])maxWert = dIntegral_Urgelaende[i+k*iB];
+                        if(minWert > dIntegral_Urgelaende[i+k*iB])minWert = dIntegral_Urgelaende[i+k*iB];
+                    }else
+                    {
+                        //Löcher stopfen
+                        if((i>0)&&(k>0)&&(i<iB-1)&&(k<iH-1))
+                        {
+                            int iNachbarn = 0;
+                            double dSumme = 0;
+                            for(int di = -1; di < 2; di++)
+                                for(int dk = -1; dk < 2; dk++)
+                                {
+                                    if(!isnan(dIntegral_Urgelaende[i+di+(k+dk)*iB]))
+                                    {
+                                        iNachbarn++;
+                                        dSumme += dIntegral_Urgelaende[i+di+(k+dk)*iB];
+                                    }
+                                }
+                            if(iNachbarn > 5)//Loch ist (vermutlich) in Fläche und nicht am Rand
+                            {
+                                dIntegral_Urgelaende[i+k*iB] = dSumme/iNachbarn;
+                            }
+                        }
+                    }
+                }
+            }
+
+
+            for(int i = 0; i < iB; i++)
+            {
+                for(int k = 0; k < iH; k++)
+                {
+                    dIntegral_NeuesGelaende[i+k*iB] -= dIntegral_Urgelaende[i+k*iB] + dOffsetUr - dOffsetNeu;
+                }
+            }
+
+            lwBild.NeueLeinwand(iB, iH, 1/m_flaechenRaster, minX, minY);
+            for(int i = 0; i < (iB * iH); i++)
+            {
+                if(isnan(dIntegral_NeuesGelaende[i]))
+                {
+                    lwBild.ucLeinwand[i*3] = col_ZeichenHintergrund.Red();
+                    lwBild.ucLeinwand[i*3+1] = col_ZeichenHintergrund.Green();
+                    lwBild.ucLeinwand[i*3+2] = col_ZeichenHintergrund.Blue();
+                }else if(dIntegral_NeuesGelaende[i] >= 0)
+                {
+                    dAuftrag += dIntegral_NeuesGelaende[i];
+                    lwBild.ucLeinwand[i*3] = col_Flaeche_darunter.Red();
+                    lwBild.ucLeinwand[i*3+1] = col_Flaeche_darunter.Green();
+                    lwBild.ucLeinwand[i*3+2] = col_Flaeche_darunter.Blue();
+					anzAuftragsflaechen++;
+                }
+                else if(dIntegral_NeuesGelaende[i] < 0)
+                {
+                    dAbtrag -= dIntegral_NeuesGelaende[i];
+                    lwBild.ucLeinwand[i*3] = col_Flaeche_darueber.Red();
+                    lwBild.ucLeinwand[i*3+1] = col_Flaeche_darueber.Green();
+                    lwBild.ucLeinwand[i*3+2] = col_Flaeche_darueber.Blue();
+					anzAbtragsflaechen++;
+                }
+            }
+        }
+        /*Ergebnisausgabe*/
+        dAuftrag *= m_flaechenRaster * m_flaechenRaster;
+        dAbtrag *= m_flaechenRaster * m_flaechenRaster;
+        SetStatusText(wxString::Format("Auftrag:\t%0.3f\tAbtrag:\t%0.3f", dAuftrag, dAbtrag), 1);
+        wxMessageDialog(this, wxString::Format("Auftrag:\t%0.3f\nAbtrag:\t%0.3f", dAuftrag, dAbtrag), wxT("Ergebnis")).ShowModal();
+        logSchreiben("\n\n/**Ergebnis der Volumenberechnung zwischen Layern**/\n/***************Flächenintegration****************/\n");
+        logSchreiben("Urgelände:\t%s\tVerschub:\t%0.3f\n", erster_Layer->HoleName(), dOffsetUr);
+        logSchreiben("neues Gelände:\t%s\tVerschub:\t%0.3f\n", zweiter_Layer->HoleName(), dOffsetNeu);
+        logSchreiben("Rastergröße:\t%0.3f\n", m_flaechenRaster);
+        char buffer[50];
+        sprintf(buffer, "Auftrag:\t%c0.%df auf Flaeche:\t%c0.%df\n", '%', m_anzeigeGenauigkeit, '%', m_anzeigeGenauigkeit);
+        logSchreiben(buffer, dAuftrag, m_flaechenRaster * m_flaechenRaster * anzAuftragsflaechen);
+        sprintf(buffer, "Abtrag:\t%c0.%df auf Flaeche:\t%c0.%df\n", '%', m_anzeigeGenauigkeit, '%', m_anzeigeGenauigkeit);
+        logSchreiben(buffer, dAbtrag, m_flaechenRaster * m_flaechenRaster * anzAbtragsflaechen);
+        logSchreiben("/**ENDE Volumenberechnung**/\n");
+        /*ENDE Ergebnisausgabe*/
         return;
     }
-    m_markierModus = true;
-    KoordinatenMaske->Show(false);
-    for(RUZ_Objekt* obj = m_kopierAuswahl->GetErstesElement(); obj; obj = m_kopierAuswahl->GetNaechstesElement())
+
+    Liste<Flaeche> *flLst1 = erster_Layer->HoleFlaechen();
+    Liste<Flaeche> *flLst2 = zweiter_Layer->HoleFlaechen();
+
+		Liste<Punkt> *pktLst1 = erster_Layer->HolePunkte();
+		Liste<Punkt> *pktLst2 = zweiter_Layer->HolePunkte();
+    Vektor swPkt;
+    double vergleichsHoehe;
+
+		ofstream fsAusgabeUr58, fsAusgabeUr45, fsAusgabeNeu58, fsAusgabeNeu45;
+		fsAusgabeUr58.open("Urgelaende.D58", std::fstream::out|std::fstream::trunc);
+		fsAusgabeUr45.open("Urgelaende.D45", std::fstream::out|std::fstream::trunc);
+		fsAusgabeNeu58.open("NeueOK.D58", std::fstream::out|std::fstream::trunc);
+		fsAusgabeNeu45.open("NeueOK.D45", std::fstream::out|std::fstream::trunc);
+		if(!fsAusgabeUr45.good() || !fsAusgabeUr58.good() || !fsAusgabeNeu45.good() || !fsAusgabeNeu58.good())
+		{
+			wxMessageDialog(this, wxT("Ausgabedateien konnten nicht geöffnet werden")).ShowModal();
+			return;
+		}
+		int lfdNrPkt = 0;
+		char pktName[8];
+		Vektor vOrt;
+		for(Punkt *pkt = pktLst1->GetErstesElement(); pkt; pkt = pktLst1->GetNaechstesElement())
+		{
+			snprintf(pktName, 8, "Ur%d", lfdNrPkt++);
+			pkt->SetzeName(pktName);
+			vOrt = pkt->HolePosition();
+			fsAusgabeUr45<<"45"<<setw(7)<<pktName<<setw(10)
+										<<(unsigned long long)(vOrt.x()*1000)<<setw(10)
+										<<(unsigned long long)(-vOrt.y()*1000)<<setw(10)
+										<<(unsigned long long)(vOrt.z()*1000)<<"\n";
+		}
+		/*Damit das sicher funktioniert, muessen die Layer vorher verschnitten werden*/
+    for(Flaeche *aktFl1 = flLst1->GetErstesElement(); aktFl1; aktFl1 = flLst1->GetNaechstesElement())
     {
-        if((obj->HoleTyp() == RUZ_Linie)||(obj->HoleTyp() == RUZ_Dreieck)||(obj->HoleTyp() == RUZ_Viereck))
+        swPkt = aktFl1->Schwerpunkt();
+        vergleichsHoehe = swPkt.GetKoordinaten(aktProjZ);
+        for(Flaeche *aktFl2 = flLst2->GetErstesElement(); aktFl2; aktFl2 = flLst2->GetNaechstesElement())
         {
-            m_kopierAuswahl->Entfernen(obj);
+            if(aktFl2->OrtAufFlaeche(swPkt, aktProjZ))
+            {
+                if(swPkt.GetKoordinaten(aktProjZ) > vergleichsHoehe)
+                {
+                    dAuftrag -= aktFl1->Volumen(aktProjZ);
+                    aktFl1->SetzeFarbe(col_Flaeche_darunter.Red(), col_Flaeche_darunter.Green(), col_Flaeche_darunter.Blue());
+                    break;
+                }else
+                if(swPkt.GetKoordinaten(aktProjZ) < vergleichsHoehe)
+                {
+                    dAbtrag += aktFl1->Volumen(aktProjZ);
+                    aktFl1->SetzeFarbe(col_Flaeche_darueber.Red(), col_Flaeche_darueber.Green(), col_Flaeche_darueber.Blue());
+                    break;
+                }
+            }
         }
     }
-    m_kopierAuswahl->ListeLoeschen("");
-    m_verschubAuswahlOrte->ListeLeeren("");
-    SetStatusText(wxT("Objekte zum Verschieben auswählen"), 2);
+    for(Flaeche *aktFl2 = flLst2->GetErstesElement(); aktFl2; aktFl2 = flLst2->GetNaechstesElement())
+    {
+        swPkt = aktFl2->Schwerpunkt();
+        vergleichsHoehe = swPkt.GetKoordinaten(aktProjZ);
+        for(Flaeche *aktFl1 = flLst1->GetErstesElement(); aktFl1; aktFl1 = flLst1->GetNaechstesElement())
+        {
+            if(aktFl1->OrtAufFlaeche(swPkt, aktProjZ))
+            {
+                if(swPkt.GetKoordinaten(aktProjZ) > vergleichsHoehe)
+                {
+                    dAbtrag -= aktFl2->Volumen(aktProjZ);
+                    aktFl2->SetzeFarbe(col_Flaeche_darunter.Red(), col_Flaeche_darunter.Green(), col_Flaeche_darunter.Blue());
+                    break;
+                }else
+                if(swPkt.GetKoordinaten(aktProjZ) < vergleichsHoehe)
+                {
+                    dAuftrag += aktFl2->Volumen(aktProjZ);
+                    aktFl2->SetzeFarbe(col_Flaeche_darueber.Red(), col_Flaeche_darueber.Green(), col_Flaeche_darueber.Blue());
+                    break;
+                }
+            }
+        }
+    }
+    /*ENDE Volumen ermitteln*/
+    wxMessageDialog(this, wxString::Format("Auftrag:\t%0.3f\nAbtrag:\t%0.3f", dAuftrag, dAbtrag)).ShowModal();
+    logSchreiben("\n\n/**Ergebnis der Volumenberechnung zwischen Layern**/\n/***************Prismenberechnung****************/\n");
+    logSchreiben("Urgelände:\t%s\tVerschub:\t%0.3f\n", erster_Layer->HoleName(), dOffsetUr);
+    logSchreiben("neues Gelände:\t%s\tVerschub:\t%0.3f\n", zweiter_Layer->HoleName(), dOffsetNeu);
+    logSchreiben("Rastergröße:\t%0.3f\n", m_flaechenRaster);
+    char buffer[50];
+    sprintf(buffer, "Auftrag:\t%c0.%df\n", '%', m_anzeigeGenauigkeit);
+    logSchreiben(buffer, dAuftrag);
+    sprintf(buffer, "Abtrag:\t%c0.%df\n", '%', m_anzeigeGenauigkeit);
+    logSchreiben(buffer, dAbtrag);
+    logSchreiben("/**ENDE Volumenberechnung**/\n");
+
+		fsAusgabeUr58.close();
+		fsAusgabeUr45.close();
+		fsAusgabeNeu58.close();
+		fsAusgabeNeu45.close();
     return;
 }
 
-void RUZmBIFrame::Kop_Punktspeicher_Schreiben(void)
+void RUZmBIFrame::OnZeigeWaehle(wxCommandEvent &event)
 {
-    m_verschubAuswahlOrte->ListeLoeschen("Kop_Punktspeicher_Schreiben");
-    PunktSpeicher* pktSp = NULL;
+    ObjAnzAuswDlg->ShowModal();
+    return;
+}
 
-    for(RUZ_Objekt* obj = m_kopierAuswahl->GetErstesElement(); obj != NULL; obj = m_kopierAuswahl->GetNaechstesElement())
+void RUZmBIFrame::ParamIni(void)
+{
+    /*Paint*/
+    dc_Offset[0] = dc_Offset[1] = 0;
+    SkalierungSetzen(1.0);
+    m_hintergrundMalen = true;
+    anzeigeSkalieren = false;
+    /*ENDE Paint*/
+
+    /*Schalter*/
+    hlAnzeigen = false;
+    gefaelleAnzeigen = false;
+    m_markierungsRechteck = false;
+    m_kreuzen = false;
+    m_markierModus = false;
+
+    m_zeigeFlaeche = true;
+    m_zeigeHoehe = true;
+    m_zeigeHoehenmarke = true;
+    m_zeigeLinie = true;
+    m_zeigePunkt = true;
+    m_zeigeStrich = true;
+    m_zeigeBogen = true;
+    m_zeigeKreis = true;
+    m_zeigeFangpunkt = true;
+
+    m_waehlePunkt = true;
+    m_waehleLinie = true;
+    m_waehleFlaeche = true;
+    m_waehleHoehenmarke = true;
+    m_waehleStrich = true;
+    m_waehleBogen = true;
+    m_waehleKreis = true;
+    m_waehleFangpunkt = true;
+    /*ENDE Schalter*/
+
+    m_sonnenRichtung = Vektor(-0.577, -0.577, 0.577);
+    m_aktGefaelle = Vektor(0, 0, 0);
+    m_vktSchnittPkt1 = NULL_VEKTOR;
+    m_vktSchnittPkt2 = NULL_VEKTOR;
+
+    wertFkt = 1;
+    aktBefehl = bef_ID_nichts;
+
+    aktProjX = x;
+    aktProjY = y;
+    aktProjZ = z;
+
+    hoehenSchritt = hlParameterDlg->HoleWert(IDhoehenSchritt);
+    suchRadius = hlParameterDlg->HoleWert(IDsuchRadius);
+    startHoehe = hlParameterDlg->HoleWert(IDstartHoehe);
+
+    m_verschubWeite = peEinstellungenDlg->HoleWert(IDverschubWeite);
+    m_lnWandelGenauigkeit = peEinstellungenDlg->HoleWert(IDlnWandelGenauigkeit);
+    m_pseudoSchattenFkt = peEinstellungenDlg->HoleWert(IDpseudoSchattenFkt);
+    m_gefaelleRaster = peEinstellungenDlg->HoleWert(IDgefaelleRasterGroesse);
+    m_flaechenRaster = peEinstellungenDlg->HoleWert(IDflaechenRasterGroesse);
+    m_anzeigeGenauigkeit = (int)(peEinstellungenDlg->HoleWert(IDanzeigeGenauigkeit));
+        if(m_anzeigeGenauigkeit < 0)m_anzeigeGenauigkeit = 0;
+    pxSuchEntfernung = (int)(peEinstellungenDlg->HoleWert(IDpxSuchEntfernung));
+        if(pxSuchEntfernung < 1)pxSuchEntfernung = 1;
+
+    col_Pkt_Ln = peEinstellungenDlg->HoleFarbe(IDFarbePktLn);
+    col_Strich = peEinstellungenDlg->HoleFarbe(IDFarbeStrich);
+    col_HoehenMarke = peEinstellungenDlg->HoleFarbe(IDFarbeHoehenMarke);
+    col_Hoehenlinie = peEinstellungenDlg->HoleFarbe(IDFarbeHoehenlinie);
+    col_markiert_Obj = peEinstellungenDlg->HoleFarbe(IDFarbeMarkiertesObjekt);
+    col_ausgewaehlt_Obj = peEinstellungenDlg->HoleFarbe(IDFarbeAusgewaehltesObjekt);
+    col_HintergrundLayer = peEinstellungenDlg->HoleFarbe(IDFarbeHintergrundLayer);
+    col_ZeichenHintergrund = peEinstellungenDlg->HoleFarbe(IDFarbeZeichenHintergrund);
+    col_AuswahlRechteck = peEinstellungenDlg->HoleFarbe(IDFarbeAuswahlRechteck);
+    col_Flaeche_darueber = peEinstellungenDlg->HoleFarbe(IDFarbeFlaecheDarueber);
+    col_Flaeche_darunter = peEinstellungenDlg->HoleFarbe(IDFarbeFlaecheDarunter);
+    col_Gefaelle = peEinstellungenDlg->HoleFarbe(IDFarbeGefaelle);
+    col_Fangpunkt = peEinstellungenDlg->HoleFarbe(IDFarbeFangpunkt);
+
+    /*Drehung*/
+    m_drehungAuswahlOrte = new Liste<Vektor>();
+    if(!m_drehungAuswahlOrte)
     {
-        if(obj->HoleTyp() == RUZ_Punkt)
-        {
-            pktSp = new PunktSpeicher(static_cast<Punkt*>(obj));
-            if(!(Vschb_Ort_Exklusiv_Hinzufuegen(pktSp)))
-            {
-                delete pktSp;
-                pktSp = NULL;
-            }
-        }else
-        if(obj->HoleTyp() == RUZ_Linie)
-        {
-            Linie* ln = static_cast<Linie*>(obj);
-            for (int i = 0; i < 2; i++)
-            {
-                pktSp = new PunktSpeicher(ln->HolePunkt(i));
-                if(!(Vschb_Ort_Exklusiv_Hinzufuegen(pktSp)))
-                {
-                    delete pktSp;
-                    pktSp = NULL;
-                }
-            }
-        }else
-        if(obj->HoleTyp() == RUZ_Dreieck)
-        {
-            Dreieck* drk = static_cast<Dreieck*>(obj);
-            for (int i = 0; i < 3; i++)
-            {
-                pktSp = new PunktSpeicher(drk->HolePunkt(i));
-                if(!(Vschb_Ort_Exklusiv_Hinzufuegen(pktSp)))
-                {
-                    delete pktSp;
-                    pktSp = NULL;
-                }
-            }
-        }else
-        if(obj->HoleTyp() == RUZ_Viereck)
-        {
-            Viereck* vrk = static_cast<Viereck*>(obj);
-            for (int i = 0; i < 4; i++)
-            {
-                pktSp = new PunktSpeicher(vrk->HolePunkt(i));
-                if(!(Vschb_Ort_Exklusiv_Hinzufuegen(pktSp)))
-                {
-                    delete pktSp;
-                    pktSp = NULL;
-                }
-            }
-        }else
-        if(obj->HoleTyp() == RUZ_HoehenMarke)
-        {
-            pktSp = new PunktSpeicher(static_cast<HoehenMarke*>(obj));
-            if(!(Vschb_Ort_Exklusiv_Hinzufuegen(pktSp)))
-            {
-                delete pktSp;
-                pktSp = NULL;
-            }
-        }else
-        if(obj->HoleTyp() == RUZ_Kreis)
-        {
-            pktSp = new PunktSpeicher(static_cast<Kreis*>(obj));
-            if(!(Vschb_Ort_Exklusiv_Hinzufuegen(pktSp)))
-            {
-                delete pktSp;
-                pktSp = NULL;
-            }
-        }else
-        if(obj->HoleTyp() == RUZ_Fangpunkt)
-        {
-            pktSp = new PunktSpeicher(static_cast<Fangpunkt*>(obj));
-            if(!(Vschb_Ort_Exklusiv_Hinzufuegen(pktSp)))
-            {
-                delete pktSp;
-                pktSp = NULL;
-            }
-        }else
-        {
-            m_kopierAuswahl->Entfernen(obj);
-        }
+        logSchreiben("m_drehungAuswahlOrte wurde nicht initialisiert\nProgrammabbruch!");
+        this->Destroy();
     }
+    m_drehungDrPkt = m_drehungRichtung1 = m_drehungRichtung2 = NULL;
+    /*ENDE Drehung*/
+
+    /*Verschieben*/
+    vVerschubStart = NULL;
+    m_verschubAuswahlOrte = new Liste<PunktSpeicher>();
+    if(!m_verschubAuswahlOrte)
+    {
+        logSchreiben("m_drehungAuswahlOrte wurde nicht initialisiert\nProgrammabbruch!");
+        this->Destroy();
+    }
+    /*ENDE Verschieben*/
+
+    /*Schnittpunkt*/
+    m_schP_OrgPkt = NULL;
+    m_schP_Ln = NULL;
+    m_schP_Dr = NULL;
+    m_schP_Obj = NULL;
+    m_schP_Richtung_1 = NULL;
+    m_schP_Richtung_2 = NULL;
+    /*ENDE Schnittpunkt*/
+
+    /*Fangpunkte*/
+    objFang1 = objFang2 = NULL;
+    /*ENDE Fangpunkte*/
+
     return;
 }
 
@@ -6278,282 +7126,84 @@ void RUZmBIFrame::SchnittpunktLinieAbschliessen(void)
     return;
 }
 
-void RUZmBIFrame::FangeKoor(aruVektorEvent& event)
+bool RUZmBIFrame::SchreibeInDatei(char* dateiName)
 {
-    Vektor vOrt = event.HoleKoordinaten();
-        if(markiertesObjekt!=NULL)
-        {
-            Vektor tempVkt;
-            if(markiertesObjekt->HolePosition(tempVkt))
-                vOrt += tempVkt;
-        }
+    std::ofstream Datei;
+    int anzEcken;
+    Datei.open(dateiName, ios_base::out|ios_base::trunc);
+    logSchreiben("%s konnte geoffnet werden\n", dateiName);
 
-    if(aktLayer == NULL)
+    if(Datei.good())
     {
-        wxMessageDialog(this, wxT("Kein Layer ist aktiv!"), wxT("Layer prüfen")).ShowModal();
-        return;
-    }
-    if(aktBefehl == bef_ID_punktZeichnen)
-    {
-        Punkt *tempPunkt = new Punkt(vOrt, aktLayer);
-        if(tempPunkt)
+        Datei.setf( ios::fixed, ios::floatfield );
+        Datei.precision(15);
+
+        Punkt* tempPunkt;
+        HoehenMarke* tempHM;
+        Linie* tempLinie;
+        Flaeche* tempFlaeche;
+
+        for(RUZ_Layer *tempLayer = m_layer->GetErstesElement(); tempLayer != NULL; tempLayer = m_layer->GetNaechstesElement())
         {
-            if(aktLayer->PunktDoppeltVorhanden(tempPunkt))
+            Datei<<"  0\n  L\n"<<tempLayer->HoleName()<<"\n";
+            //if(tempLayer->IstSichtbar() == false)continue;
+
+            Liste<Punkt>* pktSammlung = tempLayer->HolePunkte();
+            Liste<HoehenMarke>* hmSammlung = tempLayer->HoleHoehenMarken();
+            Liste<Linie>* lnSammlung = tempLayer->HoleLinien();
+            Liste<Flaeche>* flSammlung = tempLayer->HoleFlaechen();
+            for(tempPunkt = pktSammlung->GetErstesElement(); tempPunkt != NULL; tempPunkt = pktSammlung->GetNaechstesElement())
             {
-                delete tempPunkt;
-                wxMessageDialog(this, wxT("Punkt gab es schon!"), wxT("Achtung")).ShowModal();
-            }else{
+                Datei<<"  0\nPOINT\n  X\n"<<tempPunkt->HolePosition().x()<<"\n  Y\n"<<-(tempPunkt->HolePosition().y())<<"\n  Z\n"
+                    <<tempPunkt->HolePosition().z()<<"\n  @\n"<<tempPunkt<<"\n";
+            }
+
+            for(tempLinie = lnSammlung->GetErstesElement(); tempLinie != NULL; tempLinie = lnSammlung->GetNaechstesElement())
+            {
+                Datei<<"  0\nLINE\n P0\n"<<tempLinie->HolePunkt(0)<<"\n P1\n"<<tempLinie->HolePunkt(1)<<"\n  @\n"<<tempLinie<<"\n";
+            }
+
+            for(tempFlaeche = flSammlung->GetErstesElement(); tempFlaeche != NULL; tempFlaeche = flSammlung->GetNaechstesElement())
+            {
+                if(tempFlaeche->HoleTyp() == RUZ_Dreieck)
+                {
+                    Datei<<"  0\nTRIANGLE\n";
+                    anzEcken = 3;
+                }else{
+                    Datei<<"  0\nQUAD\n";
+                    anzEcken = 4;
+                }
+                for(int k=0; k<anzEcken; k++)
+                {
+                    Datei<<" L"<<k<<"\n"<<tempFlaeche->HoleLinie(k)<<"\n";
+                }
+            }
+            for(tempHM = hmSammlung->GetErstesElement(); tempHM != NULL; tempHM = hmSammlung->GetNaechstesElement())
+            {
+                Datei<<"  0\nHOEHENMARKE\n  X\n"<<tempHM->HolePosition().x()<<"\n  Y\n"<<-(tempHM->HolePosition().y())<<"\n";
             }
         }
-    }
-    if(aktBefehl == bef_ID_linieZeichnen)
-    {
-        if(!m_aktPunkt)
+        Datei<<"  0\n HG\n";
+        Liste<Strich>* strichSammlung = m_hintergrundLayer->HoleStriche();
+        Liste<Bogen>* bogenSammlung = m_hintergrundLayer->HoleBoegen();
+        for(Strich* aktStrich = strichSammlung->GetErstesElement(); aktStrich; aktStrich = strichSammlung->GetNaechstesElement())
         {
-            Punkt *pktPkt = new Punkt(vOrt, aktLayer);
-            if(pktPkt)
-            {
-                m_aktPunkt = pktPkt;
-                Linie::NeueLinie(m_aktPunkt, new Punkt(vOrt, aktLayer));
-                m_aktPosition = vOrt;
-            }
-        }else
-        {
-            m_aktPunkt->Positionieren(vOrt);
-            m_aktPunkt = NULL;
-            m_aktLinie = NULL;
+            Datei<<"  0\nSTRICH\n X1\n"<<aktStrich->Xa()<<"\n Y1\n"<<-(aktStrich->Ya())<<"\n X2\n"<<aktStrich->Xe()<<"\n Y2\n"<<-(aktStrich->Ye())<<"\n";
         }
-    }
-    if(aktBefehl == bef_ID_verschieben)
-    {
-        Vschb_Punkt_Festlegen(vOrt);
-    }
-    if((aktBefehl == bef_ID_kopieren)||(aktBefehl == bef_ID_kopierenNachLayer))
-    {
-        Kop_Punkt_Festlegen(vOrt);
-    }
-    if(aktBefehl == bef_ID_versetzen)
-    {
-        RUZ_Objekt* obj = m_auswahl->GetErstesElement();
-        if(obj == NULL)return;
-        if(obj->HoleTyp() == RUZ_Punkt)
+        for(Bogen* aktBogen = bogenSammlung->GetErstesElement(); aktBogen; aktBogen = bogenSammlung->GetNaechstesElement())
         {
-            static_cast<Punkt*>(obj)->Positionieren(vOrt);
+            Datei<<"  0\nBOGEN\n X1\n"<<aktBogen->Xa()<<"\n Y1\n"<<-(aktBogen->Ya())<<"\n X2\n"<<aktBogen->Xe()<<"\n Y2\n"<<-(aktBogen->Ye())
+                    <<"\n XM\n"<<aktBogen->Xm()<<"\n YM\n"<<-(aktBogen->Ym())<<"\n";
         }
-        if(obj->HoleTyp() == RUZ_HoehenMarke)
-        {
-            static_cast<HoehenMarke*>(obj)->Positionieren(vOrt);
-        }
-    }
-    if(aktBefehl == bef_ID_punkteSkalieren)
-    {
-        SetStatusText(wxT("Skalierfaktoren eingeben"), 2);
-        SkalierungAusfuehren(Vektor(vOrt.x(), vOrt.y(), vOrt.z()));
-        SetStatusText(wxT("Objekte zum Skalieren auswählen"), 2);
-        m_markierModus = true;
-    }
-    if((aktBefehl == bef_ID_layerSkalieren)||
-       (aktBefehl == bef_ID_hintergrundSkalieren)||
-       (aktBefehl == bef_ID_allesSkalieren))
-    {
-        if(!SkalierFaktorenEingabe())
-        {
-            BefehleZuruecksetzen();
-            return;
-        }
-        LayerSkalieren(vOrt);
-    }
-    if(aktBefehl == bef_ID_drehen)
-    {
-        (this->*DrehungPktEingabe)(vOrt);
-    }
-    if(aktBefehl == bef_ID_kreisZeichnen)
-    {
-        Vektor t_vkt = Vektor(vOrt.x(), vOrt.y(), vOrt.z());
-        KreisPunktEingabe(t_vkt, true);
-    }
-    Refresh();
-    return;
-}
-
-void RUZmBIFrame::FangeSonnenstand(aruVektorEvent &event)
-{
-    m_sonnenRichtung = event.HoleKoordinaten();
-    Refresh(false);
-    return;
-}
-
-void RUZmBIFrame::FangePE(aruDblEvent& event)
-{
-    int tempID = event.GetId();
-    double Wert = event.HoleWert();
-
-    if(tempID == IDgefaelleRasterGroesse)
-    {
-        m_gefaelleRaster = Wert;
-        Refresh();
-        return;
-    }
-    if(tempID == IDflaechenRasterGroesse)
-    {
-        m_flaechenRaster = Wert;
-        Refresh();
-        return;
-    }
-    if(tempID == IDanzeigeGenauigkeit)
-    {
-        m_anzeigeGenauigkeit = int(Wert);
-        Refresh();
-        return;
-    }
-    if(tempID == IDpseudoSchattenFkt)
-    {
-        m_pseudoSchattenFkt = Wert;
-        if(m_pseudoSchattenFkt < 0)m_pseudoSchattenFkt = 0.0;
-        Refresh();
-        return;
-    }
-    event.Skip();
-    return;
-}
-
-void RUZmBIFrame::FangeRadius(aruDblEvent& event)
-{
-    int tempID = event.GetId();
-    double t_radius = event.HoleWert();
-
-    KreisDoubleEingabe(t_radius, (tempID == idRadius_perm));
-    Refresh();
-
-    return;
-}
-
-void RUZmBIFrame::FangeDrehwinkel(aruDblEvent& event)
-{
-    int tempID = event.GetId();
-    double drehWinkel = event.HoleWert();
-
-    while(drehWinkel < -180)drehWinkel += 360;
-    while(drehWinkel > 180)drehWinkel -= 360;
-
-    SetStatusText(wxString::Format(wxT("Drehung um %0.2f °"),drehWinkel));
-
-    Vektor vAdd(0.0, 0.0, 0.0);
-    vAdd.SetKoordinaten(aktProjX, 1.0);
-    if(m_drehungRichtung1)
-    {
-        *m_drehungRichtung1 = *m_drehungDrPkt + vAdd;
+        Datei<<"  0\nEOF\n";
     }
     else
     {
-        m_drehungRichtung1 = new Vektor(*m_drehungDrPkt);
-        *m_drehungRichtung1 += vAdd;
+        return false;
     }
-
-    vAdd = Vektor(0.0, 0.0, 0.0);
-    if(drehWinkel == 90)
-    {
-        vAdd.SetKoordinaten(aktProjY, 1.0);
-    }else
-    if(drehWinkel == 180)
-    {
-        vAdd.SetKoordinaten(aktProjX, -1.0);
-    }else
-    if(drehWinkel == -90)
-    {
-        vAdd.SetKoordinaten(aktProjY, -1.0);
-    }else
-    if(drehWinkel == 0)
-    {
-        vAdd.SetKoordinaten(aktProjX, 1.0);
-    }else
-    {
-
-        vAdd.SetKoordinaten(aktProjX, cos(drehWinkel*PI/180));
-        vAdd.SetKoordinaten(aktProjY, sin(drehWinkel*PI/180));
-    }
-    if(m_drehungRichtung2)
-    {
-        *m_drehungRichtung2 = *m_drehungDrPkt + vAdd;
-    }
-    else
-    {
-        m_drehungRichtung2 = new Vektor(*m_drehungDrPkt);
-        *m_drehungRichtung2 += vAdd;
-
-    }
-    DreheAuswahl();
-
-    switch(tempID)
-    {
-    case idDrehwinkel_temp:
-        break;
-    case idDrehwinkel_perm:
-        (this->*DrehungBefehlsketteVor)();
-        (this->*DrehungBefehlsketteVor)();
-        break;
-    default:;
-    }
-    Refresh();
-    return;
-}
-
-void RUZmBIFrame::FangeFarben(aruColourEvent& event)
-{
-    int tempID = event.GetInt();
-    wxColour Wert = event.HoleWert();
-
-    switch(tempID)
-    {
-    case IDFarbePktLn:
-        col_Pkt_Ln = Wert;
-        break;
-    case IDFarbeStrich:
-        col_Strich = Wert;
-        break;
-    case IDFarbeHoehenMarke:
-        col_HoehenMarke = Wert;
-        break;
-    case IDFarbeHoehenlinie:
-        col_Hoehenlinie = Wert;
-        break;
-    case IDFarbeMarkiertesObjekt:
-        col_markiert_Obj = Wert;
-        break;
-    case IDFarbeAusgewaehltesObjekt:
-        col_ausgewaehlt_Obj = Wert;
-        break;
-    case IDFarbeHintergrundLayer:
-        col_HintergrundLayer = Wert;
-        break;
-    case IDFarbeZeichenHintergrund:
-        col_ZeichenHintergrund = Wert;
-        break;
-    case IDFarbeAuswahlRechteck:
-        col_AuswahlRechteck = Wert;
-        break;
-    case IDFarbeFlaecheDarueber:
-        col_Flaeche_darueber = Wert;
-        break;
-    case IDFarbeFlaecheDarunter:
-        col_Flaeche_darunter = Wert;
-        break;
-    case IDFarbeGefaelle:
-        col_Gefaelle = Wert;
-        break;
-    case IDFarbeFangpunkt:
-        col_Fangpunkt = Wert;
-        break;
-    }
-    Refresh();
-    return;
-}
-
-void RUZmBIFrame::OnLayerAuswahl(wxCommandEvent& event)
-{
-    LayerAuswahl->ShowModal();
-    Refresh();
-    return;
+    Datei.close();
+    SetStatusText(strAktuellerSpeicherpfad + wxT(" erfolgreich gespeichert."), 1);
+    return true;
 }
 
 void RUZmBIFrame::SetzeAktuellenLayer(int neuerAktLayerNr, RUZ_Layer* neuerAktLayer)
@@ -6574,260 +7224,169 @@ void RUZmBIFrame::SetzeAktuellenLayer(int neuerAktLayerNr, RUZ_Layer* neuerAktLa
     return;
 }
 
-RUZ_Layer* RUZmBIFrame::HoleAktuellenLayer(void) const
+bool RUZmBIFrame::SkalierFaktorenEingabe()
 {
-    return aktLayer;
-}
-
-void RUZmBIFrame::LayerEntfernen(RUZ_Layer *layer)
-{
-    if(layer)
+    double t_wert = 1.0;
+    for(int i = 0; i < 3; i++)
     {
-        BefehleZuruecksetzen();
-        m_layer->Entfernen(layer);
-        if(layer == aktLayer)
+        do
         {
-            aktLayer = m_layer->GetErstesElement();
-            LayerauswahlAktualisieren();
-        }
-    }else
-    {
-        wxMessageDialog(this, wxT("Layer NICHT gefunden")).ShowModal();
-    }
-    return;
-}
-
-void RUZmBIFrame::LayerHinzufuegen(RUZ_Layer *layer)
-{
-    if(layer)
-    {
-        BefehleZuruecksetzen();
-        aktLayer = layer;
-        m_layer->Hinzufuegen(layer);
-    }
-    return;
-}
-
-void RUZmBIFrame::AuswahlLoeschen(void)
-{
-    ObjekteNullen();
-    for(RUZ_Objekt* obj = m_auswahl->GetErstesElement(); obj != NULL; obj = m_auswahl->GetNaechstesElement())
-    {
-        if(obj->HoleTyp() == RUZ_Punkt)
-        {
-            Punkt* pkt = static_cast<Punkt*>(obj);
-            Liste<Linie>* ln_Lst = pkt->HoleLinien();
-            for(Linie* ln = ln_Lst->GetErstesElement(); ln != NULL; ln = ln_Lst->GetNaechstesElement())
+            wxString t_richtung;
+            switch(i)
             {
-                m_auswahl->Entfernen(ln);
-                Liste<Flaeche>* fl_Lst = ln->HoleFlaechen();
-                for(Flaeche* fl = fl_Lst->GetErstesElement(); fl != NULL; fl = fl_Lst->GetNaechstesElement())
+            case 1:
+                t_richtung = wxT("y");
+                break;
+            case 2:
+                t_richtung = wxT("z");
+                break;
+            default:
+                t_richtung = wxT("x");
+            }
+            wxTextEntryDialog abfrage(this, wxT("Bitte geben Sie den Skalierfaktor in ") + t_richtung + wxT("-Richtung an."), wxT("Skalierfaktor"), wxString::Format(wxT("%0.6f"), t_wert));
+            if(abfrage.ShowModal() == wxID_ABORT)return false;
+            wxString number = abfrage.GetValue();
+            /*komma gegen punkt tauschen*/
+            wxString punkt = wxT(".");
+            wxString komma = wxT(",");
+            number.Replace(komma, punkt);
+            double value;
+            if(!number.ToDouble(&value))
+            {
+                if(strcmp(number, "")!=0)
                 {
-                    m_auswahl->Entfernen(fl);
+                    if(wxMessageDialog(this, wxT("Bitte geben Sie eine Zahl ein"), wxT("Eingabe fehlerhaft")).ShowModal() == wxID_ABORT)return false;
+                }else{
+                    value = t_wert;
+                    continue;
+                }
+            }
+            m_skalFkt[i] = value;
+            break;
+        }while(1);
+    }
+    return true;
+}
+
+void RUZmBIFrame::SkalierungAusfuehren(Vektor festPkt)
+{
+    if(m_auswahl->GetListenGroesse() == 0)
+    {
+        return;
+    }
+    if(!SkalierFaktorenEingabe())
+    {
+        BefehleZuruecksetzen();
+        return;
+    }
+    for(RUZ_Objekt* obj = m_auswahl->GetErstesElement(); obj; obj = m_auswahl->GetNaechstesElement())
+    {
+        (obj)->Skalieren(festPkt, m_skalFkt[0], m_skalFkt[1], m_skalFkt[2]);
+    }
+    m_markierModus = true;
+    KoordinatenMaske->Show(false);
+    SetStatusText(wxT("Objekte zum Skalieren auswählen"), 2);
+    return;
+}
+
+void RUZmBIFrame::SkalierungSetzen(double t_skal)
+{
+	m_skalierung = t_skal;
+	mbSkalierung.MassstabErmitteln(m_skalierung);
+	return;
+}
+
+bool RUZmBIFrame::ObjektMarkieren(int xPos, int yPos)
+{
+    RUZ_Layer* layer_laeufer = aktLayer;
+    markiertesObjekt = NULL;
+    Liste<Punkt>* pktLst = layer_laeufer->HolePunkte();
+    Liste<Kreis>* krLst = layer_laeufer->HoleKreise();
+    Liste<Linie>* lnLst = layer_laeufer->HoleLinien();
+    Liste<Flaeche>* flLst = layer_laeufer->HoleFlaechen();
+    Liste<HoehenMarke>* hmLst = layer_laeufer->HoleHoehenMarken();
+    Liste<Fangpunkt>* fngPktLst = layer_laeufer->HoleFangpunkte();
+
+    if(m_zeigePunkt && m_waehlePunkt)
+    {
+        for(Punkt* aktPkt = pktLst->GetErstesElement(); aktPkt != NULL; aktPkt = pktLst->GetNaechstesElement())
+        {
+            if(aktPkt == m_aktPunkt)continue;
+            if(aktPkt->IstNahebei((xPos / m_skalierung) + dc_Offset[0],
+                                  (yPos / m_skalierung) + dc_Offset[1], pxSuchEntfernung / m_skalierung, aktProjZ))
+            {
+                markiertesObjekt = aktPkt;
+                return true;
+            }
+        }
+    }
+    if(m_zeigeFangpunkt && m_waehleFangpunkt)
+    {
+        for(Fangpunkt* aktfngPkt = fngPktLst->GetErstesElement(); aktfngPkt != NULL; aktfngPkt = fngPktLst->GetNaechstesElement())
+        {
+            if(aktfngPkt->IstNahebei((xPos / m_skalierung) + dc_Offset[0],
+                                  (yPos / m_skalierung) + dc_Offset[1], 1.2f * 1.4142f * pxSuchEntfernung / m_skalierung, aktProjZ))
+            {
+                markiertesObjekt = aktfngPkt;
+                return true;
+            }
+        }
+    }
+    if(m_zeigeKreis && m_waehleKreis)
+    {
+        for(Kreis* aktKreis = krLst->GetErstesElement(); aktKreis != NULL; aktKreis = krLst->GetNaechstesElement())
+        {
+            if(aktKreis->IstNahebei((xPos / m_skalierung) + dc_Offset[0],
+                                  (yPos / m_skalierung) + dc_Offset[1], pxSuchEntfernung / m_skalierung, aktProjZ))
+            {
+                markiertesObjekt = aktKreis;
+                return true;
+            }
+        }
+    }
+    if(m_zeigeHoehenmarke && m_waehleHoehenmarke)
+    {
+        for(HoehenMarke* aktHM = hmLst->GetErstesElement(); aktHM != NULL; aktHM = hmLst->GetNaechstesElement())
+        {
+            if(aktHM->IstNahebei((xPos / m_skalierung) + dc_Offset[0],
+                                  (yPos / m_skalierung) + dc_Offset[1], pxSuchEntfernung / (3 * m_skalierung), aktProjZ))
+            {
+                markiertesObjekt = aktHM;
+                return true;
+            }
+        }
+    }
+    if((aktBefehl != bef_ID_versetzen))
+    {
+        if(m_zeigeLinie && m_waehleLinie)
+        {
+            for(Linie* aktLn = lnLst->GetErstesElement(); aktLn != NULL; aktLn = lnLst->GetNaechstesElement())
+            {
+                if(aktLn == m_aktLinie)continue;
+                if(aktLn->IstNahebei((xPos / m_skalierung) + dc_Offset[0],
+                                      (yPos / m_skalierung) + dc_Offset[1], pxSuchEntfernung / m_skalierung, aktProjZ))
+                {
+                    markiertesObjekt = aktLn;
+                    return true;
                 }
             }
         }
-        if(obj->HoleTyp() == RUZ_Linie)
+        if(m_zeigeFlaeche && m_waehleFlaeche)
         {
-            Linie* ln = static_cast<Linie*>(obj);
-            Liste<Flaeche>* fl_Lst = ln->HoleFlaechen();
-            for(Flaeche* fl = fl_Lst->GetErstesElement(); fl != NULL; fl = fl_Lst->GetNaechstesElement())
+            for(Flaeche* aktFl = flLst->GetErstesElement(); aktFl != NULL; aktFl = flLst->GetNaechstesElement())
             {
-                m_auswahl->Entfernen(fl);
+                if(aktFl->IstInnerhalb((xPos/m_skalierung)+dc_Offset[0], (yPos/m_skalierung)+dc_Offset[1], aktProjZ))
+                {
+                    if(aktFl != markiertesObjekt)
+                    {
+                        markiertesObjekt = aktFl;
+                        return true;
+                    }
+                }
             }
         }
     }
-    for(RUZ_Objekt* obj = m_auswahl->GetErstesElement(); obj != NULL; obj = m_auswahl->GetNaechstesElement())
-    {
-        m_auswahl->Entfernen(obj);
-        delete obj;
-    }
-    m_auswahl->ListeLeeren("");
-    return;
-}
-
-void RUZmBIFrame::ObjekteNullen(void)
-{
-    /*SchnittpunktSuche*/
-    m_schP_OrgPkt = m_schP_Richtung_1 = m_schP_Richtung_2 = NULL;
-    m_schP_Ln = NULL;
-    m_schP_Dr = NULL;
-    m_schP_Obj = NULL;
-    if(aktLayer == alternativAktLayer)
-    {
-        aktLayer = aktLayerBAK;
-    }
-    aktLayerBAK = alternativAktLayer = NULL;
-    /*ENDE SchnittpunktSuche*/
-
-    markiertesObjekt = objFang1 = objFang2 = NULL;
-    m_aktPunkt = NULL;
-    m_aktLinie = NULL;
-    m_aktKreis = NULL;
-    vereinOrigPkt = vereinErsatzPkt = NULL;
-
-    m_kopierAuswahl->ListeLoeschen("Objekte Nullen");
-}
-
-void RUZmBIFrame::AuswahlLeeren(void)
-{
-    ObjekteNullen();
-    m_auswahl->ListeLeeren("");
-    return;
-}
-
-void RUZmBIFrame::AuswahlAufPunkteReduzieren(void)
-{
-    for(RUZ_Objekt* obj = m_auswahl->GetErstesElement(); obj != NULL; obj = m_auswahl->GetNaechstesElement())
-    {
-        if(obj->HoleTyp() == RUZ_Linie)
-        {
-            Linie* ln = static_cast<Linie*>(obj);
-            m_auswahl->Entfernen(obj);
-            m_auswahl->ExklusivHinzufuegen(ln->HolePunkt(0));
-            m_auswahl->ExklusivHinzufuegen(ln->HolePunkt(1));
-        }else
-        if(obj->HoleTyp() == RUZ_Dreieck)
-        {
-            Dreieck* drk = static_cast<Dreieck*>(obj);
-            m_auswahl->Entfernen(obj);
-            m_auswahl->ExklusivHinzufuegen(drk->HolePunkt(0));
-            m_auswahl->ExklusivHinzufuegen(drk->HolePunkt(1));
-            m_auswahl->ExklusivHinzufuegen(drk->HolePunkt(2));
-        }else
-        if(obj->HoleTyp() == RUZ_Viereck)
-        {
-            Viereck* vrk = static_cast<Viereck*>(obj);
-            m_auswahl->Entfernen(obj);
-            m_auswahl->ExklusivHinzufuegen(vrk->HolePunkt(0));
-            m_auswahl->ExklusivHinzufuegen(vrk->HolePunkt(1));
-            m_auswahl->ExklusivHinzufuegen(vrk->HolePunkt(2));
-            m_auswahl->ExklusivHinzufuegen(vrk->HolePunkt(3));
-        }
-
-    }
-    return;
-}
-
-void RUZmBIFrame::AuswahlKopieren(void)
-{
-    RUZ_Layer* sel_Layer = aktLayer;
-    if(aktBefehl == bef_ID_kopierenNachLayer)
-    {
-        int layNr = Layer_Auswahl_Dialog(this, m_layer, wxT("Zu kopierenden Layer wählen")).ShowModal();
-        sel_Layer = NULL;
-        for(Listenelement<RUZ_Layer>* layer_LE = m_layer->GetErstesListenelement(); layer_LE; layer_LE = layer_LE->GetNachfolger())
-        {
-            if(layer_LE->Wert() == layNr)
-            {
-                sel_Layer = layer_LE->GetElement();
-                break;
-            }
-        }
-        if(!sel_Layer)sel_Layer = aktLayer;
-    }
-
-    m_kopierAuswahl->ListeLeeren("RUZmBIFrame::AuswahlKopieren");
-    Liste<ObjektPaar>* lKopierliste = new Liste<ObjektPaar>;
-    for(RUZ_Objekt *oAktObj = m_auswahl->GetErstesElement(); oAktObj; oAktObj = m_auswahl->GetNaechstesElement())
-    {
-        if(!(oAktObj->Kopieren(m_kopierAuswahl, lKopierliste, sel_Layer)))
-        {
-            logSchreiben("Kopieren von %p fehlgeschlagen\n", oAktObj);
-        }
-    }
-    delete lKopierliste;
-    return;
-}
-
-void RUZmBIFrame::BefehleZuruecksetzen(void)
-{
-    MenuEntmarkieren();
-    AuswahlLeeren();
-
-    /*Verschieben*/
-    if(vVerschubStart)delete vVerschubStart;
-    vVerschubStart = NULL;
-    /*ENDE Verschieben*/
-
-    m_auswahl->ListeLeeren("");
-    if((aktBefehl == bef_ID_kreisZeichnen) && m_aktKreis)
-    {
-        delete m_aktKreis;
-        m_aktKreis = NULL;
-    }
-    if(aktBefehl == bef_ID_kreisRadiusAendern)
-    {
-        if(m_aktKreis)m_aktKreis->SetzeRadius(m_aktRadius);
-        m_aktRadius = -1.0;
-        m_aktKreis = NULL;
-    }
-    if(!std::isnan(m_vktSchnittPkt1.x()))
-        m_vktSchnittPkt1 = NULL_VEKTOR;
-    if(!std::isnan(m_vktSchnittPkt2.x()))
-        m_vktSchnittPkt2 = NULL_VEKTOR;
-
-    aktBefehl = bef_ID_nichts;
-    SetStatusText(wxT("kein aktiver Befehl"), 2);
-    m_markierModus = false;
-    Refresh();
-    return;
-}
-
-void RUZmBIFrame::MenuEntmarkieren(void)
-{
-    KoordinatenMaske->Show(false);
-    DoubleEingabe->Show(false);
-
-    /*menuItems zurücksetzen*/
-    menuLoeschen->Check(false);
-    menuVerschieben->Check(false);
-    menuKopieren->Check(false);
-    menuKopierenNachLayer->Check(false);
-    menuVersetzen->Check(false);
-    menuDrehen->Check(false);
-    menuPunktZeichnen->Check(false);
-    menuLinieZeichnen->Check(false);
-    menuKreisZeichnen->Check(false);
-    menuLinieExtrudieren->Check(false);
-    menuLinieParallel->Check(false);
-    menuDreieckZeichnen->Check(false);
-    menuViereckZeichnen->Check(false);
-    menuStreckeMessen->Check(false);
-    menuHoehenMarkeZeichnen->Check(false);
-    menuPunktVereinigen->Check(false);
-    menuPunkteSkalieren->Check(false);
-    menuViereckTeilen->Check(false);
-    menuFlaecheVerschneiden->Check(false);
-    menuSchnittPunktFlaeche->Check(false);
-    menuSchnittPunktLinie->Check(false);
-    menuFangpunkteFinden->Check(false);
-    /*ENDE menuItems zurücksetzen*/
-
-    Refresh();
-    return;
-}
-
-void RUZmBIFrame::AnfangMessen(double x, double y)
-{
-    messAnfang.x = x;
-    messAnfang.y = y;
-
-    SetStatusText(wxString::Format("Messpunkt: %.3f, %.3f", messAnfang.x, messAnfang.y), 1);
-    Messen = &RUZmBIFrame::EndeMessen;
-    return;
-}
-
-void RUZmBIFrame::EndeMessen(double x, double y)
-{
-    messEnde.x = x;
-    messEnde.y = y;
-
-    double messung = sqrt(pow((messAnfang.x - messEnde.x), 2) + pow((messAnfang.y - messEnde.y), 2));
-
-    SetStatusText(wxString::Format("Messung: %.3f", messung), 1);
-    Messen = &RUZmBIFrame::AnfangMessen;
-    return;
+    return false;
 }
 
 void RUZmBIFrame::VereinigenErsterPkt(Punkt *pkt)
@@ -6847,22 +7406,6 @@ void RUZmBIFrame::VereinigenZweiterPkt(Punkt *pkt)
 
     vereinOrigPkt->ErsetzenDurch(vereinErsatzPkt);
 
-    return;
-}
-
-void RUZmBIFrame::ViereckeAuswahlTeilen(void)
-{
-    markiertesObjekt = NULL;
-    objFang1 = objFang2 = NULL;
-    for(RUZ_Objekt* obj = m_auswahl->GetErstesElement(); obj; obj = m_auswahl->GetNaechstesElement())
-    {
-        if(obj->HoleTyp() == RUZ_Viereck)
-        {
-            m_auswahl->Entfernen(obj);
-            (static_cast<Viereck*>(obj))->Teilen();
-        }
-    }
-    m_auswahl->ListeLeeren("ViereckeAuswahlTeilen(void)");
     return;
 }
 
@@ -6886,712 +7429,220 @@ void RUZmBIFrame::VerschneideAuswahlFlaechen(void)
     return;
 }
 
-void RUZmBIFrame::DreheAuswahl(void)
+void RUZmBIFrame::ViereckeAuswahlTeilen(void)
 {
-    if((!m_drehungDrPkt) || (!m_drehungRichtung1) || (!m_drehungRichtung2))return;
-    if(m_drehungRichtung1 == m_drehungRichtung2)return;
-
-    Vektor vDrehungsRichtung1 = *m_drehungRichtung1 - *m_drehungDrPkt;
-    Vektor vDrehungsRichtung2 = *m_drehungRichtung2 - *m_drehungDrPkt;
-
-    /*if(!freieAnsicht) falls irgendwann freie Ansicht dazu kommt*/
-    vDrehungsRichtung1.SetKoordinaten(aktProjZ, 0.0f);
-    vDrehungsRichtung2.SetKoordinaten(aktProjZ, 0.0f);
-
-    double dL1, dL2;
-    dL1 = vDrehungsRichtung1.Laenge();
-        if(dL1 == 0)return;
-        vDrehungsRichtung1 /= dL1;
-    dL2 = vDrehungsRichtung2.Laenge();
-        if(dL2 == 0)return;
-        vDrehungsRichtung2 /= dL2;
-
-    if(vDrehungsRichtung1 == vDrehungsRichtung2)return;
-    double drCos, drSin;
-
-    drCos = (vDrehungsRichtung1) * (vDrehungsRichtung2); /*Vektoren sind normiert! ansonsten Division durch deren Länge nötig*/
-    drSin = sqrt(1 - drCos * drCos);
-
-    Vektor vDrehAchse;
-    if(drCos == -1)
+    markiertesObjekt = NULL;
+    objFang1 = objFang2 = NULL;
+    for(RUZ_Objekt* obj = m_auswahl->GetErstesElement(); obj; obj = m_auswahl->GetNaechstesElement())
     {
-        vDrehAchse = Vektor(0.0, 0.0, 0.0);
-        vDrehAchse.SetKoordinaten(aktProjZ, 1.0);
+        if(obj->HoleTyp() == RUZ_Viereck)
+        {
+            m_auswahl->Entfernen(obj);
+            (static_cast<Viereck*>(obj))->Teilen();
+        }
+    }
+    m_auswahl->ListeLeeren("ViereckeAuswahlTeilen(void)");
+    return;
+}
+
+void RUZmBIFrame::Vschb_Abbrechen(void)
+{
+    if(vVerschubStart)
+    {
+        Vschb_Verschieben(*vVerschubStart);
+        delete vVerschubStart;
+        vVerschubStart = NULL;
+        m_markierModus = true;
+        KoordinatenMaske->Show(false);
+        m_verschubAuswahlOrte->ListeLoeschen("");
+        SetStatusText(wxT("Objekte zum Verschieben auswählen"), 2);
+    }else
+    if(m_markierModus)
+    {
+        if(m_auswahl->GetListenGroesse() != 0)
+        {
+            m_auswahl->ListeLeeren("");
+        }else
+        {
+            BefehleZuruecksetzen();
+        }
+    }else
+    {
+        m_markierModus = true;
+        KoordinatenMaske->Show(false);
+        m_verschubAuswahlOrte->ListeLoeschen("");
+        SetStatusText(wxT("Objekte zum Verschieben auswählen"), 2);
+    }
+    return;
+}
+
+void RUZmBIFrame::Vschb_Auswahl_Bestaetigung(void)
+{
+    if(m_markierModus)
+    {
+        m_markierModus = false;
+        Vschb_Punktspeicher_Schreiben();
+        KoordinatenMaske->Show();
+        SetStatusText(wxT("Objekte verschieben: 'Von' (Punkt wählen / eingeben)"), 2);
     }
     else
     {
-        vDrehAchse = vDrehungsRichtung1.Kreuz(vDrehungsRichtung2);
-    }
-    vDrehAchse /= vDrehAchse.Laenge();
-
-    Vektor *vOrt = m_drehungAuswahlOrte->GetErstesElement();
-    RUZ_Objekt *obj = m_auswahl->GetErstesElement();
-
-    Vektor vAltePos, vNeuePos;
-
-    while(vOrt && obj)
-    {
-        vAltePos = *vOrt;
-        vAltePos -= *m_drehungDrPkt;
-        vNeuePos = vDrehAchse * (vDrehAchse * vAltePos) + (vDrehAchse.Kreuz(vAltePos)).Kreuz(vDrehAchse) * drCos + vDrehAchse.Kreuz(vAltePos) * drSin;
-        vNeuePos += *m_drehungDrPkt;
-
-        if(obj->HoleTyp() == RUZ_Punkt)
-        {
-            Punkt* pkt = static_cast<Punkt*>(obj);
-            pkt->Positionieren(vNeuePos);
-        }else if(obj->HoleTyp() == RUZ_HoehenMarke)
-        {
-            HoehenMarke* hm = static_cast<HoehenMarke*>(obj);
-            hm->Positionieren(vNeuePos);
-        }else if(obj->HoleTyp() == RUZ_Kreis)
-        {
-            Kreis* kr = static_cast<Kreis*>(obj);
-            kr->Positionieren(vNeuePos);
-        }
-        vOrt = m_drehungAuswahlOrte->GetNaechstesElement();
-        obj = m_auswahl->GetNaechstesElement();
+        m_markierModus = true;
+        KoordinatenMaske->Show(false);
+        m_verschubAuswahlOrte->ListeLoeschen("");
+        SetStatusText(wxT("Objekte zum Verschieben auswählen"), 2);
     }
     return;
 }
 
-void RUZmBIFrame::KreisPunktEingabe(Vektor& t_vkt, bool abschliessen)
+bool RUZmBIFrame::Vschb_Ort_Exklusiv_Hinzufuegen(PunktSpeicher* _pktSp)
 {
-    if(m_aktKreis)
+    for(PunktSpeicher* aktPktSp = m_verschubAuswahlOrte->GetErstesElement(); aktPktSp != NULL; aktPktSp = m_verschubAuswahlOrte->GetNaechstesElement())
     {
-        Vektor t_mitte = m_aktKreis->HolePosition();
-        t_mitte.SetKoordinaten(aktProjZ, 0.0);
-        double dx, dy;
-        dx = t_mitte.GetKoordinaten(aktProjX) - t_vkt.GetKoordinaten(aktProjX);
-        dy = t_mitte.GetKoordinaten(aktProjY) - t_vkt.GetKoordinaten(aktProjY);
-        double t_radius = sqrt(dx * dx + dy * dy);
-        KreisDoubleEingabe(t_radius, abschliessen);
-    }else{
-        Kreis *tempKreis = new Kreis(t_vkt, -1.0, aktLayer);
-        if(tempKreis)m_aktKreis = tempKreis;
-        DoubleEingabe->ErscheinungAnpassen(wxString("Radius"), wxEmptyString, aktBefehl);
-        DoubleEingabe->Show(true);
+        if(aktPktSp->HoleObj() == _pktSp->HoleObj())
+            return 0;
     }
-    return;
+    m_verschubAuswahlOrte->Hinzufuegen(_pktSp);
+    return 1;
 }
 
-void RUZmBIFrame::KreisDoubleEingabe(double dbl, bool abschliessen)
+void RUZmBIFrame::Vschb_Punkt_Festlegen(Vektor vkt)
 {
-    if(m_aktKreis)
+    if(vVerschubStart)
     {
-        m_aktKreis->SetzeRadius(dbl);
-        if(abschliessen)
-        {
-            m_aktKreis = NULL;
-            DoubleEingabe->Show(false);
-            if(aktBefehl == bef_ID_kreisRadiusAendern)aktBefehl = bef_ID_nichts;
-        }
-    }
-    return;
-}
+        Vschb_Verschieben(vkt);
+        delete vVerschubStart;
+        vVerschubStart = NULL;
 
-void RUZmBIFrame::logSchreiben(const char* msg, ...)
-{
-    FILE *Logbuch;
-    const char *pfad = "log/Debug.log";
-    Logbuch = fopen(pfad, "a");
-    va_list args;
-    va_start (args, msg);
-    vfprintf (Logbuch, msg, args);
-    va_end (args);
-    fclose(Logbuch);
-    return;
-}
-
-void RUZmBIFrame::logSchreiben(std::string msg)
-{
-    ofstream Logbuch;
-    const char *pfad = "log/Debug.log";
-    Logbuch.open(pfad, ios_base::out|ios_base::app);
-		if(Logbuch.good())
-    {
-      Logbuch<<msg;
-    	Logbuch.close();
-		}
-    return;
-}
-
-void RUZmBIFrame::logSchreiben(const Vektor msg, int i)
-{
-    ofstream Logbuch;
-    const char *pfad = "log/Debug.log";
-    Logbuch.open(pfad, ios_base::out|ios_base::app);
-    if(Logbuch.good())
-    {
-        Logbuch.setf( ios::fixed, ios::floatfield );
-        Logbuch.precision(i);
-        Logbuch<<"x: "<<msg.x()<<" | y: "<<msg.y()<<" | z:"<<msg.z();
-        Logbuch.close();
-    }
-    return;
-}
-
-/*Drehung*/
-void RUZmBIFrame::DrehungPktEingabe_DrhPkt(Vektor vPkt)
-{
-    m_drehungDrPkt = new Vektor(vPkt);
-
-    Vektor vOrt = vPkt;
-    //KoordinatenMaske->SetzeKoordinaten(vOrt);
-    DoubleEingabe->ErscheinungAnpassen(wxString("Drehwinkel"), wxEmptyString, aktBefehl);
-    DoubleEingabe->Show();
-
-    (this->*DrehungBefehlsketteVor)();
-    return;
-}
-
-void RUZmBIFrame::DrehungPktEingabe_RP_1(Vektor vPkt)
-{
-    if(m_drehungRichtung1)
-    {
-        *m_drehungRichtung1 = vPkt;
+        m_markierModus = true;
+        KoordinatenMaske->Show(false);
+        m_verschubAuswahlOrte->ListeLoeschen("");
+        SetStatusText(wxT("Auswahl verschieben: 'Von' (Punkt wählen / eingeben)"), 2);
     }else
     {
-        m_drehungRichtung1 = new Vektor(vPkt);
+        vVerschubStart = new Vektor(vkt);
+        if(vVerschubStart)
+            SetStatusText(wxT("Auswahl verschieben: 'Nach' (Punkt wählen / eingeben)"), 2);
     }
-    if(m_drehungRichtung2)
-    {
-        *m_drehungRichtung2 = vPkt;
-    }else
-    {
-        m_drehungRichtung2 = new Vektor(vPkt);
-    }
-
-    m_drehungRichtung1->SetKoordinaten(aktProjZ, 0.0);
-    m_drehungRichtung2->SetKoordinaten(aktProjZ, 0.0);
-
-    //KoordinatenMaske->SetzeKoordinaten(vPkt);
-
-    (this->*DrehungBefehlsketteVor)();
     return;
 }
 
-void RUZmBIFrame::DrehungPktEingabe_RP_2(Vektor vPkt)
+void RUZmBIFrame::Vschb_Punktspeicher_Schreiben(void)
 {
-    *m_drehungRichtung2 = vPkt;
-    m_drehungRichtung2->SetKoordinaten(aktProjZ, 0.0);
+    m_verschubAuswahlOrte->ListeLoeschen("Vschb_Punktspeicher_Schreiben");
+    PunktSpeicher* pktSp = NULL;
 
-    DreheAuswahl();
-    (this->*DrehungBefehlsketteVor)();
-    return;
-}
-
-void RUZmBIFrame::DrehungMouseMoveAktiv(wxMouseEvent &event)
-{
-    m_drehungRichtung2->SetKoordinaten(aktProjX, NeueMousePosition.x/m_skalierung + dc_Offset[0]);
-    m_drehungRichtung2->SetKoordinaten(aktProjY, NeueMousePosition.y/m_skalierung + dc_Offset[1]);
-    m_drehungRichtung2->SetKoordinaten(aktProjZ, 0.0);
-    DreheAuswahl();
-    return;
-}
-
-void RUZmBIFrame::DrehungMouseMovePassiv(wxMouseEvent &event)
-{
-    return;
-}
-
-
-void RUZmBIFrame::DrehungBestaetigung(void)
-{
-    AuswahlAufPunkteReduzieren();
-    for(RUZ_Objekt* obj = m_auswahl->GetErstesElement(); obj; obj = m_auswahl->GetNaechstesElement())
+    for(RUZ_Objekt* obj = m_auswahl->GetErstesElement(); obj != NULL; obj = m_auswahl->GetNaechstesElement())
     {
         if(obj->HoleTyp() == RUZ_Punkt)
         {
-            m_drehungAuswahlOrte->Hinzufuegen(new Vektor((static_cast<Punkt*>(obj))->HolePosition()));
-        }
-        if(obj->HoleTyp() == RUZ_HoehenMarke)
-        {
-            m_drehungAuswahlOrte->Hinzufuegen(new Vektor((static_cast<HoehenMarke*>(obj))->HolePosition()));
-        }
-        if(obj->HoleTyp() == RUZ_Kreis)
-        {
-            m_drehungAuswahlOrte->Hinzufuegen(new Vektor((static_cast<Kreis*>(obj))->HolePosition()));
-        }
-    }
-    (this->*DrehungBefehlsketteVor)();
-    return;
-}
-
-void RUZmBIFrame::DrehungBefehlsketteVor_0(void)
-{
-    m_markierModus = false;
-    DrehungBefehlsketteVor = &RUZmBIFrame::DrehungBefehlsketteVor_1;
-    DrehungBefehlsketteZurueck = &RUZmBIFrame::DrehungBefehlsketteZurueck_1;
-    DrehungPktEingabe = &RUZmBIFrame::DrehungPktEingabe_DrhPkt;
-    DrehungAbbruch = &RUZmBIFrame::DrehungAbbruch_1;
-    DrehungMouseMove = &RUZmBIFrame::DrehungMouseMovePassiv;
-    KoordinatenMaske->Show();
-    SetStatusText(wxT("Festpunkt der Drehung setzen"), 2);
-    return;
-}
-void RUZmBIFrame::DrehungBefehlsketteVor_1(void)
-{
-    DrehungBefehlsketteVor = &RUZmBIFrame::DrehungBefehlsketteVor_2;
-    DrehungBefehlsketteZurueck = &RUZmBIFrame::DrehungBefehlsketteZurueck_2;
-    DrehungPktEingabe = &RUZmBIFrame::DrehungPktEingabe_RP_1;
-    DrehungAbbruch = &RUZmBIFrame::DrehungAbbruch_2;
-    DrehungMouseMove = &RUZmBIFrame::DrehungMouseMovePassiv;
-    DoubleEingabe->ErscheinungAnpassen(wxString("Drehwinkel"), wxEmptyString, aktBefehl);
-    DoubleEingabe->Show();
-    SetStatusText(wxT("1.Richtung der Drehung festlegen"), 2);
-    return;
-}
-void RUZmBIFrame::DrehungBefehlsketteVor_2(void)
-{
-    DrehungBefehlsketteVor = &RUZmBIFrame::DrehungBefehlsketteVor_3;
-    DrehungBefehlsketteZurueck = &RUZmBIFrame::DrehungBefehlsketteZurueck_3;
-    DrehungPktEingabe = &RUZmBIFrame::DrehungPktEingabe_RP_2;
-    DrehungAbbruch = &RUZmBIFrame::DrehungAbbruch_2;
-    DrehungMouseMove = &RUZmBIFrame::DrehungMouseMoveAktiv;
-    SetStatusText(wxT("2. Richtung der Drehung festlegen"), 2);
-    return;
-}
-void RUZmBIFrame::DrehungBefehlsketteVor_3(void)
-{
-    m_markierModus = true;
-    m_drehungAuswahlOrte->ListeLoeschen("");
-    m_auswahl->ListeLeeren("");
-    if(m_drehungDrPkt)delete m_drehungDrPkt;
-    if(m_drehungRichtung1)delete m_drehungRichtung1;
-    if(m_drehungRichtung2)delete m_drehungRichtung2;
-    m_drehungDrPkt = m_drehungRichtung1 = m_drehungRichtung2 = NULL;
-    DrehungBefehlsketteVor = &RUZmBIFrame::DrehungBefehlsketteVor_0;
-    DrehungBefehlsketteZurueck = &RUZmBIFrame::DrehungBefehlsketteZurueck_0;
-    DrehungPktEingabe = &RUZmBIFrame::DrehungPktEingabe_DrhPkt;
-    DrehungAbbruch = &RUZmBIFrame::DrehungAbbruch_0;
-    DrehungMouseMove = &RUZmBIFrame::DrehungMouseMovePassiv;
-    DoubleEingabe->Show(false);
-    KoordinatenMaske->Show(false);
-    SetStatusText(wxT("Objekte zum Drehen wählen"), 2);
-    return;
-}
-
-void RUZmBIFrame::DrehungBefehlsketteZurueck_0(void)
-{
-    (this->*DrehungAbbruch)();
-    BefehleZuruecksetzen();
-    return;
-}
-void RUZmBIFrame::DrehungBefehlsketteZurueck_1(void)
-{
-    m_markierModus = true;
-    m_drehungAuswahlOrte->ListeLoeschen("");
-    DrehungBefehlsketteVor = &RUZmBIFrame::DrehungBefehlsketteVor_0;
-    DrehungBefehlsketteZurueck = &RUZmBIFrame::DrehungBefehlsketteZurueck_0;
-    DrehungPktEingabe = &RUZmBIFrame::DrehungPktEingabe_DrhPkt;
-    DrehungAbbruch = &RUZmBIFrame::DrehungAbbruch_0;
-    DrehungMouseMove = &RUZmBIFrame::DrehungMouseMovePassiv;
-    KoordinatenMaske->Show(false);
-    SetStatusText(wxT("Objekte zu Drehen wählen"), 2);
-    return;
-}
-void RUZmBIFrame::DrehungBefehlsketteZurueck_2(void)
-{
-    if(m_drehungDrPkt)delete m_drehungDrPkt;
-    m_drehungDrPkt = NULL;
-    DrehungBefehlsketteVor = &RUZmBIFrame::DrehungBefehlsketteVor_1;
-    DrehungBefehlsketteZurueck = &RUZmBIFrame::DrehungBefehlsketteZurueck_1;
-    DrehungPktEingabe = &RUZmBIFrame::DrehungPktEingabe_DrhPkt;
-    DrehungAbbruch = &RUZmBIFrame::DrehungAbbruch_1;
-    DrehungMouseMove = &RUZmBIFrame::DrehungMouseMovePassiv;
-    DoubleEingabe->Show(false);
-    SetStatusText(wxT("Festpunkt der Drehung setzen"), 2);
-    return;
-}
-void RUZmBIFrame::DrehungBefehlsketteZurueck_3(void)
-{
-    if(m_drehungRichtung1)delete m_drehungRichtung1;
-    m_drehungRichtung1 = NULL;
-    if(m_drehungRichtung2)delete m_drehungRichtung2;
-    m_drehungRichtung2 = NULL;
-
-    Vektor *vOrt = m_drehungAuswahlOrte->GetErstesElement();
-    RUZ_Objekt *obj = m_auswahl->GetErstesElement();
-    while(vOrt && obj)
-    {
-        if(obj->HoleTyp() == RUZ_Punkt)
-        {
-            Punkt* pkt = static_cast<Punkt*>(obj);
-            pkt->Positionieren(*vOrt);
-        }
-        if(obj->HoleTyp() == RUZ_HoehenMarke)
-        {
-            HoehenMarke* hm = static_cast<HoehenMarke*>(obj);
-            hm->Positionieren(*vOrt);
-        }
-        if(obj->HoleTyp() == RUZ_Kreis)
-        {
-            Kreis* kr = static_cast<Kreis*>(obj);
-            kr->Positionieren(*vOrt);
-        }
-        vOrt = m_drehungAuswahlOrte->GetNaechstesElement();
-        obj = m_auswahl->GetNaechstesElement();
-    }
-
-    DrehungBefehlsketteVor = &RUZmBIFrame::DrehungBefehlsketteVor_2;
-    DrehungBefehlsketteZurueck = &RUZmBIFrame::DrehungBefehlsketteZurueck_2;
-    DrehungPktEingabe = &RUZmBIFrame::DrehungPktEingabe_RP_1;
-    DrehungAbbruch = &RUZmBIFrame::DrehungAbbruch_2;
-    DrehungMouseMove = &RUZmBIFrame::DrehungMouseMovePassiv;
-    SetStatusText(wxT("1.Richtugspunkt der Drehung setzen"), 2);
-    return;
-}
-
-void RUZmBIFrame::DrehungAbbruch_0(void)
-{
-    m_drehungAuswahlOrte->ListeLoeschen("");
-    m_auswahl->ListeLeeren("");
-    return;
-}
-void RUZmBIFrame::DrehungAbbruch_1(void)
-{
-    m_drehungAuswahlOrte->ListeLoeschen("");
-    m_auswahl->ListeLeeren("");
-    if(m_drehungDrPkt)delete m_drehungDrPkt;
-    m_drehungDrPkt = NULL;
-    return;
-}
-void RUZmBIFrame::DrehungAbbruch_2(void)
-{
-    m_drehungAuswahlOrte->ListeLoeschen("");
-    m_auswahl->ListeLeeren("");
-    if(m_drehungDrPkt)delete m_drehungDrPkt;
-    if(m_drehungRichtung1)delete m_drehungRichtung1;
-    if(m_drehungRichtung2)delete m_drehungRichtung2;
-    m_drehungDrPkt = m_drehungRichtung1 = m_drehungRichtung2 = NULL;
-    return;
-}
-/*ENDE Drehung*/
-
-void RUZmBIFrame::FangpunkteFinden(Liste<RUZ_Objekt>* m_objLst)
-{
-    RUZ_Objekt *objEins, *objZwei;
-    if(!aktLayer)
-    {
-        SetStatusText("Kein aktueller Layer! Finden der Fangpunkte abgebrochen", 2);
-        return;
-    }
-    for(Listenelement<RUZ_Objekt>* LE_obj_a = m_objLst->GetErstesListenelement(); LE_obj_a; LE_obj_a = LE_obj_a->GetNachfolger())
-    {
-        objEins = LE_obj_a->GetElement();
-        for(Listenelement<RUZ_Objekt>* LE_obj_b = LE_obj_a->GetNachfolger(); LE_obj_b; LE_obj_b = LE_obj_b->GetNachfolger())
-        {
-            objZwei = LE_obj_b->GetElement();
-            FangpunkteFinden(objEins, objZwei);
-        }
-    }
-    return;
-}
-
-void RUZmBIFrame::FangpunkteFinden(RUZ_Objekt *objEins, RUZ_Objekt *objZwei)
-{
-    if(objEins == objZwei)return;
-    Linie *ln_a, *ln_b;
-    Kreis *kr_a, *kr_b;
-    if(!aktLayer)
-    {
-        SetStatusText("Kein aktueller Layer! Finden der Fangpunkte abgebrochen", 2);
-        return;
-    }
-    if(objEins->HoleTyp() == RUZ_Linie)
-    {
-        ln_a = static_cast<Linie*>(objEins);
-        if(objZwei->HoleTyp() == RUZ_Linie)
-        {
-            ln_b = static_cast<Linie*>(objZwei);
-            Vektor vkt;
-            if(ln_a->schneidet(ln_b, vkt, aktProjZ, true))
+            pktSp = new PunktSpeicher(static_cast<Punkt*>(obj));
+            if(!(Vschb_Ort_Exklusiv_Hinzufuegen(pktSp)))
             {
-                Fangpunkt* fngPkt = new Fangpunkt(vkt, aktLayer);
-                if(!fngPkt)logSchreiben("Fehler bei Speicheranforderung\n");
+                delete pktSp;
+                pktSp = NULL;
             }
         }else
-        if(objZwei->HoleTyp() == RUZ_Kreis)
+        if(obj->HoleTyp() == RUZ_Linie)
         {
-            kr_b = static_cast<Kreis*>(objZwei);
-            if(kr_b->FindeSchnittpunkte(ln_a, aktProjZ))
+            Linie* ln = static_cast<Linie*>(obj);
+            //m_auswahl->Entfernen(obj);
+            for (int i = 0; i < 2; i++)
             {
-                Liste<Vektor>* vktLst = kr_b->HoleFangpunkte();
-                for(Vektor* vkt = vktLst->GetErstesElement(); vkt; vkt = vktLst->GetNaechstesElement())
+                pktSp = new PunktSpeicher(ln->HolePunkt(i));
+                if(!(Vschb_Ort_Exklusiv_Hinzufuegen(pktSp)))
                 {
-                    Fangpunkt* fngPkt = new Fangpunkt(*vkt, aktLayer);
-                    if(!fngPkt)logSchreiben("Fehler bei Speicheranforderung\n");
+                    delete pktSp;
+                    pktSp = NULL;
                 }
-                kr_b->LoescheFangpunkte();
-            }else
-            {
-                logSchreiben("keinSchnittpunkt Kreis mit Linie\n");
             }
-        }
-    }else
-    if(objEins->HoleTyp() == RUZ_Kreis)
-    {
-        kr_a = static_cast<Kreis*>(objEins);
-        if(objZwei->HoleTyp() == RUZ_Linie)
+        }else
+        if(obj->HoleTyp() == RUZ_Dreieck)
         {
-            ln_b = static_cast<Linie*>(objZwei);
-            if(kr_a->FindeSchnittpunkte(ln_b, aktProjZ))
+            Dreieck* drk = static_cast<Dreieck*>(obj);
+            //m_auswahl->Entfernen(obj);
+            for (int i = 0; i < 3; i++)
             {
-                Liste<Vektor>* vktLst = kr_a->HoleFangpunkte();
-                for(Vektor *vkt = vktLst->GetErstesElement(); vkt; vkt = vktLst->GetNaechstesElement())
+                pktSp = new PunktSpeicher(drk->HolePunkt(i));
+                if(!(Vschb_Ort_Exklusiv_Hinzufuegen(pktSp)))
                 {
-                    Fangpunkt* fngPkt = new Fangpunkt(*vkt, aktLayer);
-                    if(!fngPkt)logSchreiben("Fehler bei Speicheranforderung\n");
+                    delete pktSp;
+                    pktSp = NULL;
                 }
-                kr_a->LoescheFangpunkte();
             }
-        }
-        if(objZwei->HoleTyp() == RUZ_Kreis)
+        }else
+        if(obj->HoleTyp() == RUZ_Viereck)
         {
-            kr_b = static_cast<Kreis*>(objZwei);
-            if(kr_a->FindeSchnittpunkte(kr_b, aktProjZ))
+            Viereck* vrk = static_cast<Viereck*>(obj);
+            //m_auswahl->Entfernen(obj);
+            for (int i = 0; i < 4; i++)
             {
-                Liste<Vektor>* vktLst = kr_a->HoleFangpunkte();
-                for(Vektor *vkt = vktLst->GetErstesElement(); vkt; vkt = vktLst->GetNaechstesElement())
+                pktSp = new PunktSpeicher(vrk->HolePunkt(i));
+                if(!(Vschb_Ort_Exklusiv_Hinzufuegen(pktSp)))
                 {
-                    Fangpunkt* fngPkt = new Fangpunkt(*vkt, aktLayer);
-                    logSchreiben("Fangpunkt erstellt: %p\n", fngPkt);
+                    delete pktSp;
+                    pktSp = NULL;
                 }
-                kr_a->LoescheFangpunkte();
             }
-        }
-    }
-    return;
-}
-
-void RUZmBIFrame::FangpunkteLoeschen(wxCommandEvent& event)
-{
-    /*evtl. noch Layerauswahldialog???*/
-    AuswahlLeeren();
-    for(RUZ_Layer* tempLayer = m_layer->GetErstesElement(); tempLayer; tempLayer = m_layer->GetNaechstesElement())
-        tempLayer->LoescheFangpunkte();
-    return;
-}
-
-void RUZmBIFrame::DoppeltePunkteLoeschen(wxCommandEvent& event)
-{
-    /*evtl. noch Layerauswahldialog???*/
-    /*for(RUZ_Layer* tempLayer = m_layer->GetErstesElement(); tempLayer; tempLayer = m_layer->GetNaechstesElement())*/
-    AuswahlLeeren();
-    if(aktLayer)aktLayer->LoescheDoppeltePunkte(m_anzeigeGenauigkeit + 2);
-    return;
-}
-
-void RUZmBIFrame::GefaelleVerfolgen(Vektor vStart)
-{
-    if(!aktLayer)return;
-
-    Vektor vAktOrt = vStart;
-    Vektor vNaeOrt, vGefaelle;
-    Flaeche *aktFl, *letzteFl;
-    double dLaenge;
-
-    if(markiertesObjekt)
-    {
-        if((markiertesObjekt->HoleTyp() == RUZ_Dreieck)||(markiertesObjekt->HoleTyp() == RUZ_Viereck))
+        }else
+        if(obj->HoleTyp() == RUZ_HoehenMarke)
         {
-            aktFl = static_cast<Flaeche*>(markiertesObjekt);
-            if(aktFl->Gefaelle(vAktOrt, vGefaelle, aktProjZ))
+            pktSp = new PunktSpeicher(static_cast<HoehenMarke*>(obj));
+            if(!(Vschb_Ort_Exklusiv_Hinzufuegen(pktSp)))
             {
-                dLaenge = vGefaelle.Laenge();
-                if(dLaenge)
-                {
-                    vNaeOrt = vAktOrt + vGefaelle * (suchRadius / dLaenge);
-                }else
-                {
-                    return;
-                }
-            }else
-            {
-                return;
+                delete pktSp;
+                pktSp = NULL;
             }
-            int j = 0;
-            while((j < 100000)&&(aktFl))
+        }else
+        if(obj->HoleTyp() == RUZ_Kreis)
+        {
+            pktSp = new PunktSpeicher(static_cast<Kreis*>(obj));
+            if(!(Vschb_Ort_Exklusiv_Hinzufuegen(pktSp)))
             {
-                if(aktFl->Gefaelle(vNaeOrt, vGefaelle, aktProjZ))
-                {
-                    new Strich(vAktOrt.GetKoordinaten(aktProjX), vAktOrt.GetKoordinaten(aktProjY),
-                               vNaeOrt.GetKoordinaten(aktProjX), vNaeOrt.GetKoordinaten(aktProjY), aktLayer);
-                    vAktOrt = vNaeOrt;
-                    dLaenge = vGefaelle.Laenge();
-                    if(dLaenge)
-                    {
-                        vNaeOrt = vAktOrt + vGefaelle * (suchRadius / dLaenge);
-                    }else
-                    {
-                        return;
-                    }
-                }else
-                {
-                    int maxI;
-                    aktFl->HoleTyp() == RUZ_Dreieck ? maxI = 3 : maxI = 4;
-                    for(int i = 0; i < maxI; i++)
-                    {
-                        Linie* aktLn = aktFl->HoleLinie(i);
-                        if(aktLn->schneidet(vAktOrt.GetKoordinaten(aktProjX), vAktOrt.GetKoordinaten(aktProjY),
-                                            vNaeOrt.GetKoordinaten(aktProjX), vNaeOrt.GetKoordinaten(aktProjY), vNaeOrt, aktProjZ))
-                        {
-                            new Strich(vAktOrt.GetKoordinaten(aktProjX), vAktOrt.GetKoordinaten(aktProjY),
-                                       vNaeOrt.GetKoordinaten(aktProjX), vNaeOrt.GetKoordinaten(aktProjY), aktLayer);
-                            break;
-                        }
-                    }
-                    letzteFl = aktFl;
-                    aktFl = NULL;
-                    Liste<Flaeche> *lstFl = aktLayer->HoleFlaechen();
-                    for(Flaeche *flLaeufer = lstFl->GetErstesElement(); flLaeufer; flLaeufer = lstFl->GetNaechstesElement())
-                    {
-                        if(flLaeufer == letzteFl)continue;
-                        if(flLaeufer->IstInnerhalb(vNaeOrt.GetKoordinaten(aktProjX), vNaeOrt.GetKoordinaten(aktProjY), aktProjZ))
-                        {
-                            aktFl = flLaeufer;
-                            if(aktFl->Gefaelle(vNaeOrt, vGefaelle, aktProjZ))
-                            {
-                                dLaenge = vGefaelle.Laenge();
-                                Vektor vTempOrt;
-                                if(dLaenge)
-                                {
-                                    vTempOrt = vNaeOrt + vGefaelle * (suchRadius / dLaenge);
-                                    if(!(aktFl->IstInnerhalb(vTempOrt.GetKoordinaten(aktProjX), vTempOrt.GetKoordinaten(aktProjY), aktProjZ)))return;
-                                }else
-                                {
-                                    return;
-                                }
-                            }
-                            break;
-                        }
-                    }
-                }
-                j++;
+                delete pktSp;
+                pktSp = NULL;
             }
+        }else
+        if(obj->HoleTyp() == RUZ_Fangpunkt)
+        {
+            pktSp = new PunktSpeicher(static_cast<Fangpunkt*>(obj));
+            if(!(Vschb_Ort_Exklusiv_Hinzufuegen(pktSp)))
+            {
+                delete pktSp;
+                pktSp = NULL;
+            }
+        }else
+        {
+            m_auswahl->Entfernen(obj);
         }
     }
     return;
 }
 
-void RUZmBIFrame::HoehenkarteZeichnen(void)
+void RUZmBIFrame::Vschb_Verschieben(Vektor vkt)
 {
-    clock_t tLaufzeit;
-    if(aktLayer)
+    if(vVerschubStart)
     {
-        double minX, minY, maxX, maxY, minZ, maxZ;
-        if(aktLayer->AusdehnungFinden(minX, minY, maxX, maxY, minZ, maxZ))
+        RUZ_Objekt* obj;
+        for(PunktSpeicher* aktPktSp = m_verschubAuswahlOrte->GetErstesElement(); aktPktSp != NULL; aktPktSp = m_verschubAuswahlOrte->GetNaechstesElement())
         {
-            double* dIntegral = NULL;
-            aruIntegral tempIntegral(dIntegral, minX, minY, maxX, maxY, m_flaechenRaster, aktProjZ);
-            dIntegral = tempIntegral.HoleIntegral();
-            if(!dIntegral)
-            {
-                wxMessageDialog(this, wxT("Fehler beim Anlegen des Integrals\n(evtl. zu wenig Speicher?)"), wxT("Abbruch der Berechnung")).ShowModal();
-                return;
-            }
-            Liste<Flaeche>* lstFl = aktLayer->HoleFlaechen();
-            tLaufzeit = clock();
-            int iAktFlaeche = 0;
-            SetStatusText(wxT("Starte Integration"), 1);
-            Refresh();
-            for(Flaeche* aktFl = lstFl->GetErstesElement(); aktFl != NULL; aktFl = lstFl->GetNaechstesElement())
-            {
-                if(aktFl->HoleTyp() == RUZ_Dreieck)
-                {
-                    Vektor vNormale = aktFl->HoleNormale();
-                    Vektor vSenkrechte(0, 0, 0);
-                    vSenkrechte.SetKoordinaten(aktProjZ, 1.0);
-                    if(vNormale*vSenkrechte < 0.05)continue;//0.05 = ca. cos(87°) - fast senkrechte Flächen überspringen (ergibt an den Rändern unbrauchbar hohe Werte)
-                }
-                tempIntegral.IntegriereFlaeche(aktFl);
-            }
+            obj = aktPktSp->HoleObj();
+            if(obj->HoleTyp() == RUZ_Punkt)
+                static_cast<Punkt*>(obj)->Positionieren(aktPktSp->HoleOrt() + (vkt - *vVerschubStart));
 
-            double maxWert, minWert;
-            unsigned char aktWert;
-            int iB = tempIntegral.HoleBreite();
-            int iH = tempIntegral.HoleHoehe();
+            if(obj->HoleTyp() == RUZ_HoehenMarke)
+                static_cast<HoehenMarke*>(obj)->Positionieren(aktPktSp->HoleOrt() + (vkt - *vVerschubStart));
 
-            maxWert = minWert = 0.0;
-            bool nochNAN = true;
+            if(obj->HoleTyp() == RUZ_Kreis)
+                static_cast<Kreis*>(obj)->Positionieren(aktPktSp->HoleOrt() + (vkt - *vVerschubStart));
 
-            SetStatusText(wxT("Integration erledigt - stopfe Löcher"), 1);
-            Refresh();
-            for(int i = 0; i < iB; i++)
-            {
-                for(int k = 0; k < iH; k++)
-                {
-                    if(!isnan(dIntegral[i+k*iB]))
-                    {
-
-                        if(nochNAN)
-                        {
-                            maxWert = minWert = dIntegral[i+k*iB];
-                            nochNAN = false;
-                        }
-                        if(maxWert < dIntegral[i+k*iB])maxWert = dIntegral[i+k*iB];
-                        if(minWert > dIntegral[i+k*iB])minWert = dIntegral[i+k*iB];
-                    }else
-                    {
-                        //Löcher stopfen
-                        if((i>0)&&(k>0)&&(i<iB-1)&&(k<iH-1))
-                        {
-                            int iNachbarn = 0;
-                            double dSumme = 0;
-                            for(int di = -1; di < 2; di++)
-                                for(int dk = -1; dk < 2; dk++)
-                                {
-                                    if(!isnan(dIntegral[i+di+(k+dk)*iB]))
-                                    {
-                                        iNachbarn++;
-                                        dSumme += dIntegral[i+di+(k+dk)*iB];
-                                    }
-                                }
-                            if(iNachbarn > 5)//Loch ist (vermutlich) in Fläche und nicht am Rand
-                            {
-                                dIntegral[i+k*iB] = dSumme/iNachbarn;
-                            }
-                        }
-                    }
-                }
-            }
-            lwBild.NeueLeinwand(iB, iH, 1/m_flaechenRaster, minX, minY);
-            double dSchrittzahl = (maxWert - minWert)/hoehenSchritt;
-            if(!dSchrittzahl)return;
-            SetStatusText(wxT("Löcher stopfen erledigt - bemale Leinwand"), 1);
-            Refresh();
-            for(int i = 0; i < (iB * iH); i++)
-            {
-                if(isnan(dIntegral[i]))
-                {
-                    lwBild.ucLeinwand[i*3] = col_ZeichenHintergrund.Red();
-                    lwBild.ucLeinwand[i*3+1] = col_ZeichenHintergrund.Green();
-                    lwBild.ucLeinwand[i*3+2] = col_ZeichenHintergrund.Blue();
-                }else if(dIntegral[i] > maxZ)
-                {
-                    lwBild.ucLeinwand[i*3] = 255;
-                    lwBild.ucLeinwand[i*3+1] = 78;
-                    lwBild.ucLeinwand[i*3+2] = 46;
-                }
-                else if(dIntegral[i] < minZ)
-                {
-                    lwBild.ucLeinwand[i*3] = 78;
-                    lwBild.ucLeinwand[i*3+1] = 46;
-                    lwBild.ucLeinwand[i*3+2] = 255;
-                }else
-                {
-                    aktWert = (unsigned char)((dIntegral[i]-minWert)/hoehenSchritt)*(unsigned char)(max(256 / dSchrittzahl, 1.0));
-                    lwBild.ucLeinwand[i*3] = aktWert;
-                    lwBild.ucLeinwand[i*3+1] = aktWert;
-                    lwBild.ucLeinwand[i*3+2] = aktWert;
-                }
-            }
-            SetStatusText(wxString::Format(wxT("min Z: %f | max Z: %f"), minZ, maxZ),1);
+            if(obj->HoleTyp() == RUZ_Fangpunkt)
+                static_cast<Fangpunkt*>(obj)->Positionieren(aktPktSp->HoleOrt() + (vkt - *vVerschubStart));
         }
     }
     return;
 }
+
 /*ENDE RUZmBI*/
 
 /*Programm_Einstellungen_Dialog*/
