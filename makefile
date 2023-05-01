@@ -9,14 +9,14 @@ CPPFLAGS =  \
 	-std=gnu++11
 
 INCLUDES =  \
-	-ID:\wxWidgets-3.2.1\include \
-	-ID:\wxWidgets-3.2.1\lib\gcc_dll-dll_64\mswu
+	-ID:\wxWidgets-3.2.2.1\include \
+	-ID:\wxWidgets-3.2.2.1\lib\gcc_dll-dll_64\mswu
 
 DEFS =  \
 	-D__WXMSW__ \
-	-DwxUSE_UNICODE
+	-D_UNICODE
 
-WXLIBPATH = -LD:\wxWidgets-3.2.1\lib\gcc_dll-dll_64
+WXLIBPATH = -LD:\wxWidgets-3.2.2.1\lib\gcc_dll-dll_64
 LIBS = \
 	-lwxbase32u \
 	-lwxbase32u_net \
@@ -60,7 +60,7 @@ LIBS = \
 	-loleacc \
 	-luxtheme
 
-OBJDIR = obj321
+OBJDIR = obj
 OBJS = \
 	$(OBJDIR)\aruIntegral\aruIntegral.o \
 	$(OBJDIR)\aruZeichner\aruZeichner.o \
@@ -76,7 +76,7 @@ OBJS = \
 	$(OBJDIR)\RUZmBIMain.o \
 	$(OBJDIR)\RUZThreadCtrl.o \
 	$(OBJDIR)\resource.res
-OUT = RUZ_321dll.exe
+OUT = RUZ.exe
 
 .PHONEY: all clean
 
