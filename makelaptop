@@ -1,4 +1,4 @@
-CXX = D:\mingw64\bin\g++
+CXX = g++
 CPPFLAGS =  \
 	-Wall \
 	-pipe \
@@ -9,14 +9,14 @@ CPPFLAGS =  \
 	-std=gnu++11
 
 INCLUDES =  \
-	-ID:\wxWidgets-3.2.2.1\include \
-	-ID:\wxWidgets-3.2.2.1\lib\gcc_dll-dll_64\mswu
+	-IC:\wxWidgets-3.2.2.1\include \
+	-IC:\wxWidgets-3.2.2.1\lib\gcc_dll\mswu
 
 DEFS =  \
 	-D__WXMSW__ \
 	-D_UNICODE
 
-WXLIBPATH = -LD:\wxWidgets-3.2.2.1\lib\gcc_dll-dll_64
+WXLIBPATH = -LC:\wxWidgets-3.2.2.1\lib\gcc_dll
 LIBS = \
 	-lwxbase32u \
 	-lwxbase32u_net \

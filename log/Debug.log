@@ -41,3 +41,404 @@ Abtrag:	0.00 auf Flaeche:	0.00
 Layer STANDARD geloescht
 Layer neuer Layer geloescht
 Layer Hintergrund geloescht
+Logbuch gestartet
+Layer STANDARD geloescht
+Layer Hintergrund geloescht
+Logbuch gestartet
+Layer STANDARD geloescht
+Layer Hintergrund geloescht
+Logbuch gestartet
+D:\Cplusplus\RUZ\TestDateien\Pr�fung_Tiefbau_2.ruz konnte geöffnet werden
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+RUZ_Layer::Verschneiden
+hilfsLayer: 00000294d5f1dc00
+randLayer1: 00000294d5f1cb20
+randLayer2: 00000294d5f1ddb0
+Schnittlinien gefunden (567 Stueck)Layer hilfsLayer geloescht
+Layer randLayer1 geloescht
+Layer randLayer2 geloescht
+Layer Verschneidung_Verschneidung_Cc_BK 6 geloescht
+Layer Verschneidung_Verschneidung_Cc_Von-Vermesser_04 - Abgabe_Aldi_Dez_2021 geloescht
+RUZ_Layer::Verschneiden
+hilfsLayer: 00000294d5f1df60
+randLayer1: 00000294d5f1e470
+randLayer2: 00000294d5f1cb20
+Schnittlinien gefunden (74 Stueck)Layer hilfsLayer geloescht
+Layer randLayer1 geloescht
+Layer randLayer2 geloescht
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+
+
+/**Ergebnis der Volumenberechnung zwischen Layern**/
+/***************Prismenberechnung****************/
+Urgelände:	Verschneidung_2_Cc_BK 6	Verschub:	0.000
+neues Gelände:	Verschneidung_2_Cc_Von-Vermesser_04 - Abgabe_Aldi_Dez_2021	Verschub:	0.000
+Rastergröße:	1.000
+Auftrag:	-437.21
+Abtrag:	-7.12
+/**ENDE Volumenberechnung**/
+Layer STANDARD geloescht
+Layer Von-Vermesser_04 - Abgabe_Aldi_Dez_2021 geloescht
+Layer Fertige Hoehe geloescht
+Layer UnterkanteMutterbodenhaufen geloescht
+Layer Fertige Hoehe_Rampe geloescht
+Layer Hoehe_Rampe -70cm geloescht
+Layer Hoehe Parkplatz -50cm geloescht
+Layer BK 1 - unten geloescht
+Layer BK 1 - oben geloescht
+Layer Einfahrt-oben geloescht
+Layer BK 3 - 30cm unter MuBo geloescht
+Layer BK 6 geloescht
+Layer BK 7 aus Bildern geloescht
+Layer BK 8 Kontrolle geloescht
+Layer Cc_BK 6 geloescht
+Layer Cc_Von-Vermesser_04 - Abgabe_Aldi_Dez_2021 geloescht
+Layer Verschneidung_Cc_BK 6 geloescht
+Layer Verschneidung_Cc_Von-Vermesser_04 - Abgabe_Aldi_Dez_2021 geloescht
+Layer Cc_BK 3 - 30cm unter MuBo geloescht
+Layer BK3_Urgelaende_unterhalb geloescht
+Layer BK 3 - 30cm unter MuBo_unterhalb geloescht
+Layer BK3_Urgelaende_oberhalb geloescht
+Layer BK 3 - 30cm unter MuBo_oberhalb geloescht
+Layer Verschneidung_2_Cc_BK 6 geloescht
+Layer Verschneidung_2_Cc_Von-Vermesser_04 - Abgabe_Aldi_Dez_2021 geloescht
+Layer Hintergrund geloescht
+Logbuch gestartet
+Dreieck gefunden und erzeugt
+Dreieck gefunden und erzeugt
+Dreieck gefunden und erzeugt
+D:\Cplusplus\RUZ\TestDateien\Pr�fung_Tiefbau_2.ruz konnte geöffnet werden
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+RUZ_Layer::Verschneiden
+hilfsLayer: 000002674631cd10
+randLayer1: 000002674631c9b0
+randLayer2: 000002674631c650
+Schnittlinien gefunden (73 Stueck)Layer hilfsLayer geloescht
+Layer randLayer1 geloescht
+Layer randLayer2 geloescht
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+
+
+/**Ergebnis der Volumenberechnung zwischen Layern**/
+/***************Prismenberechnung****************/
+Urgelände:	Test_Cc_BK 6	Verschub:	0.000
+neues Gelände:	Test_Cc_Von-Vermesser_04 - Abgabe_Aldi_Dez_2021	Verschub:	0.000
+Rastergröße:	1.000
+Auftrag:	80.72
+Abtrag:	0.75
+/**ENDE Volumenberechnung**/
+Layer STANDARD geloescht
+Layer Von-Vermesser_04 - Abgabe_Aldi_Dez_2021 geloescht
+Layer Fertige Hoehe geloescht
+Layer UnterkanteMutterbodenhaufen geloescht
+Layer Fertige Hoehe_Rampe geloescht
+Layer Hoehe_Rampe -70cm geloescht
+Layer Hoehe Parkplatz -50cm geloescht
+Layer BK 1 - unten geloescht
+Layer BK 1 - oben geloescht
+Layer Einfahrt-oben geloescht
+Layer BK 3 - 30cm unter MuBo geloescht
+Layer BK 6 geloescht
+Layer BK 7 aus Bildern geloescht
+Layer BK 8 Kontrolle geloescht
+Layer Cc_BK 6 geloescht
+Layer Cc_Von-Vermesser_04 - Abgabe_Aldi_Dez_2021 geloescht
+Layer Verschneidung_Cc_BK 6 geloescht
+Layer Verschneidung_Cc_Von-Vermesser_04 - Abgabe_Aldi_Dez_2021 geloescht
+Layer Cc_BK 3 - 30cm unter MuBo geloescht
+Layer BK3_Urgelaende_unterhalb geloescht
+Layer BK 3 - 30cm unter MuBo_unterhalb geloescht
+Layer BK3_Urgelaende_oberhalb geloescht
+Layer BK 3 - 30cm unter MuBo_oberhalb geloescht
+Layer Test_Cc_BK 6 geloescht
+Layer Test_Cc_Von-Vermesser_04 - Abgabe_Aldi_Dez_2021 geloescht
+Layer Hintergrund geloescht
+Logbuch gestartet
+D:\Cplusplus\RUZ\TestDateien\Gelaendemodell_3.ruz konnte geöffnet werden
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+Layer STANDARD geloescht
+Layer Wald-Michelbach Gelaendeaufnahme LW geloescht
+Layer Cc_Wald-Michelbach Gelaendeaufnahme LW geloescht
+Layer Hintergrund geloescht
+Logbuch gestartet
+Dreieck gefunden und erzeugt
+Dreieck gefunden und erzeugt
+Layer STANDARD geloescht
+Layer Hintergrund geloescht
+Logbuch gestartet
+Layer STANDARD geloescht
+Layer Hintergrund geloescht
+Logbuch gestartet
+Layer STANDARD geloescht
+Layer Hintergrund geloescht
+Logbuch gestartet
+Layer STANDARD geloescht
+Layer Hintergrund geloescht
+Logbuch gestartet
+Layer STANDARD geloescht
+Layer Hintergrund geloescht
+Logbuch gestartet
+Dreieck gefunden und erzeugt
+Dreieck gefunden und erzeugt
+Dreieck gefunden und erzeugt
+Dreieck gefunden und erzeugt
+Dreieck gefunden und erzeugt
+Dreieck gefunden und erzeugt
+Dreieck gefunden und erzeugt
+Dreieck gefunden und erzeugt
+
+
+/**Ergebnis der Volumenberechnung zwischen Layern**/
+/***************Prismenberechnung****************/
+Urgelände:	STANDARD	Verschub:	0.000
+neues Gelände:	Cc_STANDARD	Verschub:	0.000
+Rastergröße:	1.000
+Auftrag:	0.00
+Abtrag:	24475.58
+/**ENDE Volumenberechnung**/
+Layer STANDARD geloescht
+Layer Cc_STANDARD geloescht
+Layer Hintergrund geloescht
+Logbuch gestartet
+Layer STANDARD geloescht
+Layer Hintergrund geloescht
+Logbuch gestartet
+Dreieck gefunden und erzeugt
+Dreieck gefunden und erzeugt
+Dreieck gefunden und erzeugt
+Dreieck gefunden und erzeugt
+
+
+/**Ergebnis der Volumenberechnung zwischen Layern**/
+/***************Prismenberechnung****************/
+Urgelände:	STANDARD	Verschub:	0.000
+neues Gelände:	Cc_STANDARD	Verschub:	0.000
+Rastergröße:	1.000
+Auftrag:	0.00
+Abtrag:	0.00
+/**ENDE Volumenberechnung**/
+Layer STANDARD geloescht
+Layer Cc_STANDARD geloescht
+Layer Hintergrund geloescht
+Logbuch gestartet
+Dreieck gefunden und erzeugt
+Logbuch gestartet
+Dreieck gefunden und erzeugt
+
+
+/**Ergebnis der Volumenberechnung zwischen Layern**/
+/***************Prismenberechnung****************/
+Urgelände:	STANDARD	Verschub:	0.000
+neues Gelände:	Cc_STANDARD	Verschub:	0.000
+Rastergröße:	1.000
+Auftrag:	0.00
+Abtrag:	12087.78
+/**ENDE Volumenberechnung**/
+Layer STANDARD geloescht
+Layer Cc_STANDARD geloescht
+Layer Hintergrund geloescht
+Logbuch gestartet
+C:\cpp\RUZ\TestDateien\DreieckUndViuereck.ruz konnte geöffnet werden
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+C:\cpp\RUZ\TestDateien\VerschnittTest 5_h�ndisch.ruz konnte geöffnet werden
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+
+
+/**Ergebnis der Volumenberechnung zwischen Layern**/
+/***************Prismenberechnung****************/
+Urgelände:	neuer Layer	Verschub:	0.000
+neues Gelände:	Cc_STANDARD	Verschub:	0.000
+Rastergröße:	1.000
+Auftrag:	-22038.82
+Abtrag:	-8922.33
+/**ENDE Volumenberechnung**/
+Layer STANDARD geloescht
+Layer neuer Layer geloescht
+Layer Cc_STANDARD geloescht
+Layer Hintergrund geloescht
+Logbuch gestartet
+C:\cpp\RUZ\TestDateien\VerschnittTest.ruz konnte geöffnet werden
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+RUZ_Layer::Verschneiden
+hilfsLayer: 000001bad6601940
+randLayer1: 000001bad65ffff0
+randLayer2: 000001bad6601af0
+Schnittlinien gefunden (3 Stueck)Layer hilfsLayer geloescht
+Layer randLayer1 geloescht
+Layer randLayer2 geloescht
+
+
+/**Ergebnis der Volumenberechnung zwischen Layern**/
+/***************Prismenberechnung****************/
+Urgelände:	Verschneidung_Cc_STANDARD	Verschub:	0.000
+neues Gelände:	Verschneidung_STANDARD	Verschub:	0.000
+Rastergröße:	1.000
+Auftrag:	3879.44
+Abtrag:	1870.36
+/**ENDE Volumenberechnung**/
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+Layer STANDARD geloescht
+Layer Cc_STANDARD geloescht
+Layer Verschneidung_STANDARD geloescht
+Layer Verschneidung_Cc_STANDARD geloescht
+Layer Hintergrund geloescht
+Logbuch gestartet
+C:\cpp\RUZ\TestDateien\VerschnittTest 5_h�ndisch.ruz konnte geöffnet werden
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+
+
+/**Ergebnis der Volumenberechnung zwischen Layern**/
+/***************Prismenberechnung****************/
+Urgelände:	STANDARD	Verschub:	0.000
+neues Gelände:	Cc_STANDARD	Verschub:	0.000
+Rastergröße:	1.000
+Auftrag:	-11749.02
+Abtrag:	-11389.02
+/**ENDE Volumenberechnung**/
+Layer STANDARD geloescht
+Layer Cc_STANDARD geloescht
+Layer neuer Layer geloescht
+Layer Hintergrund geloescht
+Logbuch gestartet
+C:\cpp\RUZ\TestDateien\VerschnittTest 5_h�ndisch.ruz konnte geöffnet werden
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+RUZ_Layer::Verschneiden
+hilfsLayer: 0000013790e6df30
+randLayer1: 0000013790e6d870
+randLayer2: 0000013790e6e0e0
+Schnittlinien gefunden (8 Stueck)Layer hilfsLayer geloescht
+Layer randLayer1 geloescht
+Layer randLayer2 geloescht
+
+
+/**Ergebnis der Volumenberechnung zwischen Layern**/
+/***************Prismenberechnung****************/
+Urgelände:	Verschneidung_STANDARD	Verschub:	0.000
+neues Gelände:	Verschneidung_Cc_STANDARD	Verschub:	0.000
+Rastergröße:	1.000
+Auftrag:	8081.64
+Abtrag:	3935.30
+/**ENDE Volumenberechnung**/
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+Layer STANDARD geloescht
+Layer Cc_STANDARD geloescht
+Layer neuer Layer geloescht
+Layer Verschneidung_STANDARD geloescht
+Layer Verschneidung_Cc_STANDARD geloescht
+Layer Hintergrund geloescht

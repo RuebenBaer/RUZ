@@ -205,6 +205,8 @@ struct MassstabsBalken
 	};
 };
 
+void PrismaSchreiben(std::string &prismenListe, Flaeche* drk, double flaeche, double volumen);
+
 class RUZmBIFrame: public wxFrame
 {
     public:
@@ -397,6 +399,7 @@ class RUZmBIFrame: public wxFrame
         void DoppeltePunkteLoeschen(wxCommandEvent& event);
 
         void HoehenkarteZeichnen(void);
+		void LayerMalen(wxDC &dc, RUZ_Layer* tempLayer);
 
         /*RUZ*/
         Liste<RUZ_Layer> *m_layer;
