@@ -1989,6 +1989,196 @@ bool RUZmBIFrame::LayerLoeschen(wxString msg)
     return true;
 }
 
+void RUZmBIFrame::LayerMalen(wxDC &dc, RUZ_Layer* tempLayer)
+{
+	if(tempLayer->IstSichtbar() == false)return;
+	
+    wxColor loc_col_Pkt_Ln, loc_col_HoehenMarke, loc_col_Hoehenlinie, loc_col_Strich, loc_col_Fangpunkt;
+	unsigned char r, g, b;Punkt* tempPunkt;
+    Linie* tempLinie;
+    Strich* tempStrich;
+    Flaeche* tempFlaeche;
+    HoehenMarke* tempHM;
+    Kreis* tempKreis;
+    Liste<Strich>* strSammlung;
+    Fangpunkt* tempFangpunkt;
+    int anzEcken;
+	
+	int nFntSize = dc.GetFont().GetPointSize();
+	
+	if(tempLayer == aktLayer)
+	{
+		loc_col_Pkt_Ln = col_Pkt_Ln;
+		loc_col_Strich = col_Strich;
+		loc_col_HoehenMarke = col_HoehenMarke;
+		loc_col_Hoehenlinie = col_Hoehenlinie;
+		loc_col_Fangpunkt = col_Fangpunkt;
+	}else
+	{
+		float delta = 0.5;
+		r = (1 - delta) * col_ZeichenHintergrund.Red() + delta * col_Pkt_Ln.Red();
+		g = (1 - delta) * col_ZeichenHintergrund.Green() + delta * col_Pkt_Ln.Green();
+		b = (1 - delta) * col_ZeichenHintergrund.Blue() + delta * col_Pkt_Ln.Blue();
+		loc_col_Pkt_Ln = wxColor(r, g, b);
+
+		r = (1 - delta) * col_ZeichenHintergrund.Red() + delta * col_Strich.Red();
+		g = (1 - delta) * col_ZeichenHintergrund.Green() + delta * col_Strich.Green();
+		b = (1 - delta) * col_ZeichenHintergrund.Blue() + delta * col_Strich.Blue();
+		loc_col_Strich = wxColor(r, g, b);
+
+		r = (1 - delta) * col_ZeichenHintergrund.Red() + delta * col_HoehenMarke.Red();
+		g = (1 - delta) * col_ZeichenHintergrund.Green() + delta * col_HoehenMarke.Green();
+		b = (1 - delta) * col_ZeichenHintergrund.Blue() + delta * col_HoehenMarke.Blue();
+		loc_col_HoehenMarke = wxColor(r, g, b);
+
+		r = (1 - delta) * col_ZeichenHintergrund.Red() + delta * col_Hoehenlinie.Red();
+		g = (1 - delta) * col_ZeichenHintergrund.Green() + delta * col_Hoehenlinie.Green();
+		b = (1 - delta) * col_ZeichenHintergrund.Blue() + delta * col_Hoehenlinie.Blue();
+		loc_col_Hoehenlinie = wxColor(r, g, b);
+
+		r = (1 - delta) * col_ZeichenHintergrund.Red() + delta * col_Fangpunkt.Red();
+		g = (1 - delta) * col_ZeichenHintergrund.Green() + delta * col_Fangpunkt.Green();
+		b = (1 - delta) * col_ZeichenHintergrund.Blue() + delta * col_Fangpunkt.Blue();
+		loc_col_Fangpunkt = wxColor(r, g, b);
+	}
+
+	Liste<Punkt>* pktSammlung = tempLayer->HolePunkte();
+	Liste<Linie>* lnSammlung = tempLayer->HoleLinien();
+    strSammlung = tempLayer->HoleStriche();
+	Liste<Flaeche>* flSammlung = tempLayer->HoleFlaechen();
+	Liste<HoehenMarke>* hmSammlung = tempLayer->HoleHoehenMarken();
+	Liste<Kreis>* krSammlung = tempLayer->HoleKreise();
+	Liste<Fangpunkt>* fngPktSammlung = tempLayer->HoleFangpunkte();
+
+	if(m_zeigeFlaeche && hlAnzeigen)
+	{
+		for(tempFlaeche = flSammlung->GetErstesElement(); tempFlaeche != NULL; tempFlaeche = flSammlung->GetNaechstesElement())
+		{
+			dc.SetPen(wxPen(loc_col_Hoehenlinie, 1));
+			dc.SetBrush(*wxTRANSPARENT_BRUSH);
+			Liste<RUZ_Hoehenlinie>* hlListe = tempFlaeche->HoleHL();
+			for(RUZ_Hoehenlinie* aktHL = hlListe->GetErstesElement(); aktHL != NULL; aktHL = hlListe->GetNaechstesElement())
+			{
+				dc.DrawLine((aktHL->x(0)-dc_Offset[0])*m_skalierung, (aktHL->y(0)-dc_Offset[1])*m_skalierung,
+					(aktHL->x(1)-dc_Offset[0])*m_skalierung, (aktHL->y(1)-dc_Offset[1])*m_skalierung);
+			}
+		}
+	}
+	if(m_zeigePunkt)
+	{
+		for(tempPunkt = pktSammlung->GetErstesElement(); tempPunkt != NULL; tempPunkt = pktSammlung->GetNaechstesElement())
+		{
+			if(tempPunkt == markiertesObjekt)
+			{
+				continue;
+			}else{
+				dc.SetPen(wxPen(loc_col_Pkt_Ln, 1));
+				dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
+			}
+			dc.DrawCircle((tempPunkt->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung,
+					  (tempPunkt->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung, pxSuchEntfernung);
+			if(m_zeigeHoehe)
+			{
+				dc.SetTextForeground(loc_col_Pkt_Ln);
+				wxString genauigkeit = wxString::Format("%1.%df", m_anzeigeGenauigkeit);
+				dc.DrawText(wxString::Format(genauigkeit, tempPunkt->HolePosition().GetKoordinaten(aktProjZ)),
+							(tempPunkt->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung + 1.2f * pxSuchEntfernung,
+							(tempPunkt->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung - nFntSize);
+			}
+		}
+	}
+	if(m_zeigeLinie)
+	{
+		for(tempLinie = lnSammlung->GetErstesElement(); tempLinie != NULL; tempLinie = lnSammlung->GetNaechstesElement())
+		{
+			if(tempLinie == markiertesObjekt)
+			{
+				continue;
+			}else
+			{
+				int penDicke;
+				if(tempLayer != aktLayer)
+				{
+					penDicke = 1;
+				}
+				else if(tempLinie->HoleFlaechen()->GetListenGroesse() < 2)
+				{
+					penDicke = 2;
+				}else
+				{
+					penDicke = 1;
+				}
+				dc.SetPen(wxPen(loc_col_Pkt_Ln, penDicke));
+				dc.SetBrush(wxBrush(loc_col_Pkt_Ln));
+			}
+			dc.DrawLine((tempLinie->HolePunkt(0)->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung, (tempLinie->HolePunkt(0)->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung,
+						(tempLinie->HolePunkt(1)->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung, (tempLinie->HolePunkt(1)->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung);
+		}
+
+	}
+	dc.SetPen(wxPen(loc_col_Strich, 1));
+	dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
+	if(m_zeigeKreis)
+	{
+		for(tempKreis = krSammlung->GetErstesElement(); tempKreis != NULL; tempKreis = krSammlung->GetNaechstesElement())
+		{
+			dc.DrawCircle((tempKreis->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung,
+						  (tempKreis->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung,
+						  (int)(tempKreis->HoleRadius()*m_skalierung));
+		}
+	}
+	dc.SetBrush(wxBrush(loc_col_Strich));
+	if(m_zeigeStrich)
+	{
+		for(tempStrich = strSammlung->GetErstesElement(); tempStrich != NULL; tempStrich = strSammlung->GetNaechstesElement())
+		{
+			dc.DrawLine((tempStrich->Xa()-dc_Offset[0])*m_skalierung, (tempStrich->Ya()-dc_Offset[1])*m_skalierung,
+						(tempStrich->Xe()-dc_Offset[0])*m_skalierung, (tempStrich->Ye()-dc_Offset[1])*m_skalierung);
+		}
+	}
+	if(m_zeigeHoehenmarke)
+	{
+		for(tempHM = hmSammlung->GetErstesElement(); tempHM != NULL; tempHM = hmSammlung->GetNaechstesElement())
+		{
+			if(tempHM == markiertesObjekt)
+			{
+				continue;
+			}else{
+				dc.SetPen(wxPen(loc_col_HoehenMarke, 1));
+				dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
+			}
+			dc.DrawCircle((tempHM->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung,
+					  (tempHM->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung, (int)(pxSuchEntfernung/3));
+			dc.SetTextForeground(loc_col_HoehenMarke);
+			if(tempHM->IstInFlaeche())
+			{
+				wxString genauigkeit = wxString::Format("%1.%df", m_anzeigeGenauigkeit);
+				dc.DrawText(wxString::Format(genauigkeit, std::nearbyint(tempHM->HolePosition().GetKoordinaten(aktProjZ) * 100000) / 100000.0),
+							(tempHM->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung + 1.2f * (pxSuchEntfernung/3),
+							(tempHM->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung - nFntSize);
+			}else{
+				dc.DrawText(wxT("#NiF"),
+							(tempHM->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung + 1.2f * (pxSuchEntfernung/3),
+							(tempHM->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung - nFntSize);
+			}
+		}
+	}
+	if(m_zeigeFangpunkt)
+	{
+		dc.SetPen(wxPen(loc_col_Fangpunkt, 1));
+		int posX, posY;
+		for(tempFangpunkt = fngPktSammlung->GetErstesElement(); tempFangpunkt; tempFangpunkt = fngPktSammlung->GetNaechstesElement())
+		{
+			posX = (tempFangpunkt->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung;
+			posY = (tempFangpunkt->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung;
+			int symbolGroesse = 1.2f * pxSuchEntfernung;
+			dc.DrawLine(posX - symbolGroesse, posY - symbolGroesse, posX + symbolGroesse, posY + symbolGroesse);
+			dc.DrawLine(posX + symbolGroesse, posY - symbolGroesse, posX - symbolGroesse, posY + symbolGroesse);
+		}
+	}
+	return;
+}
+
 void RUZmBIFrame::LayerSkalieren(Vektor festPkt)
 {
     for(RUZ_Layer* t_layer = m_skalierListe->GetErstesElement(); t_layer; t_layer = m_skalierListe->GetNaechstesElement())
@@ -5430,8 +5620,14 @@ void RUZmBIFrame::OnPaint(wxPaintEvent &event)
 
     RUZ_Layer* tempLayer;
     wxColor loc_col_Pkt_Ln, loc_col_HoehenMarke, loc_col_Hoehenlinie, loc_col_Strich, loc_col_Fangpunkt;
-    char r, g, b;
+    unsigned char r, g, b;
     int posX, posY;
+	
+    Strich* tempStrich;
+    Flaeche* tempFlaeche;
+    Liste<Strich>* strSammlung;
+    wxPoint dP[4];
+    int anzEcken;
 
     /*Hintergrund zeichnen*/
     wxRect rect(wxPoint(0, 0), CL_dc.GetSize());
@@ -5477,16 +5673,6 @@ void RUZmBIFrame::OnPaint(wxPaintEvent &event)
             }
         }
     }
-
-    Punkt* tempPunkt;
-    Linie* tempLinie;
-    Strich* tempStrich;
-    Flaeche* tempFlaeche;
-    HoehenMarke* tempHM;
-    Kreis* tempKreis;
-    Fangpunkt* tempFangpunkt;
-    wxPoint dP[4];
-    int anzEcken;
 
     if(aktLayer)
     {
@@ -5709,8 +5895,6 @@ void RUZmBIFrame::OnPaint(wxPaintEvent &event)
         }
         /*ENDE Schnittpunkt Flächen malen*/
 
-        Liste<Strich>* strSammlung;
-
         /*Hintergrundlayer malen*/
         if(m_hintergrundMalen)
         {
@@ -5740,177 +5924,15 @@ void RUZmBIFrame::OnPaint(wxPaintEvent &event)
         /*ENDE Hintergrundlayer malen*/
 
         /*Alle Layer malen*/
-        int nFntSize = dc.GetFont().GetPointSize();
         for(tempLayer = m_layer->GetErstesElement(); tempLayer != NULL; tempLayer = m_layer->GetNaechstesElement())
         {
-            if(tempLayer->IstSichtbar() == false)continue;
-            if(tempLayer == aktLayer)/*evtl. aktLayer noch nach hinten schieben*/
-            {
-                loc_col_Pkt_Ln = col_Pkt_Ln;
-                loc_col_Strich = col_Strich;
-                loc_col_HoehenMarke = col_HoehenMarke;
-                loc_col_Hoehenlinie = col_Hoehenlinie;
-                loc_col_Fangpunkt = col_Fangpunkt;
-            }else
-            {
-				float delta = 0.5;
-                r = (1 - delta) * col_ZeichenHintergrund.Red() + delta * col_Pkt_Ln.Red();
-                g = (1 - delta) * col_ZeichenHintergrund.Green() + delta * col_Pkt_Ln.Green();
-                b = (1 - delta) * col_ZeichenHintergrund.Blue() + delta * col_Pkt_Ln.Blue();
-                loc_col_Pkt_Ln = wxColor(r, g, b);
-
-                r = (1 - delta) * col_ZeichenHintergrund.Red() + delta * col_Strich.Red();
-                g = (1 - delta) * col_ZeichenHintergrund.Green() + delta * col_Strich.Green();
-                b = (1 - delta) * col_ZeichenHintergrund.Blue() + delta * col_Strich.Blue();
-                loc_col_Strich = wxColor(r, g, b);
-
-                r = (1 - delta) * col_ZeichenHintergrund.Red() + delta * col_HoehenMarke.Red();
-                g = (1 - delta) * col_ZeichenHintergrund.Green() + delta * col_HoehenMarke.Green();
-                b = (1 - delta) * col_ZeichenHintergrund.Blue() + delta * col_HoehenMarke.Blue();
-                loc_col_HoehenMarke = wxColor(r, g, b);
-
-                r = (1 - delta) * col_ZeichenHintergrund.Red() + delta * col_Hoehenlinie.Red();
-                g = (1 - delta) * col_ZeichenHintergrund.Green() + delta * col_Hoehenlinie.Green();
-                b = (1 - delta) * col_ZeichenHintergrund.Blue() + delta * col_Hoehenlinie.Blue();
-                loc_col_Hoehenlinie = wxColor(r, g, b);
-
-                r = (1 - delta) * col_ZeichenHintergrund.Red() + delta * col_Fangpunkt.Red();
-                g = (1 - delta) * col_ZeichenHintergrund.Green() + delta * col_Fangpunkt.Green();
-                b = (1 - delta) * col_ZeichenHintergrund.Blue() + delta * col_Fangpunkt.Blue();
-                loc_col_Fangpunkt = wxColor(r, g, b);
-            }
-
-            Liste<Punkt>* pktSammlung = tempLayer->HolePunkte();
-            Liste<Linie>* lnSammlung = tempLayer->HoleLinien();
-            strSammlung = tempLayer->HoleStriche();
-            Liste<Flaeche>* flSammlung = tempLayer->HoleFlaechen();
-            Liste<HoehenMarke>* hmSammlung = tempLayer->HoleHoehenMarken();
-            Liste<Kreis>* krSammlung = tempLayer->HoleKreise();
-            Liste<Fangpunkt>* fngPktSammlung = tempLayer->HoleFangpunkte();
-
-            if(m_zeigeFlaeche)
-            {
-                for(tempFlaeche = flSammlung->GetErstesElement(); tempFlaeche != NULL; tempFlaeche = flSammlung->GetNaechstesElement())
-                {
-                    if(tempFlaeche->HoleTyp() == RUZ_Dreieck)
-                    {
-                        anzEcken = 3;
-                    }else{
-                        anzEcken = 4;
-                    }
-                    dc.SetPen(wxPen(loc_col_Hoehenlinie, 1));
-                    dc.SetBrush(*wxTRANSPARENT_BRUSH);
-                    if(hlAnzeigen)
-                    {
-                        Liste<RUZ_Hoehenlinie>* hlListe = tempFlaeche->HoleHL();
-                        for(RUZ_Hoehenlinie* aktHL = hlListe->GetErstesElement(); aktHL != NULL; aktHL = hlListe->GetNaechstesElement())
-                        {
-                            dc.DrawLine((aktHL->x(0)-dc_Offset[0])*m_skalierung, (aktHL->y(0)-dc_Offset[1])*m_skalierung,
-                                (aktHL->x(1)-dc_Offset[0])*m_skalierung, (aktHL->y(1)-dc_Offset[1])*m_skalierung);
-                        }
-                    }
-                }
-            }
-            if(m_zeigePunkt)
-            {
-                for(tempPunkt = pktSammlung->GetErstesElement(); tempPunkt != NULL; tempPunkt = pktSammlung->GetNaechstesElement())
-                {
-                    if(tempPunkt == markiertesObjekt)
-                    {
-                        continue;
-                    }else{
-                        dc.SetPen(wxPen(loc_col_Pkt_Ln, 1));
-                        dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
-                    }
-                    dc.DrawCircle((tempPunkt->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung,
-                              (tempPunkt->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung, pxSuchEntfernung);
-                    if(m_zeigeHoehe)
-                    {
-                        dc.SetTextForeground(loc_col_Pkt_Ln);
-                        wxString genauigkeit = wxString::Format("%1.%df", m_anzeigeGenauigkeit);
-                        dc.DrawText(wxString::Format(genauigkeit, tempPunkt->HolePosition().GetKoordinaten(aktProjZ)),
-                                    (tempPunkt->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung + 1.2f * pxSuchEntfernung,
-                                    (tempPunkt->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung - nFntSize);
-                    }
-                }
-            }
-            if(m_zeigeLinie)
-            {
-                for(tempLinie = lnSammlung->GetErstesElement(); tempLinie != NULL; tempLinie = lnSammlung->GetNaechstesElement())
-                {
-                    if(tempLinie == markiertesObjekt)
-                    {
-                        continue;
-                    }else
-                    {
-                        dc.SetPen(wxPen(loc_col_Pkt_Ln, 1));
-                        dc.SetBrush(wxBrush(loc_col_Pkt_Ln));
-                    }
-                    dc.DrawLine((tempLinie->HolePunkt(0)->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung, (tempLinie->HolePunkt(0)->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung,
-                                (tempLinie->HolePunkt(1)->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung, (tempLinie->HolePunkt(1)->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung);
-                }
-
-            }
-            dc.SetPen(wxPen(loc_col_Strich, 1));
-            dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
-            if(m_zeigeKreis)
-            {
-                for(tempKreis = krSammlung->GetErstesElement(); tempKreis != NULL; tempKreis = krSammlung->GetNaechstesElement())
-                {
-                    dc.DrawCircle((tempKreis->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung,
-                                  (tempKreis->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung,
-                                  (int)(tempKreis->HoleRadius()*m_skalierung));
-                }
-            }
-            dc.SetBrush(wxBrush(loc_col_Strich));
-            if(m_zeigeStrich)
-            {
-                for(tempStrich = strSammlung->GetErstesElement(); tempStrich != NULL; tempStrich = strSammlung->GetNaechstesElement())
-                {
-                    dc.DrawLine((tempStrich->Xa()-dc_Offset[0])*m_skalierung, (tempStrich->Ya()-dc_Offset[1])*m_skalierung,
-                                (tempStrich->Xe()-dc_Offset[0])*m_skalierung, (tempStrich->Ye()-dc_Offset[1])*m_skalierung);
-                }
-            }
-            if(m_zeigeHoehenmarke)
-            {
-                for(tempHM = hmSammlung->GetErstesElement(); tempHM != NULL; tempHM = hmSammlung->GetNaechstesElement())
-                {
-                    if(tempHM == markiertesObjekt)
-                    {
-                        continue;
-                    }else{
-                        dc.SetPen(wxPen(loc_col_HoehenMarke, 1));
-                        dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
-                    }
-                    dc.DrawCircle((tempHM->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung,
-                              (tempHM->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung, (int)(pxSuchEntfernung/3));
-                    dc.SetTextForeground(loc_col_HoehenMarke);
-                    if(tempHM->IstInFlaeche())
-                    {
-                        wxString genauigkeit = wxString::Format("%1.%df", m_anzeigeGenauigkeit);
-                        dc.DrawText(wxString::Format(genauigkeit, std::nearbyint(tempHM->HolePosition().GetKoordinaten(aktProjZ) * 100000) / 100000.0),
-                                    (tempHM->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung + 1.2f * (pxSuchEntfernung/3),
-                                    (tempHM->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung - nFntSize);
-                    }else{
-                        dc.DrawText(wxT("#NiF"),
-                                    (tempHM->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung + 1.2f * (pxSuchEntfernung/3),
-                                    (tempHM->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung - nFntSize);
-                    }
-                }
-            }
-            if(m_zeigeFangpunkt)
-            {
-                dc.SetPen(wxPen(loc_col_Fangpunkt, 1));
-                for(tempFangpunkt = fngPktSammlung->GetErstesElement(); tempFangpunkt; tempFangpunkt = fngPktSammlung->GetNaechstesElement())
-                {
-                    posX = (tempFangpunkt->HolePosition().GetKoordinaten(aktProjX)-dc_Offset[0])*m_skalierung;
-                    posY = (tempFangpunkt->HolePosition().GetKoordinaten(aktProjY)-dc_Offset[1])*m_skalierung;
-                    int symbolGroesse = 1.2f * pxSuchEntfernung;
-                    dc.DrawLine(posX - symbolGroesse, posY - symbolGroesse, posX + symbolGroesse, posY + symbolGroesse);
-                    dc.DrawLine(posX + symbolGroesse, posY - symbolGroesse, posX - symbolGroesse, posY + symbolGroesse);
-                }
-            }
+			if(tempLayer == aktLayer)continue;
+            LayerMalen(dc, tempLayer);
         }
+		if(aktLayer)
+		{
+            LayerMalen(dc, aktLayer);
+		}
         /*ENDE Alle Layer malen*/
 
         /*Fehler malen*/

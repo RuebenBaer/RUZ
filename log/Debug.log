@@ -149,3 +149,117 @@ Layer BK 3 - 30cm unter MuBo_oberhalb geloescht
 Layer Verschneidung_2_Cc_BK 6 geloescht
 Layer Verschneidung_2_Cc_Von-Vermesser_04 - Abgabe_Aldi_Dez_2021 geloescht
 Layer Hintergrund geloescht
+Logbuch gestartet
+Dreieck gefunden und erzeugt
+Dreieck gefunden und erzeugt
+Dreieck gefunden und erzeugt
+D:\Cplusplus\RUZ\TestDateien\Pr�fung_Tiefbau_2.ruz konnte geöffnet werden
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+RUZ_Layer::Verschneiden
+hilfsLayer: 000002674631cd10
+randLayer1: 000002674631c9b0
+randLayer2: 000002674631c650
+Schnittlinien gefunden (73 Stueck)Layer hilfsLayer geloescht
+Layer randLayer1 geloescht
+Layer randLayer2 geloescht
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+
+
+/**Ergebnis der Volumenberechnung zwischen Layern**/
+/***************Prismenberechnung****************/
+Urgelände:	Test_Cc_BK 6	Verschub:	0.000
+neues Gelände:	Test_Cc_Von-Vermesser_04 - Abgabe_Aldi_Dez_2021	Verschub:	0.000
+Rastergröße:	1.000
+Auftrag:	80.72
+Abtrag:	0.75
+/**ENDE Volumenberechnung**/
+Layer STANDARD geloescht
+Layer Von-Vermesser_04 - Abgabe_Aldi_Dez_2021 geloescht
+Layer Fertige Hoehe geloescht
+Layer UnterkanteMutterbodenhaufen geloescht
+Layer Fertige Hoehe_Rampe geloescht
+Layer Hoehe_Rampe -70cm geloescht
+Layer Hoehe Parkplatz -50cm geloescht
+Layer BK 1 - unten geloescht
+Layer BK 1 - oben geloescht
+Layer Einfahrt-oben geloescht
+Layer BK 3 - 30cm unter MuBo geloescht
+Layer BK 6 geloescht
+Layer BK 7 aus Bildern geloescht
+Layer BK 8 Kontrolle geloescht
+Layer Cc_BK 6 geloescht
+Layer Cc_Von-Vermesser_04 - Abgabe_Aldi_Dez_2021 geloescht
+Layer Verschneidung_Cc_BK 6 geloescht
+Layer Verschneidung_Cc_Von-Vermesser_04 - Abgabe_Aldi_Dez_2021 geloescht
+Layer Cc_BK 3 - 30cm unter MuBo geloescht
+Layer BK3_Urgelaende_unterhalb geloescht
+Layer BK 3 - 30cm unter MuBo_unterhalb geloescht
+Layer BK3_Urgelaende_oberhalb geloescht
+Layer BK 3 - 30cm unter MuBo_oberhalb geloescht
+Layer Test_Cc_BK 6 geloescht
+Layer Test_Cc_Von-Vermesser_04 - Abgabe_Aldi_Dez_2021 geloescht
+Layer Hintergrund geloescht
+Logbuch gestartet
+D:\Cplusplus\RUZ\TestDateien\Gelaendemodell_3.ruz konnte geöffnet werden
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+Layer STANDARD geloescht
+Layer Wald-Michelbach Gelaendeaufnahme LW geloescht
+Layer Cc_Wald-Michelbach Gelaendeaufnahme LW geloescht
+Layer Hintergrund geloescht
