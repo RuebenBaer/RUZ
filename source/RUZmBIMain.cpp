@@ -6833,38 +6833,39 @@ void RUZmBIFrame::OnVolumenZwischenLayern(wxCommandEvent &event)
         return;
     }
 
+	/*if(event.GetId() == idVolumenZwischenLayern_Kons)*/
     Liste<Flaeche> *flLst1 = erster_Layer->HoleFlaechen();
     Liste<Flaeche> *flLst2 = zweiter_Layer->HoleFlaechen();
 
-		Liste<Punkt> *pktLst1 = erster_Layer->HolePunkte();
-		Liste<Punkt> *pktLst2 = zweiter_Layer->HolePunkte();
+	Liste<Punkt> *pktLst1 = erster_Layer->HolePunkte();
+	Liste<Punkt> *pktLst2 = zweiter_Layer->HolePunkte();
     Vektor swPkt;
     double vergleichsHoehe;
 
-		ofstream fsAusgabeUr58, fsAusgabeUr45, fsAusgabeNeu58, fsAusgabeNeu45;
-		fsAusgabeUr58.open("Urgelaende.D58", std::fstream::out|std::fstream::trunc);
-		fsAusgabeUr45.open("Urgelaende.D45", std::fstream::out|std::fstream::trunc);
-		fsAusgabeNeu58.open("NeueOK.D58", std::fstream::out|std::fstream::trunc);
-		fsAusgabeNeu45.open("NeueOK.D45", std::fstream::out|std::fstream::trunc);
-		if(!fsAusgabeUr45.good() || !fsAusgabeUr58.good() || !fsAusgabeNeu45.good() || !fsAusgabeNeu58.good())
-		{
-			wxMessageDialog(this, wxT("Ausgabedateien konnten nicht geöffnet werden")).ShowModal();
-			return;
-		}
-		int lfdNrPkt = 0;
-		char pktName[8];
-		Vektor vOrt;
-		for(Punkt *pkt = pktLst1->GetErstesElement(); pkt; pkt = pktLst1->GetNaechstesElement())
-		{
-			snprintf(pktName, 8, "Ur%d", lfdNrPkt++);
-			pkt->SetzeName(pktName);
-			vOrt = pkt->HolePosition();
-			fsAusgabeUr45<<"45"<<setw(7)<<pktName<<setw(10)
-										<<(unsigned long long)(vOrt.x()*1000)<<setw(10)
-										<<(unsigned long long)(-vOrt.y()*1000)<<setw(10)
-										<<(unsigned long long)(vOrt.z()*1000)<<"\n";
-		}
-		/*Damit das sicher funktioniert, muessen die Layer vorher verschnitten werden*/
+	ofstream fsAusgabeUr58, fsAusgabeUr45, fsAusgabeNeu58, fsAusgabeNeu45;
+	fsAusgabeUr58.open("Urgelaende.D58", std::fstream::out|std::fstream::trunc);
+	fsAusgabeUr45.open("Urgelaende.D45", std::fstream::out|std::fstream::trunc);
+	fsAusgabeNeu58.open("NeueOK.D58", std::fstream::out|std::fstream::trunc);
+	fsAusgabeNeu45.open("NeueOK.D45", std::fstream::out|std::fstream::trunc);
+	if(!fsAusgabeUr45.good() || !fsAusgabeUr58.good() || !fsAusgabeNeu45.good() || !fsAusgabeNeu58.good())
+	{
+		wxMessageDialog(this, wxT("Ausgabedateien konnten nicht geöffnet werden")).ShowModal();
+		return;
+	}
+	int lfdNrPkt = 0;
+	char pktName[8];
+	Vektor vOrt;
+	for(Punkt *pkt = pktLst1->GetErstesElement(); pkt; pkt = pktLst1->GetNaechstesElement())
+	{
+		snprintf(pktName, 8, "Ur%d", lfdNrPkt++);
+		pkt->SetzeName(pktName);
+		vOrt = pkt->HolePosition();
+		fsAusgabeUr45<<"45"<<setw(7)<<pktName<<setw(10)
+									<<(unsigned long long)(vOrt.x()*1000)<<setw(10)
+									<<(unsigned long long)(-vOrt.y()*1000)<<setw(10)
+									<<(unsigned long long)(vOrt.z()*1000)<<"\n";
+	}
+	/*Damit das sicher funktioniert, muessen die Layer vorher verschnitten werden*/
     for(Flaeche *aktFl1 = flLst1->GetErstesElement(); aktFl1; aktFl1 = flLst1->GetNaechstesElement())
     {
         swPkt = aktFl1->Schwerpunkt();
