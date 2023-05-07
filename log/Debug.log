@@ -442,3 +442,74 @@ Layer neuer Layer geloescht
 Layer Verschneidung_STANDARD geloescht
 Layer Verschneidung_Cc_STANDARD geloescht
 Layer Hintergrund geloescht
+Logbuch gestartet
+C:\cpp\RUZ\TestDateien\VerschnittTest 5_h�ndisch.ruz konnte geöffnet werden
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+RUZ_Layer::Verschneiden
+hilfsLayer: 000001fc9facb560
+randLayer1: 000001fc9facacf0
+randLayer2: 000001fc9facbc20
+Schnittlinien gefunden (8 Stueck)Layer hilfsLayer geloescht
+Layer randLayer1 geloescht
+Layer randLayer2 geloescht
+
+
+/**Ergebnis der Volumenberechnung zwischen Layern**/
+/***************Prismenberechnung****************/
+Urgelände:	Verschneidung_STANDARD	Verschub:	0.000
+neues Gelände:	Verschneidung_Cc_STANDARD	Verschub:	0.000
+Rastergröße:	1.000
+Auftrag:	8081.64
+Abtrag:	3935.30
+/**ENDE Volumenberechnung**/
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+Layer STANDARD geloescht
+Layer Cc_STANDARD geloescht
+Layer neuer Layer geloescht
+Layer Verschneidung_STANDARD geloescht
+Layer Verschneidung_Cc_STANDARD geloescht
+Layer Hintergrund geloescht
+Logbuch gestartet
+C:\cpp\RUZ\TestDateien\VerschnittTest 5_h�ndisch.ruz konnte geöffnet werden
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+
+
+/**Ergebnis der Volumenberechnung zwischen Layern**/
+/***************Prismenberechnung****************/
+Urgelände:	STANDARD	Verschub:	0.000
+neues Gelände:	Cc_STANDARD	Verschub:	0.000
+Rastergröße:	1.000
+Auftrag:	-11749.02
+Abtrag:	-11389.02
+/**ENDE Volumenberechnung**/
+Layer STANDARD geloescht
+Layer Cc_STANDARD geloescht
+Layer neuer Layer geloescht
+Layer Hintergrund geloescht
+Logbuch gestartet
+C:\cpp\RUZ\TestDateien\VerschnittTest 5_h�ndisch.ruz konnte geöffnet werden
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+
+
+/**Ergebnis der Volumenberechnung zwischen Layern**/
+/***************Prismenberechnung****************/
+Urgelände:	STANDARD	Verschub:	0.000
+neues Gelände:	Cc_STANDARD	Verschub:	0.000
+Rastergröße:	1.000
+Auftrag:	-11749.02
+Abtrag:	-11389.02
+/**ENDE Volumenberechnung**/
+Layer STANDARD geloescht
+Layer Cc_STANDARD geloescht
+Layer neuer Layer geloescht
+Layer Hintergrund geloescht

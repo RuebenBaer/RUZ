@@ -6866,8 +6866,6 @@ void RUZmBIFrame::OnVolumenZwischenLayern(wxCommandEvent &event)
 		wxMessageDialog(this, wxT("Ausgabedateien konnten nicht geöffnet werden")).ShowModal();
 		return;
 	}
-	fsErgebnis<<"Dreiecksprismen\n\n";
-	fsErgebnis<<setw(20)<<"X"<<setw(20)<<"Y"<<setw(20)<<"Z"<<setw(20)<<"Fläche"<<setw(20)<<"Volumen\n";
 	
 	/*Damit das sicher funktioniert, muessen die Layer vorher verschnitten werden*/
 	double volumen, flaeche;
@@ -6933,11 +6931,20 @@ void RUZmBIFrame::OnVolumenZwischenLayern(wxCommandEvent &event)
     logSchreiben("Rastergröße:\t%0.3f\n", m_flaechenRaster);
     char buffer[50];
     sprintf(buffer, "Auftrag:\t%c0.%df\n", '%', m_anzeigeGenauigkeit);
-    logSchreiben(buffer, dAuftrag);
+	logSchreiben(buffer, dAuftrag);
     sprintf(buffer, "Abtrag:\t%c0.%df\n", '%', m_anzeigeGenauigkeit);
-    logSchreiben(buffer, dAbtrag);
+	logSchreiben(buffer, dAbtrag);
     logSchreiben("/**ENDE Volumenberechnung**/\n");
 
+	fsErgebnis<<"Ergebnis der Volumenberechnung zwischen Layern\nPrismenberechnung\n\n";
+	fsErgebnis<<setw(15)<<"Urgelände: "<<setw(20)<<erster_Layer->HoleName()<<"\n";
+	fsErgebnis<<setw(15)<<"Neues Gelände: "<<setw(20)<<zweiter_Layer->HoleName()<<"\n";
+	snprintf(buffer, 50, "%0.3f", dAuftrag);
+	fsErgebnis<<setw(15)<<"Auftrag: "<<setw(20)<<buffer<<"\n";
+	snprintf(buffer, 50, "%0.3f", dAbtrag);
+	fsErgebnis<<setw(15)<<"Abtrag: "<<setw(20)<<buffer<<"\n";
+	fsErgebnis<<"\nDreiecksprismen\n";
+	fsErgebnis<<setw(20)<<"X"<<setw(20)<<"Y"<<setw(20)<<"Z"<<setw(20)<<"Fläche"<<setw(20)<<"Volumen\n";
 	fsErgebnis<<"\n"<<prismaAltDrueber<<"\n"<<prismaAltDrunter;
 	fsErgebnis<<"\n"<<prismaNeuDrueber<<"\n"<<prismaNeuDrunter;
 	fsErgebnis.close();
