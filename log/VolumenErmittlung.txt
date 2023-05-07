@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 Ergebnis der Volumenberechnung zwischen Layern
 Prismenberechnung
 
@@ -44,3 +45,16 @@ Abtrag Layer Cc_STANDARD
              658.000             428.000               1.000           29830.000            9943.333
              834.000             602.000               0.000
              480.000             591.000               0.000
+=======
+Dreiecksprismen
+
+      Eckpunkte Name                   X                   Y                   Z             Fläche            Volumen
+
+Abtrag Layer neuer Layer
+
+Auftrag Layer neuer Layer
+
+Auftrag Layer Cc_STANDARD
+
+Abtrag Layer Cc_STANDARD
+>>>>>>> 0df679c371227fdccb6c484a0394e490e384aaeb

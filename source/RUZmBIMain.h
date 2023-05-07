@@ -205,7 +205,11 @@ struct MassstabsBalken
 	};
 };
 
+<<<<<<< HEAD
 void PrismaSchreiben(std::string &prismenListe, Flaeche* drk, double flaeche, double volumen);
+=======
+void PrismaSchreiben(std::string &prismenListe, Flaeche* drk, double flaeche, double volumen);
+>>>>>>> 0df679c371227fdccb6c484a0394e490e384aaeb
 
 class RUZmBIFrame: public wxFrame
 {

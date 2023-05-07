@@ -6866,7 +6866,11 @@ void RUZmBIFrame::OnVolumenZwischenLayern(wxCommandEvent &event)
 		wxMessageDialog(this, wxT("Ausgabedateien konnten nicht geöffnet werden")).ShowModal();
 		return;
 	}
+<<<<<<< HEAD
 	
+=======
+	
+>>>>>>> 0df679c371227fdccb6c484a0394e490e384aaeb
 	/*Damit das sicher funktioniert, muessen die Layer vorher verschnitten werden*/
 	double volumen, flaeche;
     for(Flaeche *aktFl1 = flLst1->GetErstesElement(); aktFl1; aktFl1 = flLst1->GetNaechstesElement())//Urgelaende
@@ -6936,6 +6940,7 @@ void RUZmBIFrame::OnVolumenZwischenLayern(wxCommandEvent &event)
 	logSchreiben(buffer, dAbtrag);
     logSchreiben("/**ENDE Volumenberechnung**/\n");
 
+<<<<<<< HEAD
 	fsErgebnis<<"Ergebnis der Volumenberechnung zwischen Layern\nPrismenberechnung\n\n";
 	fsErgebnis<<setw(15)<<"Urgelände: "<<setw(20)<<erster_Layer->HoleName()<<"\n";
 	fsErgebnis<<setw(15)<<"Neues Gelände: "<<setw(20)<<zweiter_Layer->HoleName()<<"\n";
@@ -6945,6 +6950,17 @@ void RUZmBIFrame::OnVolumenZwischenLayern(wxCommandEvent &event)
 	fsErgebnis<<setw(15)<<"Abtrag: "<<setw(20)<<buffer<<"\n";
 	fsErgebnis<<"\nDreiecksprismen\n";
 	fsErgebnis<<setw(20)<<"X"<<setw(20)<<"Y"<<setw(20)<<"Z"<<setw(20)<<"Fläche"<<setw(20)<<"Volumen\n";
+=======
+	fsErgebnis<<"Ergebnis der Volumenberechnung zwischen Layern\nPrismenberechnung\n\n";
+	fsErgebnis<<setw(15)<<"Urgelände: "<<setw(20)<<erster_Layer->HoleName()<<"\n";
+	fsErgebnis<<setw(15)<<"Neues Gelände: "<<setw(20)<<zweiter_Layer->HoleName()<<"\n";
+	snprintf(buffer, 50, "%0.3f", dAuftrag);
+	fsErgebnis<<setw(15)<<"Auftrag: "<<setw(20)<<buffer<<"\n";
+	snprintf(buffer, 50, "%0.3f", dAbtrag);
+	fsErgebnis<<setw(15)<<"Abtrag: "<<setw(20)<<buffer<<"\n";
+	fsErgebnis<<"\nDreiecksprismen\n";
+	fsErgebnis<<setw(20)<<"X"<<setw(20)<<"Y"<<setw(20)<<"Z"<<setw(20)<<"Fläche"<<setw(20)<<"Volumen\n";
+>>>>>>> 0df679c371227fdccb6c484a0394e490e384aaeb
 	fsErgebnis<<"\n"<<prismaAltDrueber<<"\n"<<prismaAltDrunter;
 	fsErgebnis<<"\n"<<prismaNeuDrueber<<"\n"<<prismaNeuDrunter;
 	fsErgebnis.close();
@@ -9934,14 +9950,21 @@ void aruLayerListeEvent::Hinzufuegen(RUZ_Layer* layer)
 void PrismaSchreiben(std::string &prismenListe, Flaeche* drk, double flaeche, double volumen)
 {
 	char tempStr[21];
+<<<<<<< HEAD
 	long long int i;
 	
 	if(drk->HoleTyp() != RUZ_Dreieck)return;
+=======
+	long long int i;
+	
+	if(drk->HoleTyp() != RUZ_Dreieck)return;
+>>>>>>> 0df679c371227fdccb6c484a0394e490e384aaeb
 	
 	prismenListe += "\n";
 	/*1. Punkt*/
 	Vektor ort = drk->HolePunkt(0)->HolePosition();
 	snprintf(tempStr, 21, "%0.3f", ort.x());
+<<<<<<< HEAD
 	for(i = 0; i < 20 - (long long int)(strlen(tempStr)); i++)
 	{
 		prismenListe += " ";
@@ -9970,12 +9993,7 @@ void PrismaSchreiben(std::string &prismenListe, Flaeche* drk, double flaeche, do
 	{
 		prismenListe += " ";
 	}
-	prismenListe += tempStr;
-	prismenListe += "\n";
-	
-	/*2. Punkt*/
-	ort = drk->HolePunkt(1)->HolePosition();
-	snprintf(tempStr, 21, "%0.3f", ort.x());
+=======
 	for(i = 0; i < 20 - (long long int)(strlen(tempStr)); i++)
 	{
 		prismenListe += " ";
@@ -9993,11 +10011,66 @@ void PrismaSchreiben(std::string &prismenListe, Flaeche* drk, double flaeche, do
 		prismenListe += " ";
 	}
 	prismenListe += tempStr;
+	snprintf(tempStr, 21, "%0.3f", flaeche);
+	for(i = 0; i < 20 - (long long int)(strlen(tempStr)); i++)
+	{
+		prismenListe += " ";
+	}
+	prismenListe += tempStr;
+	snprintf(tempStr, 21, "%0.3f", volumen);
+	for(i = 0; i < 20 - (long long int)(strlen(tempStr)); i++)
+	{
+		prismenListe += " ";
+	}
+>>>>>>> 0df679c371227fdccb6c484a0394e490e384aaeb
+	prismenListe += tempStr;
+	prismenListe += "\n";
+	
+	/*2. Punkt*/
+	ort = drk->HolePunkt(1)->HolePosition();
+	snprintf(tempStr, 21, "%0.3f", ort.x());
+<<<<<<< HEAD
+	for(i = 0; i < 20 - (long long int)(strlen(tempStr)); i++)
+	{
+		prismenListe += " ";
+	}
+	prismenListe += tempStr;
+	snprintf(tempStr, 21, "%0.3f", ort.y());
+	for(i = 0; i < 20 - (long long int)(strlen(tempStr)); i++)
+	{
+		prismenListe += " ";
+	}
+	prismenListe += tempStr;
+	snprintf(tempStr, 21, "%0.3f", ort.z());
+	for(i = 0; i < 20 - (long long int)(strlen(tempStr)); i++)
+	{
+		prismenListe += " ";
+	}
+=======
+	for(i = 0; i < 20 - (long long int)(strlen(tempStr)); i++)
+	{
+		prismenListe += " ";
+	}
+	prismenListe += tempStr;
+	snprintf(tempStr, 21, "%0.3f", ort.y());
+	for(i = 0; i < 20 - (long long int)(strlen(tempStr)); i++)
+	{
+		prismenListe += " ";
+	}
+	prismenListe += tempStr;
+	snprintf(tempStr, 21, "%0.3f", ort.z());
+	for(i = 0; i < 20 - (long long int)(strlen(tempStr)); i++)
+	{
+		prismenListe += " ";
+	}
+>>>>>>> 0df679c371227fdccb6c484a0394e490e384aaeb
+	prismenListe += tempStr;
 	prismenListe += "\n";
 	
 	/*3. Punkt*/
 	ort = drk->HolePunkt(2)->HolePosition();
 	snprintf(tempStr, 21, "%0.3f", ort.x());
+<<<<<<< HEAD
 	for(i = 0; i < 20 - (long long int)(strlen(tempStr)); i++)
 	{
 		prismenListe += " ";
@@ -10018,3 +10091,25 @@ void PrismaSchreiben(std::string &prismenListe, Flaeche* drk, double flaeche, do
 	prismenListe += "\n";
 	return;
 }
+=======
+	for(i = 0; i < 20 - (long long int)(strlen(tempStr)); i++)
+	{
+		prismenListe += " ";
+	}
+	prismenListe += tempStr;
+	snprintf(tempStr, 21, "%0.3f", ort.y());
+	for(i = 0; i < 20 - (long long int)(strlen(tempStr)); i++)
+	{
+		prismenListe += " ";
+	}
+	prismenListe += tempStr;
+	snprintf(tempStr, 21, "%0.3f", ort.z());
+	for(i = 0; i < 20 - (long long int)(strlen(tempStr)); i++)
+	{
+		prismenListe += " ";
+	}
+	prismenListe += tempStr;
+	prismenListe += "\n";
+	return;
+}
+>>>>>>> 0df679c371227fdccb6c484a0394e490e384aaeb

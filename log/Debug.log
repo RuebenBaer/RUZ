@@ -361,6 +361,7 @@ Layer STANDARD geloescht
 Layer neuer Layer geloescht
 Layer Cc_STANDARD geloescht
 Layer Hintergrund geloescht
+<<<<<<< HEAD
 Logbuch gestartet
 C:\cpp\RUZ\TestDateien\VerschnittTest.ruz konnte geöffnet werden
 GefaelleRasterLoeschen...
@@ -513,3 +514,5 @@ Layer STANDARD geloescht
 Layer Cc_STANDARD geloescht
 Layer neuer Layer geloescht
 Layer Hintergrund geloescht
+=======
+>>>>>>> 0df679c371227fdccb6c484a0394e490e384aaeb
