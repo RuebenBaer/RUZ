@@ -1,0 +1,60 @@
+<<<<<<< HEAD
+Ergebnis der Volumenberechnung zwischen Layern
+Prismenberechnung
+
+   Urgelände:             STANDARD
+Neues Gelände:          Cc_STANDARD
+      Auftrag:           -11749.015
+       Abtrag:           -11389.015
+
+Dreiecksprismen
+                   X                   Y                   Z             Fläche            Volumen
+
+Abtrag Layer STANDARD
+
+             696.731             448.028               1.000           22429.955            7476.652
+             894.094             407.937               0.000
+             733.094             667.937               0.000
+
+Auftrag Layer STANDARD
+
+             495.094             501.937               0.000           19480.364            6493.455
+             655.094             265.937               0.000
+             696.731             448.028               1.000
+
+             696.731             448.028               1.000           18803.682            6267.894
+             655.094             265.937               0.000
+             894.094             407.937               0.000
+
+             696.731             448.028               1.000           23151.000            7717.000
+             733.094             667.937               0.000
+             495.094             501.937               0.000
+
+Auftrag Layer Cc_STANDARD
+
+             658.000             428.000               1.000           26188.000            8729.333
+             470.000             272.000               0.000
+             819.000             283.000               0.000
+
+Abtrag Layer Cc_STANDARD
+
+             658.000             428.000               1.000           26767.000            8922.333
+             819.000             283.000               0.000
+             834.000             602.000               0.000
+
+             658.000             428.000               1.000           29830.000            9943.333
+             834.000             602.000               0.000
+             480.000             591.000               0.000
+=======
+Dreiecksprismen
+
+      Eckpunkte Name                   X                   Y                   Z             Fläche            Volumen
+
+Abtrag Layer neuer Layer
+
+Auftrag Layer neuer Layer
+
+Auftrag Layer Cc_STANDARD
+
+Abtrag Layer Cc_STANDARD
+>>>>>>> 0df679c371227fdccb6c484a0394e490e384aaeb

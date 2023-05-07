@@ -21,6 +21,11 @@
 #ifndef __Dbl_Eingabe_H
 #define __Dbl_Eingabe_H
 
+#include "wx/wxprec.h"
+#ifndef WX_PRECOMP
+   #include "wx/wx.h"
+#endif
+
 class aruDblTxtCtrl: public wxTextCtrl
 {
 	public:

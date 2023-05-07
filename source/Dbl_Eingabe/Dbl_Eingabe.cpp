@@ -1,7 +1,4 @@
-#include "/wxWidgets-3.0.5/include/wx/wxprec.h"
-#ifndef WX_PRECOMP
-   #include "/wxWidgets-3.0.5/include/wx/wx.h"
-#endif
+
 #include "Dbl_Eingabe.h"
 
 BEGIN_EVENT_TABLE(aruDblTxtCtrl, wxTextCtrl)
