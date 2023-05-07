@@ -1,0 +1,11 @@
+Dreiecksprismen
+
+      Eckpunkte Name                   X                   Y                   Z             Fläche            Volumen
+
+Abtrag Layer neuer Layer
+
+Auftrag Layer neuer Layer
+
+Auftrag Layer Cc_STANDARD
+
+Abtrag Layer Cc_STANDARD

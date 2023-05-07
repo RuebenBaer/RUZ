@@ -5619,7 +5619,7 @@ void RUZmBIFrame::OnPaint(wxPaintEvent &event)
     wxBufferedPaintDC dc(this);
 
     RUZ_Layer* tempLayer;
-    wxColor loc_col_Pkt_Ln, loc_col_HoehenMarke, loc_col_Hoehenlinie, loc_col_Strich, loc_col_Fangpunkt;
+    wxColor loc_col_Hoehenlinie;
     unsigned char r, g, b;
     int posX, posY;
 	
@@ -6217,9 +6217,9 @@ void RUZmBIFrame::OnPaint(wxPaintEvent &event)
         dc.DrawLine(posX + 3, posY - 3, posX - 3, posY + 3);
     }
 	/*Masstabsbalken*/
-	dc.SetPen(wxPen(loc_col_Pkt_Ln, 1));
+	dc.SetPen(wxPen(col_Pkt_Ln, 1));
 	dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
-	dc.SetTextForeground(loc_col_Pkt_Ln);
+	dc.SetTextForeground(col_Pkt_Ln);
 	
 	int mbStart = dc.GetSize().GetHeight() - 10;
 	dc.DrawLine(10, mbStart, 10, mbStart - 5);
@@ -6842,16 +6842,32 @@ void RUZmBIFrame::OnVolumenZwischenLayern(wxCommandEvent &event)
     Vektor swPkt;
     double vergleichsHoehe;
 
-	ofstream fsAusgabeUr58, fsAusgabeUr45, fsAusgabeNeu58, fsAusgabeNeu45;
-	fsAusgabeUr58.open("Urgelaende.D58", std::fstream::out|std::fstream::trunc);
-	fsAusgabeUr45.open("Urgelaende.D45", std::fstream::out|std::fstream::trunc);
-	fsAusgabeNeu58.open("NeueOK.D58", std::fstream::out|std::fstream::trunc);
-	fsAusgabeNeu45.open("NeueOK.D45", std::fstream::out|std::fstream::trunc);
-	if(!fsAusgabeUr45.good() || !fsAusgabeUr58.good() || !fsAusgabeNeu45.good() || !fsAusgabeNeu58.good())
+	ofstream fsErgebnis;
+	std::string prismaNeuDrueber, prismaNeuDrunter, prismaAltDrueber, prismaAltDrunter;
+	prismaAltDrueber = "Abtrag Layer ";
+	prismaAltDrueber += erster_Layer->HoleName();
+	prismaAltDrueber += "\n";
+	
+	prismaAltDrunter = "Auftrag Layer ";
+	prismaAltDrunter += erster_Layer->HoleName();
+	prismaAltDrunter += "\n";
+	
+	prismaNeuDrueber = "Auftrag Layer ";
+	prismaNeuDrueber += zweiter_Layer->HoleName();
+	prismaNeuDrueber += "\n";
+	
+	prismaNeuDrunter = "Abtrag Layer ";
+	prismaNeuDrunter += zweiter_Layer->HoleName();
+	prismaNeuDrunter += "\n";
+	
+	fsErgebnis.open("log/VolumenErmittlung.txt", std::fstream::out|std::fstream::trunc);
+	if(!fsErgebnis.good())
 	{
 		wxMessageDialog(this, wxT("Ausgabedateien konnten nicht geöffnet werden")).ShowModal();
 		return;
 	}
+	fsErgebnis<<"Dreiecksprismen\n\n"<<setw(20)<<"Eckpunkte Name";
+	fsErgebnis<<setw(20)<<"X"<<setw(20)<<"Y"<<setw(20)<<"Z"<<setw(20)<<"Fläche"<<setw(20)<<"Volumen\n";
 	int lfdNrPkt = 0;
 	char pktName[8];
 	Vektor vOrt;
@@ -6860,14 +6876,17 @@ void RUZmBIFrame::OnVolumenZwischenLayern(wxCommandEvent &event)
 		snprintf(pktName, 8, "Ur%d", lfdNrPkt++);
 		pkt->SetzeName(pktName);
 		vOrt = pkt->HolePosition();
-		fsAusgabeUr45<<"45"<<setw(7)<<pktName<<setw(10)
+		/*fsAusgabeUr45<<"45"<<setw(7)<<pktName<<setw(10)
 									<<(unsigned long long)(vOrt.x()*1000)<<setw(10)
 									<<(unsigned long long)(-vOrt.y()*1000)<<setw(10)
-									<<(unsigned long long)(vOrt.z()*1000)<<"\n";
+									<<(unsigned long long)(vOrt.z()*1000)<<"\n";*/
 	}
 	/*Damit das sicher funktioniert, muessen die Layer vorher verschnitten werden*/
-    for(Flaeche *aktFl1 = flLst1->GetErstesElement(); aktFl1; aktFl1 = flLst1->GetNaechstesElement())
+	double volumen, flaeche;
+    for(Flaeche *aktFl1 = flLst1->GetErstesElement(); aktFl1; aktFl1 = flLst1->GetNaechstesElement())//Urgelaende
     {
+		volumen = aktFl1->Volumen(aktProjZ);
+		flaeche = aktFl1->FlaechenInhalt(aktProjZ);
         swPkt = aktFl1->Schwerpunkt();
         vergleichsHoehe = swPkt.GetKoordinaten(aktProjZ);
         for(Flaeche *aktFl2 = flLst2->GetErstesElement(); aktFl2; aktFl2 = flLst2->GetNaechstesElement())
@@ -6876,13 +6895,15 @@ void RUZmBIFrame::OnVolumenZwischenLayern(wxCommandEvent &event)
             {
                 if(swPkt.GetKoordinaten(aktProjZ) > vergleichsHoehe)
                 {
-                    dAuftrag -= aktFl1->Volumen(aktProjZ);
+                    dAuftrag -= volumen;
+					PrismaSchreiben(prismaAltDrunter, aktFl1, flaeche, volumen);
                     aktFl1->SetzeFarbe(col_Flaeche_darunter.Red(), col_Flaeche_darunter.Green(), col_Flaeche_darunter.Blue());
                     break;
                 }else
                 if(swPkt.GetKoordinaten(aktProjZ) < vergleichsHoehe)
                 {
-                    dAbtrag += aktFl1->Volumen(aktProjZ);
+                    dAbtrag += volumen;
+					PrismaSchreiben(prismaAltDrueber, aktFl1, flaeche, volumen);
                     aktFl1->SetzeFarbe(col_Flaeche_darueber.Red(), col_Flaeche_darueber.Green(), col_Flaeche_darueber.Blue());
                     break;
                 }
@@ -6891,6 +6912,8 @@ void RUZmBIFrame::OnVolumenZwischenLayern(wxCommandEvent &event)
     }
     for(Flaeche *aktFl2 = flLst2->GetErstesElement(); aktFl2; aktFl2 = flLst2->GetNaechstesElement())
     {
+		volumen = aktFl2->Volumen(aktProjZ);
+		flaeche = aktFl2->FlaechenInhalt(aktProjZ);
         swPkt = aktFl2->Schwerpunkt();
         vergleichsHoehe = swPkt.GetKoordinaten(aktProjZ);
         for(Flaeche *aktFl1 = flLst1->GetErstesElement(); aktFl1; aktFl1 = flLst1->GetNaechstesElement())
@@ -6900,12 +6923,14 @@ void RUZmBIFrame::OnVolumenZwischenLayern(wxCommandEvent &event)
                 if(swPkt.GetKoordinaten(aktProjZ) > vergleichsHoehe)
                 {
                     dAbtrag -= aktFl2->Volumen(aktProjZ);
+					PrismaSchreiben(prismaNeuDrunter, aktFl2, flaeche, volumen);
                     aktFl2->SetzeFarbe(col_Flaeche_darunter.Red(), col_Flaeche_darunter.Green(), col_Flaeche_darunter.Blue());
                     break;
                 }else
                 if(swPkt.GetKoordinaten(aktProjZ) < vergleichsHoehe)
                 {
                     dAuftrag += aktFl2->Volumen(aktProjZ);
+					PrismaSchreiben(prismaNeuDrueber, aktFl2, flaeche, volumen);
                     aktFl2->SetzeFarbe(col_Flaeche_darueber.Red(), col_Flaeche_darueber.Green(), col_Flaeche_darueber.Blue());
                     break;
                 }
@@ -6925,10 +6950,9 @@ void RUZmBIFrame::OnVolumenZwischenLayern(wxCommandEvent &event)
     logSchreiben(buffer, dAbtrag);
     logSchreiben("/**ENDE Volumenberechnung**/\n");
 
-		fsAusgabeUr58.close();
-		fsAusgabeUr45.close();
-		fsAusgabeNeu58.close();
-		fsAusgabeNeu45.close();
+	fsErgebnis<<"\n"<<prismaAltDrueber<<"\n"<<prismaAltDrunter;
+	fsErgebnis<<"\n"<<prismaNeuDrueber<<"\n"<<prismaNeuDrunter;
+	fsErgebnis.close();
     return;
 }
 
@@ -9911,3 +9935,91 @@ void aruLayerListeEvent::Hinzufuegen(RUZ_Layer* layer)
     return;
 }
 /*ENDE Event für Liste<RUZ_Layer> Übergabe*/
+
+void PrismaSchreiben(std::string &prismenListe, Flaeche* drk, double flaeche, double volumen)
+{
+	char tempStr[21];
+	long long unsigned int i;
+	
+	//if(drk->HoleTyp() != RUZ_Dreieck)return;
+	
+	prismenListe += "\n";
+	/*1. Punkt*/
+	Vektor ort = drk->HolePunkt(0)->HolePosition();
+	snprintf(tempStr, 21, "%0.3f", ort.x());
+	/*for(i = 0; i < strlen(tempStr)-20; i++)
+	{
+		prismenListe += " ";
+	}*/
+	prismenListe += tempStr;
+	snprintf(tempStr, 21, "%0.3f", ort.y());
+	/*for(i = 0; i < strlen(tempStr)-20; i++)
+	{
+		prismenListe += " ";
+	}*/
+	prismenListe += tempStr;
+	snprintf(tempStr, 21, "%0.3f", ort.z());
+	/*for(i = 0; i < strlen(tempStr)-20; i++)
+	{
+		prismenListe += " ";
+	}*/
+	prismenListe += tempStr;
+	snprintf(tempStr, 21, "%0.3f", flaeche);
+	/*for(i = 0; i < strlen(tempStr)-20; i++)
+	{
+		prismenListe += " ";
+	}*/
+	prismenListe += tempStr;
+	snprintf(tempStr, 21, "%0.3f", volumen);
+	/*for(i = 0; i < strlen(tempStr)-20; i++)
+	{
+		prismenListe += " ";
+	}*/
+	prismenListe += tempStr;
+	prismenListe += "\n";
+	
+	/*2. Punkt*/
+	ort = drk->HolePunkt(1)->HolePosition();
+	snprintf(tempStr, 21, "%0.3f", ort.x());
+	/*for(i = 0; i < strlen(tempStr)-20; i++)
+	{
+		prismenListe += " ";
+	}*/
+	prismenListe += tempStr;
+	snprintf(tempStr, 21, "%0.3f", ort.y());
+	/*for(i = 0; i < strlen(tempStr)-20; i++)
+	{
+		prismenListe += " ";
+	}*/
+	prismenListe += tempStr;
+	snprintf(tempStr, 21, "%0.3f", ort.z());
+	/*for(i = 0; i < strlen(tempStr)-20; i++)
+	{
+		prismenListe += " ";
+	}*/
+	prismenListe += tempStr;
+	prismenListe += "\n";
+	
+	/*3. Punkt*/
+	ort = drk->HolePunkt(2)->HolePosition();
+	snprintf(tempStr, 21, "%0.3f", ort.x());
+	/*for(i = 0; i < strlen(tempStr)-20; i++)
+	{
+		prismenListe += " ";
+	}*/
+	prismenListe += tempStr;
+	snprintf(tempStr, 21, "%0.3f", ort.y());
+	/*for(i = 0; i < strlen(tempStr)-20; i++)
+	{
+		prismenListe += " ";
+	}*/
+	prismenListe += tempStr;
+	snprintf(tempStr, 21, "%0.3f", ort.z());
+	/*for(i = 0; i < strlen(tempStr)-20; i++)
+	{
+		prismenListe += " ";
+	}*/
+	prismenListe += tempStr;
+	prismenListe += "\n";
+	return;
+}

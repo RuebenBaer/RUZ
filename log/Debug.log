@@ -263,3 +263,101 @@ Layer STANDARD geloescht
 Layer Wald-Michelbach Gelaendeaufnahme LW geloescht
 Layer Cc_Wald-Michelbach Gelaendeaufnahme LW geloescht
 Layer Hintergrund geloescht
+Logbuch gestartet
+Dreieck gefunden und erzeugt
+Dreieck gefunden und erzeugt
+Layer STANDARD geloescht
+Layer Hintergrund geloescht
+Logbuch gestartet
+Layer STANDARD geloescht
+Layer Hintergrund geloescht
+Logbuch gestartet
+Layer STANDARD geloescht
+Layer Hintergrund geloescht
+Logbuch gestartet
+Layer STANDARD geloescht
+Layer Hintergrund geloescht
+Logbuch gestartet
+Layer STANDARD geloescht
+Layer Hintergrund geloescht
+Logbuch gestartet
+Dreieck gefunden und erzeugt
+Dreieck gefunden und erzeugt
+Dreieck gefunden und erzeugt
+Dreieck gefunden und erzeugt
+Dreieck gefunden und erzeugt
+Dreieck gefunden und erzeugt
+Dreieck gefunden und erzeugt
+Dreieck gefunden und erzeugt
+
+
+/**Ergebnis der Volumenberechnung zwischen Layern**/
+/***************Prismenberechnung****************/
+Urgelände:	STANDARD	Verschub:	0.000
+neues Gelände:	Cc_STANDARD	Verschub:	0.000
+Rastergröße:	1.000
+Auftrag:	0.00
+Abtrag:	24475.58
+/**ENDE Volumenberechnung**/
+Layer STANDARD geloescht
+Layer Cc_STANDARD geloescht
+Layer Hintergrund geloescht
+Logbuch gestartet
+Layer STANDARD geloescht
+Layer Hintergrund geloescht
+Logbuch gestartet
+Dreieck gefunden und erzeugt
+Dreieck gefunden und erzeugt
+Dreieck gefunden und erzeugt
+Dreieck gefunden und erzeugt
+
+
+/**Ergebnis der Volumenberechnung zwischen Layern**/
+/***************Prismenberechnung****************/
+Urgelände:	STANDARD	Verschub:	0.000
+neues Gelände:	Cc_STANDARD	Verschub:	0.000
+Rastergröße:	1.000
+Auftrag:	0.00
+Abtrag:	0.00
+/**ENDE Volumenberechnung**/
+Layer STANDARD geloescht
+Layer Cc_STANDARD geloescht
+Layer Hintergrund geloescht
+Logbuch gestartet
+Dreieck gefunden und erzeugt
+Logbuch gestartet
+Dreieck gefunden und erzeugt
+
+
+/**Ergebnis der Volumenberechnung zwischen Layern**/
+/***************Prismenberechnung****************/
+Urgelände:	STANDARD	Verschub:	0.000
+neues Gelände:	Cc_STANDARD	Verschub:	0.000
+Rastergröße:	1.000
+Auftrag:	0.00
+Abtrag:	12087.78
+/**ENDE Volumenberechnung**/
+Layer STANDARD geloescht
+Layer Cc_STANDARD geloescht
+Layer Hintergrund geloescht
+Logbuch gestartet
+C:\cpp\RUZ\TestDateien\DreieckUndViuereck.ruz konnte geöffnet werden
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+C:\cpp\RUZ\TestDateien\VerschnittTest 5_h�ndisch.ruz konnte geöffnet werden
+GefaelleRasterLoeschen...
+GefaelleRasterLoeschen...erledigt
+
+
+/**Ergebnis der Volumenberechnung zwischen Layern**/
+/***************Prismenberechnung****************/
+Urgelände:	neuer Layer	Verschub:	0.000
+neues Gelände:	Cc_STANDARD	Verschub:	0.000
+Rastergröße:	1.000
+Auftrag:	-22038.82
+Abtrag:	-8922.33
+/**ENDE Volumenberechnung**/
+Layer STANDARD geloescht
+Layer neuer Layer geloescht
+Layer Cc_STANDARD geloescht
+Layer Hintergrund geloescht
