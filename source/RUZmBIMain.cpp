@@ -3989,13 +3989,23 @@ void RUZmBIFrame::OnKeyDown(wxKeyEvent& event)
     }
     if(event.GetKeyCode() == WXK_TAB)
     {
-        if(DoubleEingabe->IsShown())DoubleEingabe->SetFocus();
+		
+        if(DoubleEingabe->IsShown() && !DoubleEingabe->HasFocus())
+		{
+			DoubleEingabe->SetFocus();
+			return;
+		}
         if(KoordinatenMaske->IsShown())KoordinatenMaske->SetFocus();
         return;
     }
     if(event.GetKeyCode() == 'C')
     {
         AuswahlKopieren();
+        return;
+    }
+    if(event.GetKeyCode() == 'A')
+    {
+        bKeyADown = true;
         return;
     }
     return;
@@ -4011,6 +4021,11 @@ void RUZmBIFrame::OnKeyUp(wxKeyEvent& event)
     if(event.GetKeyCode() == WXK_CONTROL)
     {
         anzeigeSkalieren = false;
+    }
+    if(event.GetKeyCode() == 'A')
+    {
+        bKeyADown = false;
+        return;
     }
     return;
 }
@@ -5030,71 +5045,71 @@ void RUZmBIFrame::OnMouseLeftUp(wxMouseEvent& event)
                 }
             }
         }
-    }else
-    if((aktBefehl == bef_ID_viereckTeilen)||(aktBefehl == bef_ID_flaechenVerschneiden))
-    {
-        if(aktLayer != NULL)
-        {
-            RUZ_Layer* layer_laeufer = aktLayer;
-            Liste<Flaeche>* flLst = layer_laeufer->HoleFlaechen();
-            Punkt* aktPkt;
-            int eckenInnerhalb, eckenZahl;
+		if((aktBefehl == bef_ID_viereckTeilen)||(aktBefehl == bef_ID_flaechenVerschneiden)||(bKeyADown == true))
+		{
+			if(aktLayer != NULL)
+			{
+				RUZ_Layer* layer_laeufer = aktLayer;
+				Liste<Flaeche>* flLst = layer_laeufer->HoleFlaechen();
+				Punkt* aktPkt;
+				int eckenInnerhalb, eckenZahl;
 
-            if(m_zeigeFlaeche && m_waehleFlaeche)
-            {
-                for(Flaeche* aktFl = flLst->GetErstesElement(); aktFl != NULL; aktFl = flLst->GetNaechstesElement())
-                {
-                    eckenZahl = 4;
-                    if(aktFl->HoleTyp() == RUZ_Dreieck)eckenZahl = 3;
+				if(m_zeigeFlaeche && m_waehleFlaeche)
+				{
+					for(Flaeche* aktFl = flLst->GetErstesElement(); aktFl != NULL; aktFl = flLst->GetNaechstesElement())
+					{
+						eckenZahl = 4;
+						if(aktFl->HoleTyp() == RUZ_Dreieck)eckenZahl = 3;
 
-                    eckenInnerhalb = 0;
-                    for(int i = 0; i < eckenZahl; i++)
-                    {
-                        aktPkt = aktFl->HolePunkt(i);
-                        if(((aktPkt->HolePosition().x() - d_N_MPosX) * (aktPkt->HolePosition().x() - d_A_MPosX)) < 0)
-                        {
-                            if(((aktPkt->HolePosition().y() - d_N_MPosY) * (aktPkt->HolePosition().y() - d_A_MPosY)) < 0)
-                            {
-                                if(m_kreuzen)
-                                {
-                                    eckenInnerhalb += eckenZahl;
-                                    break;
-                                }else{
-                                    eckenInnerhalb++;
-                                }
-                            }
-                        }
-                    }
-                    if(eckenInnerhalb >= eckenZahl)
-                    {
-                        m_auswahl->Entzufuegen(aktFl);
-                    }else if(m_kreuzen)
-                    {
-                        if(aktFl->IstInnerhalb(d_A_MPosX, d_A_MPosY, z))
-                        {
-                            m_auswahl->Entzufuegen(aktFl);
-                            continue;
-                        }
-                        if(aktFl->IstInnerhalb(d_A_MPosX, d_N_MPosY, z))
-                        {
-                            m_auswahl->Entzufuegen(aktFl);
-                            continue;
-                        }
-                        if(aktFl->IstInnerhalb(d_N_MPosX, d_A_MPosY, z))
-                        {
-                            m_auswahl->Entzufuegen(aktFl);
-                            continue;
-                        }
-                        if(aktFl->IstInnerhalb(d_N_MPosX, d_N_MPosY, z))
-                        {
-                            m_auswahl->Entzufuegen(aktFl);
-                            continue;
-                        }
-                    }
-                }
-            }
-        }
-    }
+						eckenInnerhalb = 0;
+						for(int i = 0; i < eckenZahl; i++)
+						{
+							aktPkt = aktFl->HolePunkt(i);
+							if(((aktPkt->HolePosition().x() - d_N_MPosX) * (aktPkt->HolePosition().x() - d_A_MPosX)) < 0)
+							{
+								if(((aktPkt->HolePosition().y() - d_N_MPosY) * (aktPkt->HolePosition().y() - d_A_MPosY)) < 0)
+								{
+									if(m_kreuzen)
+									{
+										eckenInnerhalb += eckenZahl;
+										break;
+									}else{
+										eckenInnerhalb++;
+									}
+								}
+							}
+						}
+						if(eckenInnerhalb >= eckenZahl)
+						{
+							m_auswahl->Entzufuegen(aktFl);
+						}else if(m_kreuzen)
+						{
+							if(aktFl->IstInnerhalb(d_A_MPosX, d_A_MPosY, z))
+							{
+								m_auswahl->Entzufuegen(aktFl);
+								continue;
+							}
+							if(aktFl->IstInnerhalb(d_A_MPosX, d_N_MPosY, z))
+							{
+								m_auswahl->Entzufuegen(aktFl);
+								continue;
+							}
+							if(aktFl->IstInnerhalb(d_N_MPosX, d_A_MPosY, z))
+							{
+								m_auswahl->Entzufuegen(aktFl);
+								continue;
+							}
+							if(aktFl->IstInnerhalb(d_N_MPosX, d_N_MPosY, z))
+							{
+								m_auswahl->Entzufuegen(aktFl);
+								continue;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
     /*ENDE Markierungsrechteck auswerten!*/
     event.Skip();
     Refresh();
@@ -6991,6 +7006,8 @@ void RUZmBIFrame::ParamIni(void)
     m_waehleBogen = true;
     m_waehleKreis = true;
     m_waehleFangpunkt = true;
+	
+	bKeyADown = false;
     /*ENDE Schalter*/
 
     m_sonnenRichtung = Vektor(-0.577, -0.577, 0.577);

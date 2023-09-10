@@ -541,6 +541,7 @@ class RUZmBIFrame: public wxFrame
         befehlsID aktBefehl;
         double m_verschubWeite, m_lnWandelGenauigkeit;
         int m_anzeigeGenauigkeit;
+		bool bKeyADown;
         /*ENDE Programmparameter*/
 
         /*Logbuch*/
