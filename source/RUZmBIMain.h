@@ -254,6 +254,7 @@ class RUZmBIFrame: public wxFrame
 
     private:
         Achse aktProjX, aktProjY, aktProjZ; /*aktuelle Projektionsrichtung in orthogonaler Projektion*/
+		void ProjektionsrichtungFestlegen(int neueXRichtung);
 
         void ParamIni(void);
 

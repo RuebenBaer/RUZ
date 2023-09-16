@@ -4027,6 +4027,13 @@ void RUZmBIFrame::OnKeyUp(wxKeyEvent& event)
         bKeyADown = false;
         return;
     }
+    if(event.GetKeyCode() == 'X')
+    {
+        ProjektionsrichtungFestlegen(aktProjX+1);
+		AusdehnungFinden();
+		Refresh();
+        return;
+    }
     return;
 }
 
@@ -7084,6 +7091,14 @@ void RUZmBIFrame::ParamIni(void)
     /*ENDE Fangpunkte*/
 
     return;
+}
+
+void RUZmBIFrame::ProjektionsrichtungFestlegen(int neueXRichtung)
+{
+	aktProjX = (Achse)(neueXRichtung%3);
+	aktProjY = (Achse)((aktProjX + 1)%3);
+	aktProjZ = (Achse)((aktProjX + 2)%3);
+	return;
 }
 
 void RUZmBIFrame::SchnittpunktFlaecheAbschliessen(void)
