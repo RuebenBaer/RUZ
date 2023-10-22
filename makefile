@@ -1,4 +1,4 @@
-CXX = D:\mingw64\bin\g++
+CXX = g++
 CPPFLAGS =  \
 	-Wall \
 	-pipe \
@@ -9,14 +9,13 @@ CPPFLAGS =  \
 	-std=gnu++11
 
 INCLUDES =  \
-	-ID:\wxWidgets-3.2.2.1\include \
-	-ID:\wxWidgets-3.2.2.1\lib\gcc_dll-dll_64\mswu
+	-I$(WXINCLUDE) \
+	-I$(WXINCLUDESETUP)
 
 DEFS =  \
 	-D__WXMSW__ \
 	-D_UNICODE
 
-WXLIBPATH = -LD:\wxWidgets-3.2.2.1\lib\gcc_dll-dll_64
 LIBS = \
 	-lwxbase32u \
 	-lwxbase32u_net \
@@ -81,7 +80,7 @@ OUT = RUZ.exe
 .PHONEY: all clean
 
 all: $(OBJS)
-	$(CXX) $(CPPFLAGS) $(DEFS) $(WXLIBPATH) -o $(OUT) $(OBJS) -s $(LIBS)
+	$(CXX) $(CPPFLAGS) $(DEFS) -L$(WXLIBPATH) -o $(OUT) $(OBJS) -s $(LIBS)
 
 $(OBJDIR)\aruIntegral\aruIntegral.o: source\aruIntegral\aruIntegral.cpp
 	if not exist $(OBJDIR)\aruIntegral mkdir $(OBJDIR)\aruIntegral
