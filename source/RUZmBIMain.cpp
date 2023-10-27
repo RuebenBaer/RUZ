@@ -84,6 +84,7 @@ BEGIN_EVENT_TABLE(RUZmBIFrame, wxFrame)
     EVT_MENU(idMenuUeberlappungFinden, RUZmBIFrame::OnUeberlappungFinden)
     EVT_MENU(idMenuFangpunkteLoeschen, RUZmBIFrame::FangpunkteLoeschen)
     EVT_MENU(idMenuDoppeltePunkteLoeschen, RUZmBIFrame::DoppeltePunkteLoeschen)
+	EVT_MENU(idUWertMitGefaelle, RUZmBIFrame::OnUWertMitGefaelle)
     /*Befehlsauswahl*/
     EVT_MENU(idMenuObjektLoeschen, RUZmBIFrame::OnBearbeitungsBefehl)
     EVT_MENU(idMenuObjektVerschieben, RUZmBIFrame::OnBearbeitungsBefehl)
@@ -214,6 +215,7 @@ RUZmBIFrame::RUZmBIFrame(wxFrame *frame, const wxString& title, const wxPoint &p
     wxMenu* netzMenu = new wxMenu();
     wxMenu* planeMenu = new wxMenu();
     wxMenu* deleteMenu = new wxMenu();
+	wxMenu* physicsMenu = new wxMenu();
     /*Dropdown*/
     wxMenu* openMenu = new wxMenu();
     wxMenu* open_m_lay_Menu = new wxMenu();
@@ -390,6 +392,10 @@ RUZmBIFrame::RUZmBIFrame(wxFrame *frame, const wxString& title, const wxPoint &p
 		miscMenu->Append(idMenuAbout, wxT("Handbuch"), wxT("Zeigt das Handbuch an"));
     miscMenu->Append(idMenuLizenz, wxT("&Lizenz"), wxT("Zeigt die Lizenz an"));
     /*ENDE Menu: Verschiedenes*/
+	
+	/*Menu: (Bau)physik*/
+	physicsMenu->Append(idUWertMitGefaelle, wxT("&U-Wert mit Gefälle"), wxT("Errechnet einen U-Wert der Flächen\ndie Einheiten werden als Meter interpretiert"));
+	/*ENDE Menu: (Bau)physik*/
 
 
     mbar->Append(fileMenu, wxT("&Datei"));
@@ -402,6 +408,7 @@ RUZmBIFrame::RUZmBIFrame(wxFrame *frame, const wxString& title, const wxPoint &p
     mbar->Append(viewMenu, wxT("Ansicht"));
     mbar->Append(backgroundMenu, wxT("&Hintergrund"));
     mbar->Append(miscMenu, wxT("&Verschiedenes"));
+	mbar->Append(physicsMenu, "(Bau)physik");
 
     SetMenuBar(mbar);
 
@@ -1707,6 +1714,113 @@ void RUZmBIFrame::HoehenkarteZeichnen(void)
                 }
             }
             SetStatusText(wxString::Format(wxT("min Z: %f | max Z: %f"), minZ, maxZ),1);
+        }
+    }
+    return;
+}
+
+
+void RUZmBIFrame::UWertMitGefaelle(void)
+{
+    if(aktLayer)
+    {
+        double minX, minY, maxX, maxY, minZ, maxZ;
+        if(aktLayer->AusdehnungFinden(minX, minY, maxX, maxY, minZ, maxZ))
+        {
+            double* dIntegral = NULL;
+            aruIntegral tempIntegral(dIntegral, minX, minY, maxX, maxY, m_flaechenRaster, aktProjZ);
+            dIntegral = tempIntegral.HoleIntegral();
+            if(!dIntegral)
+            {
+                wxMessageDialog(this, wxT("Fehler beim Anlegen des Integrals\n(evtl. zu wenig Speicher?)"), wxT("Abbruch der Berechnung")).ShowModal();
+                return;
+            }
+            Liste<Flaeche>* lstFl = aktLayer->HoleFlaechen();
+            int iAktFlaeche = 0;
+            SetStatusText(wxT("Starte Integration"), 1);
+            Refresh();
+            for(Flaeche* aktFl = lstFl->GetErstesElement(); aktFl != NULL; aktFl = lstFl->GetNaechstesElement())
+            {
+                if(aktFl->HoleTyp() == RUZ_Dreieck)
+                {
+                    Vektor vNormale = aktFl->HoleNormale();
+                    Vektor vSenkrechte(0, 0, 0);
+                    vSenkrechte.SetKoordinaten(aktProjZ, 1.0);
+                    if(vNormale*vSenkrechte < 0.05)continue;//0.05 = ca. cos(87°) - fast senkrechte Flächen überspringen (ergibt an den Rändern unbrauchbar hohe Werte)
+                }
+                tempIntegral.IntegriereFlaeche(aktFl);
+            }
+
+            double maxWert, minWert;
+            unsigned char aktWert;
+            int iB = tempIntegral.HoleBreite();
+            int iH = tempIntegral.HoleHoehe();
+
+            maxWert = minWert = 0.0;
+            bool nochNAN = true;
+
+            SetStatusText(wxT("Integration erledigt - stopfe Löcher"), 1);
+            Refresh();
+            for(int i = 0; i < iB; i++)
+            {
+                for(int k = 0; k < iH; k++)
+                {
+                    if(!isnan(dIntegral[i+k*iB]))
+                    {
+
+                        if(nochNAN)
+                        {
+                            maxWert = minWert = dIntegral[i+k*iB];
+                            nochNAN = false;
+                        }
+                        if(maxWert < dIntegral[i+k*iB])maxWert = dIntegral[i+k*iB];
+                        if(minWert > dIntegral[i+k*iB])minWert = dIntegral[i+k*iB];
+                    }else
+                    {
+                        //Löcher stopfen
+                        if((i>0)&&(k>0)&&(i<iB-1)&&(k<iH-1))
+                        {
+                            int iNachbarn = 0;
+                            double dSumme = 0;
+                            for(int di = -1; di < 2; di++)
+                                for(int dk = -1; dk < 2; dk++)
+                                {
+                                    if(!isnan(dIntegral[i+di+(k+dk)*iB]))
+                                    {
+                                        iNachbarn++;
+                                        dSumme += dIntegral[i+di+(k+dk)*iB];
+                                    }
+                                }
+                            if(iNachbarn > 5)//Loch ist (vermutlich) in Fläche und nicht am Rand
+                            {
+                                dIntegral[i+k*iB] = dSumme/iNachbarn;
+                            }
+                        }
+                    }
+                }
+            }
+            SetStatusText(wxT("Löcher stopfen erledigt - bemale Leinwand"), 1);
+			
+			double lambda = 0.035;
+			double summeR = 0.14;
+			double uWert = 0.0;
+			int anzWerte = 0;
+
+            for(int i = 0; i < (iB * iH); i++)
+            {
+                if(isnan(dIntegral[i]))
+                {
+                    continue;
+                }
+				anzWerte++;
+				uWert += 1/(summeR + dIntegral[i]/lambda);
+            }
+			if(!anzWerte)
+			{
+				wxMessageDialog(this, "Fehler\nAbbruch", "U-Wertberechnung").ShowModal();
+			}
+			uWert /= anzWerte;
+			wxMessageDialog(this, wxString::Format("U-Wert = %.4f", uWert), "Ergebnis").ShowModal();
         }
     }
     return;
@@ -6540,6 +6654,12 @@ void RUZmBIFrame::OnUeberlappungFinden(wxCommandEvent& event)
         Refresh();
     }
     return;
+}
+
+void RUZmBIFrame::OnUWertMitGefaelle(wxCommandEvent& event)
+{
+	UWertMitGefaelle();
+	return;
 }
 
 void RUZmBIFrame::OnViereckeFinden(wxCommandEvent &event)

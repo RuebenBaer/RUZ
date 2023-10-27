@@ -236,7 +236,8 @@ class RUZmBIFrame: public wxFrame
             idMenuGesamtansicht, idMenuPunkteSkalieren, idMenuLayerSkalieren, idMenuHintergrundSkalieren, idMenuAllesSkalieren, idMenuSkalierFaktor, idTimer,
             idMenuZeigeWaehle, idMenuEntferneTieferes, idMenuEntferneHoeheres, idMenuUeberlappungFinden,
             idZeigePunkt, idZeigeHoehe, idZeigeLinie, idZeigeFlaeche, idZeigeHoehenmarke, idZeigeStrich, idZeigeBogen, idZeigeKreis, idZeigeFangpunkt,
-            idWaehlePunkt, idWaehleLinie, idWaehleFlaeche, idWaehleHoehenmarke, idWaehleStrich, idWaehleBogen, idWaehleKreis, idWaehleFangpunkt
+            idWaehlePunkt, idWaehleLinie, idWaehleFlaeche, idWaehleHoehenmarke, idWaehleStrich, idWaehleBogen, idWaehleKreis, idWaehleFangpunkt,
+			idUWertMitGefaelle
         };
         enum befehlsID{
             bef_ID_nichts = 2000, bef_ID_loeschen, bef_ID_verschieben, bef_ID_drehen, bef_ID_kopieren, bef_ID_kopierenNachLayer,
@@ -349,6 +350,7 @@ class RUZmBIFrame: public wxFrame
         void OnEntferneTieferes(wxCommandEvent& event);
         void OnEntferneHoeheres(wxCommandEvent& event);
         void OnUeberlappungFinden(wxCommandEvent& event);
+        void OnUWertMitGefaelle(wxCommandEvent& event);
         void OnPaint(wxPaintEvent& event);
         void OnSize(wxSizeEvent& event);
         void OnEraseBackground(wxEraseEvent& event);
@@ -401,6 +403,8 @@ class RUZmBIFrame: public wxFrame
 
         void HoehenkarteZeichnen(void);
 		void LayerMalen(wxDC &dc, RUZ_Layer* tempLayer);
+		
+		void UWertMitGefaelle(void);
 
         /*RUZ*/
         Liste<RUZ_Layer> *m_layer;
