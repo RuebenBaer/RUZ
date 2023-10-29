@@ -357,7 +357,6 @@ void aruIntegral::ZeichneGeradesDreieck(int iXL, int iYLo, int iYLu, int iXR, in
     }
     /*ENDE Abteile sortieren*/
 
-	std::cout<<"Vor Trapez\n";
     /*Trapeze zeichnen*/
     for(int i = 0; i < iAnzAbteile-1; i++)
     {
@@ -365,8 +364,6 @@ void aruIntegral::ZeichneGeradesDreieck(int iXL, int iYLo, int iYLu, int iXR, in
     }
     delete []iIndex;
     /*ENDE Trapeze zeichnen*/
-	
-	std::cout<<"Nach Trapez\n";
     return;
 }
 
@@ -374,11 +371,17 @@ void aruIntegral::ZeichneTrapezSenkrecht(int iMinX, int iMaxX, int iMinYu, int i
 {
     if(iMaxX == iMinX)return;
     int iStelle;
+	
+	if(iMinX < 0)iMinX = 0;
+	if(iMaxX > iBreite)iMaxX = iBreite;
 
     for(int iTempX = iMinX; iTempX < iMaxX; iTempX++)
     {
         int iLocMinY = iMinYu + (iMaxYu - iMinYu) * ((float)(iTempX - iMinX) / (float)(iMaxX - iMinX));
+		if(iLocMinY < 0)iLocMinY = 0;
+		
         int iLocMaxY = iMinYo + (iMaxYo - iMinYo) * ((float)(iTempX - iMinX) / (float)(iMaxX - iMinX));
+		if(iLocMaxY > iHoehe)iLocMaxY = iHoehe;
         for(int iTempY = iLocMinY; iTempY < iLocMaxY; iTempY++)
         {
             iStelle = (iTempX + iTempY * iBreite);
@@ -389,7 +392,7 @@ void aruIntegral::ZeichneTrapezSenkrecht(int iMinX, int iMaxX, int iMinYu, int i
 					std::cout<<"iStelle > iHoehe * iBreite ("<<iStelle<<")\n";
 					return;
 				}
-                //dIntegral[iStelle] = wert;
+                dIntegral[iStelle] = wert;
             }
         }
     }
