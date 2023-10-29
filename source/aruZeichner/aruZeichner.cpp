@@ -246,7 +246,12 @@ void aruZeichner::ZeichneGeradesDreieck(int iXL, int iYLo, int iYLu, int iXR, in
     /*ENDE Schnitte mit R�ndern finden*/
 
     /*Abteile sortieren*/
-    int *iIndex = new int[iAnzAbteile];
+    int *iIndex = new int[iAnzAbteile]();
+	if(!iIndex)
+	{
+		std::cerr<<"aruZeichner::ZeichneGeradesDreieck => iIndex konnte nicht instanziert werden\n";
+		return;
+	}
     for(int i = 0; i < iAnzAbteile; i++)
     {
         iIndex[i] = i;

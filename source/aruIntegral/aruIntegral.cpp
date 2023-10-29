@@ -2,11 +2,12 @@
 #include <fstream>
 #include <iostream>
 #include <cmath>
+#include <new>
 #include "../RUZ/RUZObjekte.h"
 
 aruIntegral::aruIntegral(double *Integral, double dStartX, double dStartY, double dEndeX, double dEndeY, double Aufloesung, Achse Projektion)
-{
-    dAufloesung = Aufloesung;
+{    
+	dAufloesung = Aufloesung;
     aProjektion = Projektion;
     if(dAufloesung)
     {
@@ -20,16 +21,32 @@ aruIntegral::aruIntegral(double *Integral, double dStartX, double dStartY, doubl
         iOffsetHoehe = 0;
         iOffsetBreite = 0;
     }
-    dIntegral = Integral = NULL;
-    dIntegral = Integral = new double[iHoehe*iBreite];
+	std::cout<<"Hoehe * Breite = "<<iHoehe<<" * "<<iBreite<<" = "<<iHoehe * iBreite<<"\n"<<flush;
+	dIntegral = Integral = NULL;
+	try{
+		dIntegral = Integral = new double[iHoehe*iBreite];
+	}
+	catch(std::bad_alloc &ba)
+	{
+		std::cout<<"Bad Allocation: "<<ba.what()<<"\n";
+		throw ba;
+	}
+	catch(...)
+	{
+		throw "KEIN Integral angelegt!\n";
+	}
+
+	if(dIntegral == NULL)
+    {
+		std::cerr<<"KEIN Integral angelegt!\n";
+        logSchreiben("KEIN Integral angelegt!\n");
+		throw "KEIN Integral angelegt!\n";
+    }
     if(dIntegral)
     {
         IntegralNullen();
-    }else
-    {
-        logSchreiben("KEIN Integral angelegt!\n");
-        delete this;
     }
+	std::cout<<"Integral genullt (NAN)\n";
 }
 
 aruIntegral::~aruIntegral()
@@ -151,6 +168,8 @@ void aruIntegral::IntegriereFlaeche(Viereck *obj)
     /*ENDE Abteile sortieren*/
     iYo[0] = iYu[0] = py[iIndex[0]];
     iYo[3] = iYu[3] = py[iIndex[3]];
+	
+	iYo[2] = 0;
 
     if(iIndex[1] == (iIndex[2]+2)%4)
     {
@@ -305,7 +324,21 @@ void aruIntegral::ZeichneGeradesDreieck(int iXL, int iYLo, int iYLu, int iXR, in
     /*ENDE Schnitte mit Raendern finden*/
 
     /*Abteile sortieren*/
-    int *iIndex = new int[iAnzAbteile];
+	std::cout<<"AnzahlAbteile: "<<iAnzAbteile<<"\n";
+	int *iIndex;
+	try{
+		iIndex = new int[iAnzAbteile];
+	}
+    catch(std::bad_alloc &ba)
+	{
+		std::cout<<ba.what()<<" => aruIntegral::ZeichneGeradesDreieck: iIndex konnte nicht instanziert werden\n";
+		return;
+	}
+	if(!iIndex)
+	{
+		std::cerr<<"aruIntegral::ZeichneGeradesDreieck: iIndex konnte nicht instanziert werden\n";
+		return;
+	}
     for(int i = 0; i < iAnzAbteile; i++)
     {
         iIndex[i] = i;
@@ -324,6 +357,7 @@ void aruIntegral::ZeichneGeradesDreieck(int iXL, int iYLo, int iYLu, int iXR, in
     }
     /*ENDE Abteile sortieren*/
 
+	std::cout<<"Vor Trapez\n";
     /*Trapeze zeichnen*/
     for(int i = 0; i < iAnzAbteile-1; i++)
     {
@@ -331,6 +365,8 @@ void aruIntegral::ZeichneGeradesDreieck(int iXL, int iYLo, int iYLu, int iXR, in
     }
     delete []iIndex;
     /*ENDE Trapeze zeichnen*/
+	
+	std::cout<<"Nach Trapez\n";
     return;
 }
 
@@ -348,7 +384,12 @@ void aruIntegral::ZeichneTrapezSenkrecht(int iMinX, int iMaxX, int iMinYu, int i
             iStelle = (iTempX + iTempY * iBreite);
             {
                 double wert = obj->OrdinateAufEbene((iTempX + iOffsetBreite)*dAufloesung, (iTempY + iOffsetHoehe)*dAufloesung, aProjektion);
-                dIntegral[iStelle] = wert;
+				if(iStelle >= iHoehe * iBreite)
+				{
+					std::cout<<"iStelle > iHoehe * iBreite ("<<iStelle<<")\n";
+					return;
+				}
+                //dIntegral[iStelle] = wert;
             }
         }
     }
@@ -412,7 +453,7 @@ void aruIntegral::IntegralNullen(void)
 {
     for(int i = 0; i < iBreite * iHoehe; i ++)
     {
-        dIntegral[i] = NAN;
+		dIntegral[i] = NAN;
     }
     return;
 }

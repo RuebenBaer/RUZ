@@ -42,6 +42,7 @@
 #include <thread>
 #include <stdio.h>
 #include <cstring>
+#include <new>
 
 #include <wx/colordlg.h>
 #include <wx/dcbuffer.h>

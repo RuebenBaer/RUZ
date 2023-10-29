@@ -4,9 +4,7 @@ CPPFLAGS =  \
 	-pipe \
 	-mthreads \
 	-O2 \
-	-Wl,--subsystem,windows \
-	-mwindows\
-	-std=gnu++11
+	-std=gnu++14
 
 INCLUDES =  \
 	-I$(WXINCLUDE) \

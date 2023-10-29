@@ -1610,8 +1610,22 @@ void RUZmBIFrame::HoehenkarteZeichnen(void)
         if(aktLayer->AusdehnungFinden(minX, minY, maxX, maxY, minZ, maxZ))
         {
             double* dIntegral = NULL;
-            aruIntegral tempIntegral(dIntegral, minX, minY, maxX, maxY, m_flaechenRaster, aktProjZ);
-            dIntegral = tempIntegral.HoleIntegral();
+            aruIntegral *tempIntegral;
+			try{
+				tempIntegral = new aruIntegral(dIntegral, minX, minY, maxX, maxY, m_flaechenRaster, aktProjZ);
+			}
+			catch(char* str)
+			{
+				wxMessageDialog(this, str, wxT("Abbruch der Berechnung")).ShowModal();
+                return;
+			}
+            if(!tempIntegral)
+			{
+				wxMessageDialog(this, wxT("Fehler beim Anlegen des Integrals\n(evtl. zu wenig Speicher?)"), wxT("Abbruch der Berechnung")).ShowModal();
+                return;
+			}
+			dIntegral = tempIntegral->HoleIntegral();
+			
             if(!dIntegral)
             {
                 wxMessageDialog(this, wxT("Fehler beim Anlegen des Integrals\n(evtl. zu wenig Speicher?)"), wxT("Abbruch der Berechnung")).ShowModal();
@@ -1631,13 +1645,13 @@ void RUZmBIFrame::HoehenkarteZeichnen(void)
                     vSenkrechte.SetKoordinaten(aktProjZ, 1.0);
                     if(vNormale*vSenkrechte < 0.05)continue;//0.05 = ca. cos(87°) - fast senkrechte Flächen überspringen (ergibt an den Rändern unbrauchbar hohe Werte)
                 }
-                tempIntegral.IntegriereFlaeche(aktFl);
+                tempIntegral->IntegriereFlaeche(aktFl);
             }
 
             double maxWert, minWert;
             unsigned char aktWert;
-            int iB = tempIntegral.HoleBreite();
-            int iH = tempIntegral.HoleHoehe();
+            int iB = tempIntegral->HoleBreite();
+            int iH = tempIntegral->HoleHoehe();
 
             maxWert = minWert = 0.0;
             bool nochNAN = true;
@@ -1728,11 +1742,31 @@ void RUZmBIFrame::UWertMitGefaelle(void)
         if(aktLayer->AusdehnungFinden(minX, minY, maxX, maxY, minZ, maxZ))
         {
             double* dIntegral = NULL;
-            aruIntegral tempIntegral(dIntegral, minX, minY, maxX, maxY, m_flaechenRaster, aktProjZ);
-            dIntegral = tempIntegral.HoleIntegral();
+            aruIntegral *tempIntegral;
+			try{
+				tempIntegral = new aruIntegral(dIntegral, minX, minY, maxX, maxY, m_flaechenRaster, aktProjZ);
+			}
+			catch(std::bad_alloc &ba)
+			{
+				wxMessageDialog(this, ba.what(), wxT("Abbruch der Berechnung")).ShowModal();
+                return;
+			}
+			catch(...)
+			{
+				wxMessageDialog(this, wxT("Fehler beim Anlegen des Integrals\n(evtl. zu wenig Speicher?)\nVersuche, die Rastergröße der Flächenberechnung zu ändern"), wxT("Abbruch der Berechnung")).ShowModal();
+                return;
+			}
+			
+            if(!tempIntegral)
+			{
+				wxMessageDialog(this, wxT("Fehler beim Anlegen des Integrals\n(evtl. zu wenig Speicher?)\nVersuche, die Rastergröße der Flächenberechnung zu ändern"), wxT("Abbruch der Berechnung")).ShowModal();
+                return;
+			}
+			dIntegral = tempIntegral->HoleIntegral();
+			
             if(!dIntegral)
             {
-                wxMessageDialog(this, wxT("Fehler beim Anlegen des Integrals\n(evtl. zu wenig Speicher?)"), wxT("Abbruch der Berechnung")).ShowModal();
+                wxMessageDialog(this, wxT("Fehler beim Anlegen des Integrals\n(evtl. zu wenig Speicher?)\nVersuche, die Rastergröße der Flächenberechnung zu ändern"), wxT("Abbruch der Berechnung")).ShowModal();
                 return;
             }
             Liste<Flaeche>* lstFl = aktLayer->HoleFlaechen();
@@ -1748,13 +1782,13 @@ void RUZmBIFrame::UWertMitGefaelle(void)
                     vSenkrechte.SetKoordinaten(aktProjZ, 1.0);
                     if(vNormale*vSenkrechte < 0.05)continue;//0.05 = ca. cos(87°) - fast senkrechte Flächen überspringen (ergibt an den Rändern unbrauchbar hohe Werte)
                 }
-                tempIntegral.IntegriereFlaeche(aktFl);
+                tempIntegral->IntegriereFlaeche(aktFl);
             }
 
             double maxWert, minWert;
             unsigned char aktWert;
-            int iB = tempIntegral.HoleBreite();
-            int iH = tempIntegral.HoleHoehe();
+            int iB = tempIntegral->HoleBreite();
+            int iH = tempIntegral->HoleHoehe();
 
             maxWert = minWert = 0.0;
             bool nochNAN = true;
@@ -6783,8 +6817,17 @@ void RUZmBIFrame::OnVolumenZwischenLayern(wxCommandEvent &event)
             Refresh();
 
             double* dIntegral_NeuesGelaende = NULL;
-            aruIntegral tempIntegral_Neu(dIntegral_NeuesGelaende, minX, minY, maxX, maxY, m_flaechenRaster, aktProjZ);
-            dIntegral_NeuesGelaende = tempIntegral_Neu.HoleIntegral();
+            aruIntegral *tempIntegral_Neu;
+			try{
+				tempIntegral_Neu = new aruIntegral(dIntegral_NeuesGelaende, minX, minY, maxX, maxY, m_flaechenRaster, aktProjZ);
+			}
+            catch(char* str)
+			{
+				wxMessageDialog(this, str, wxT("Abbruch der Berechnung")).ShowModal();
+                return;
+			}
+			dIntegral_NeuesGelaende = tempIntegral_Neu->HoleIntegral();
+			
             if(!dIntegral_NeuesGelaende)
             {
                 wxMessageDialog(this, wxT("Fehler beim Anlegen des Integrals\n(evtl. zu wenig Speicher?)"), wxT("Abbruch der Berechnung")).ShowModal();
@@ -6802,16 +6845,30 @@ void RUZmBIFrame::OnVolumenZwischenLayern(wxCommandEvent &event)
                     vSenkrechte.SetKoordinaten(aktProjZ, 1.0);
                     if(vNormale*vSenkrechte < 0.05)continue;//0.05 = ca. cos(87°) - fast senkrechte Flächen überspringen (ergibt an den Rändern unbrauchbar hohe Werte)
                 }
-                tempIntegral_Neu.IntegriereFlaeche(aktFl);
+                tempIntegral_Neu->IntegriereFlaeche(aktFl);
             }
 
             SetStatusText(wxT("Starte Integration (Urgelände)"), 1);
             Refresh();
 
             double* dIntegral_Urgelaende = NULL;
-            aruIntegral tempIntegral_Ur(dIntegral_Urgelaende, minX, minY, maxX, maxY, m_flaechenRaster, aktProjZ);
-            dIntegral_Urgelaende = tempIntegral_Ur.HoleIntegral();
-            if(!dIntegral_Urgelaende)
+            aruIntegral *tempIntegral_Ur;
+			try{
+				tempIntegral_Ur = new aruIntegral(dIntegral_Urgelaende, minX, minY, maxX, maxY, m_flaechenRaster, aktProjZ);
+			}
+			catch(char* str)
+			{
+				wxMessageDialog(this, str, wxT("Abbruch der Berechnung")).ShowModal();
+                return;
+			}
+            if(!tempIntegral_Ur)
+			{
+				wxMessageDialog(this, wxT("Fehler beim Anlegen des Integrals\n(evtl. zu wenig Speicher?)"), wxT("Abbruch der Berechnung")).ShowModal();
+                return;
+			}
+
+			dIntegral_Urgelaende = tempIntegral_Ur->HoleIntegral();
+			if(!dIntegral_Urgelaende)
             {
                 wxMessageDialog(this, wxT("Fehler beim Anlegen des Integrals\n(evtl. zu wenig Speicher?)"), wxT("Abbruch der Berechnung")).ShowModal();
                 return;
@@ -6829,12 +6886,12 @@ void RUZmBIFrame::OnVolumenZwischenLayern(wxCommandEvent &event)
                     vSenkrechte.SetKoordinaten(aktProjZ, 1.0);
                     if(vNormale*vSenkrechte < 0.05)continue;//0.05 = ca. cos(87°) - fast senkrechte Flächen überspringen (ergibt an den Rändern unbrauchbar hohe Werte)
                 }
-                tempIntegral_Ur.IntegriereFlaeche(aktFl);
+                tempIntegral_Ur->IntegriereFlaeche(aktFl);
             }
 
             double maxWert, minWert;
-            int iB = tempIntegral_Neu.HoleBreite();
-            int iH = tempIntegral_Neu.HoleHoehe();
+            int iB = tempIntegral_Neu->HoleBreite();
+            int iH = tempIntegral_Neu->HoleHoehe();
 
             maxWert = minWert = 0.0;
             bool nochNAN = true;
