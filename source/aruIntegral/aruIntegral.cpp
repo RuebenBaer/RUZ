@@ -28,7 +28,7 @@ aruIntegral::aruIntegral(double *Integral, double dStartX, double dStartY, doubl
 	}
 	catch(std::bad_alloc &ba)
 	{
-		std::cout<<"Bad Allocation: "<<ba.what()<<"\n";
+		std::cerr<<"Bad Allocation: "<<ba.what()<<"\n";
 		throw ba;
 	}
 	catch(...)
@@ -39,14 +39,12 @@ aruIntegral::aruIntegral(double *Integral, double dStartX, double dStartY, doubl
 	if(dIntegral == NULL)
     {
 		std::cerr<<"KEIN Integral angelegt!\n";
-        logSchreiben("KEIN Integral angelegt!\n");
 		throw "KEIN Integral angelegt!\n";
     }
     if(dIntegral)
     {
         IntegralNullen();
     }
-	std::cout<<"Integral genullt (NAN)\n";
 }
 
 aruIntegral::~aruIntegral()
@@ -369,28 +367,31 @@ void aruIntegral::ZeichneGeradesDreieck(int iXL, int iYLo, int iYLu, int iXR, in
 
 void aruIntegral::ZeichneTrapezSenkrecht(int iMinX, int iMaxX, int iMinYu, int iMaxYu, int iMinYo, int iMaxYo, Flaeche* obj)
 {
-    if(iMaxX == iMinX)return;
-    int iStelle;
+	if(iMaxX == iMinX)return;
+    unsigned long long int iStelle;
 	
 	if(iMinX < 0)iMinX = 0;
 	if(iMaxX > iBreite)iMaxX = iBreite;
 
-    for(int iTempX = iMinX; iTempX < iMaxX; iTempX++)
+    for(unsigned long long int iTempX = iMinX; iTempX < iMaxX; iTempX++)
     {
-        int iLocMinY = iMinYu + (iMaxYu - iMinYu) * ((float)(iTempX - iMinX) / (float)(iMaxX - iMinX));
+        unsigned long long int iLocMinY = iMinYu + (iMaxYu - iMinYu) * ((float)(iTempX - iMinX) / (float)(iMaxX - iMinX));
 		if(iLocMinY < 0)iLocMinY = 0;
 		
-        int iLocMaxY = iMinYo + (iMaxYo - iMinYo) * ((float)(iTempX - iMinX) / (float)(iMaxX - iMinX));
+        unsigned long long int iLocMaxY = iMinYo + (iMaxYo - iMinYo) * ((float)(iTempX - iMinX) / (float)(iMaxX - iMinX));
 		if(iLocMaxY > iHoehe)iLocMaxY = iHoehe;
-        for(int iTempY = iLocMinY; iTempY < iLocMaxY; iTempY++)
+        for(unsigned long long int iTempY = iLocMinY; iTempY < iLocMaxY; iTempY++)
         {
-            iStelle = (iTempX + iTempY * iBreite);
+            iStelle = iTempX + iTempY * iBreite;
             {
                 double wert = obj->OrdinateAufEbene((iTempX + iOffsetBreite)*dAufloesung, (iTempY + iOffsetHoehe)*dAufloesung, aProjektion);
 				if(iStelle >= iHoehe * iBreite)
 				{
-					std::cout<<"iStelle > iHoehe * iBreite ("<<iStelle<<")\n";
-					return;
+					continue;
+				}
+				if(iStelle < 0)
+				{
+					continue;
 				}
                 dIntegral[iStelle] = wert;
             }
