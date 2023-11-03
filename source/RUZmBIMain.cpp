@@ -1733,7 +1733,6 @@ void RUZmBIFrame::HoehenkarteZeichnen(void)
     return;
 }
 
-
 void RUZmBIFrame::UWertMitGefaelle(void)
 {
     if(aktLayer)

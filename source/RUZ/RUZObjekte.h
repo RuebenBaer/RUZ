@@ -263,6 +263,7 @@ protected:
     Achse m_projektionsRichtung;
     void LoescheDoppeltePunkte(Liste<Hoehenpunkt>* pktLst);
     int farbe[3];
+	double min[3], max[3];
 public:
     Flaeche();
     virtual ~Flaeche();
@@ -293,6 +294,7 @@ public:
     virtual bool IstEckPunkt(Punkt*) = 0;
     virtual void ErsetzeLinie(Linie*, Linie*) = 0;
     virtual void EckenNeuErmitteln(void) = 0;
+	virtual void MinMax(void) = 0;
 
     virtual bool operator==(const Flaeche&) = 0;
 
@@ -351,6 +353,7 @@ public:
     virtual bool IstEckPunkt(Punkt*);
     virtual void ErsetzeLinie(Linie*, Linie*);
     virtual void EckenNeuErmitteln(void);
+	virtual void MinMax(void);
 
     Vektor MitteGegenueber(Punkt*);
     bool operator==(const Flaeche&);
@@ -406,6 +409,7 @@ public:
     virtual bool IstEckPunkt(Punkt*);
     virtual void ErsetzeLinie(Linie*, Linie*);/*Verwendung zur Vereinigung von Objekten*/
     virtual void EckenNeuErmitteln(void);
+	virtual void MinMax(void);
 private:
     bool LageAufFlaeche(Vektor& vOrt, RelativLage& rl_Lage_1, RelativLage& rl_Lage_2, Achse projRichtung = z);
     void EinzelfeldHoehenlinien(Linie*, Linie*, Linie*, Linie*);

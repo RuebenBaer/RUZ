@@ -286,14 +286,7 @@ void Punkt::Skalieren(const Vektor& festOrt, double fktX, double fktY, double fk
 void Punkt::Positionieren(const Vektor& vkt)
 {
     pOrt=vkt;
-    for(Linie* tempLinie = adjLinie->GetErstesElement(); tempLinie != NULL; tempLinie = adjLinie->GetNaechstesElement())
-    {
-        Liste<Flaeche>* flLstLn = tempLinie->HoleFlaechen();
-        for(Flaeche* tempFlaeche = flLstLn->GetErstesElement(); tempFlaeche != NULL; tempFlaeche = flLstLn->GetNaechstesElement())
-        {
-            m_layer->GeaenderteFlaecheHinzufuegen(tempFlaeche);
-        }
-    }
+    AenderungAnLayerMitteilen();
     return;
 }
 
@@ -448,6 +441,7 @@ void Punkt::AenderungAnLayerMitteilen(void)
         for(Flaeche* tempFlaeche = flLstLn->GetErstesElement(); tempFlaeche != NULL; tempFlaeche = flLstLn->GetNaechstesElement())
         {
             m_layer->GeaenderteFlaecheHinzufuegen(tempFlaeche);
+			tempFlaeche->MinMax();
         }
     }
     return;
@@ -932,6 +926,7 @@ bool Linie::Teilen(Punkt* teilPkt, Achse prjRichtung, bool ungefaehr)
     {
         if(t_fl->HoleTyp() == RUZ_Dreieck)
         {
+			nl[2] = NULL;
             for(int i = 0; i < 3; i++)
             {
                 if((t_fl->HolePunkt(i) != p[0])&&(t_fl->HolePunkt(i) != p[1]))
@@ -1016,6 +1011,7 @@ void Linie::ZwangsTeilung(Punkt* teilPkt)
     {
         if(t_fl->HoleTyp() == RUZ_Dreieck)
         {
+			nl[2] = NULL;
             for(int i = 0; i < 3; i++)
             {
                 if((t_fl->HolePunkt(i) != p[0])&&(t_fl->HolePunkt(i) != p[1]))
@@ -1118,7 +1114,7 @@ KantenKlasse Linie::HoleKantenklasse(void)const
 
 double Linie::HoleGefaelle(Achse prjRichtung) const
 {
-    double rueckgabe;
+    double rueckgabe = 0;
     double laenge = ProjLaenge(prjRichtung);
     if(laenge)rueckgabe = (p[0]->HolePosition().GetKoordinaten(prjRichtung) - p[1]->HolePosition().GetKoordinaten(prjRichtung)) / laenge;
 
@@ -1677,6 +1673,7 @@ Dreieck::Dreieck(Punkt** p1, Punkt** p2, Punkt** p3, Linie* l1, Linie* l2, Linie
     HoleLayer()->Hinzufuegen(this);
 
     NormaleBerechnen();
+	MinMax();
     SetzeBesucht('j');
 }
 
@@ -1711,6 +1708,7 @@ Dreieck::Dreieck(const Dreieck& dE)
     *this = dE;
     HoleLayer()->Hinzufuegen(this);
     NormaleBerechnen();
+	MinMax();
     SetzeBesucht('j');
 }
 
@@ -1732,6 +1730,7 @@ Dreieck& Dreieck::operator=(const Dreieck& dE)
     }
     HoleLayer()->Hinzufuegen(this);
     NormaleBerechnen();
+	MinMax();
     return *this;
 }
 
@@ -1745,6 +1744,26 @@ Dreieck::~Dreieck()
     {
         HoleLayer()->Entfernen(this);
     }
+}
+
+void Dreieck::MinMax(void)
+{
+	for(int i = 0; i < 3; i++)
+	{
+		if(p[0]->HolePosition().GetKoordinaten(i) < p[1]->HolePosition().GetKoordinaten(i))
+		{
+			max[i] = p[1]->HolePosition().GetKoordinaten(i);
+			min[i] = p[0]->HolePosition().GetKoordinaten(i);
+		}else
+		{
+			max[i] = p[1]->HolePosition().GetKoordinaten(i);
+			min[i] = p[0]->HolePosition().GetKoordinaten(i);
+		}
+		
+		if(max[i] < p[2]->HolePosition().GetKoordinaten(i))max[i] = p[2]->HolePosition().GetKoordinaten(i);
+		if(min[i] > p[2]->HolePosition().GetKoordinaten(i))min[i] = p[2]->HolePosition().GetKoordinaten(i);
+	}
+	return;
 }
 
 Linie* Dreieck::HoleLinie(int index) const
@@ -1877,10 +1896,9 @@ RUZ_Objekt* Dreieck::IstInnerhalb(Vektor pkt)
 
 bool Dreieck::Gefaelle(Vektor& punktQ, Vektor& v_gefaelle, Achse prjRichtung)
 {
-    int x, y, z;
+    int x, y;
     x = (prjRichtung + 1) % 3;
     y = (prjRichtung + 2) % 3;
-    z = prjRichtung % 3;
 
     if(!(IstInnerhalb(punktQ.GetKoordinaten(x), punktQ.GetKoordinaten(y), prjRichtung)))return false;
 
@@ -1946,8 +1964,11 @@ bool Dreieck::OrdinateAufEbene(Punkt* punktQ, Achse prjRichtung)
     double t_d = m_normale * p[0]->HolePosition();
     Vektor t_vkt = punktQ->HolePosition();
 
-    t_vkt.SetKoordinaten(z,(t_d - (m_normale.GetKoordinaten(x) * t_vkt.GetKoordinaten(x)
-                           + m_normale.GetKoordinaten(y) * t_vkt.GetKoordinaten(y)))/m_normale.GetKoordinaten(z));
+	double _z = (t_d - (m_normale.GetKoordinaten(x) * t_vkt.GetKoordinaten(x) + m_normale.GetKoordinaten(y) * t_vkt.GetKoordinaten(y)))/m_normale.GetKoordinaten(z);
+	if(_z < min[z])_z = min[z];
+	if(_z > max[z])_z = max[z];
+	
+	t_vkt.SetKoordinaten(z, _z);
 
     punktQ->Positionieren(t_vkt);
     return 1;
@@ -1962,9 +1983,12 @@ double Dreieck::OrdinateAufEbene(double dX, double dY, Achse prjRichtung)
     if(m_normale.GetKoordinaten(z) == 0)return NAN;
 
     double t_d = m_normale * p[0]->HolePosition();
+	
+	double _z = (t_d - (m_normale.GetKoordinaten(x) * dX + m_normale.GetKoordinaten(y) * dY))/m_normale.GetKoordinaten(z);
+	if(_z < min[z])_z = min[z];
+	if(_z > max[z])_z = max[z];
 
-    return ((t_d - (m_normale.GetKoordinaten(x) * dX +
-                    m_normale.GetKoordinaten(y) * dY))/m_normale.GetKoordinaten(z));
+    return (_z);
 }
 
 void Dreieck::Teilen(Punkt* punktQ, Achse prjRichtung, bool ungefaehr)
@@ -2358,6 +2382,7 @@ Viereck::Viereck():Flaeche()
     l[3] = 0;
 
     NormaleBerechnen();
+	MinMax();
 }
 
 Viereck::Viereck(Punkt** p1, Punkt** p2, Punkt** p3, Punkt** p4, Linie** l1, Linie** l2, Linie** l3, Linie** l4):Flaeche()
@@ -2378,6 +2403,7 @@ Viereck::Viereck(Punkt** p1, Punkt** p2, Punkt** p3, Punkt** p4, Linie** l1, Lin
 
     HoleLayer()->Hinzufuegen(this);
     NormaleBerechnen();
+	MinMax();
 }
 
 Viereck* Viereck::NeuesViereck(Dreieck* dA, Dreieck* dB)
@@ -2512,6 +2538,7 @@ Viereck::Viereck(const Viereck& dV)
 
     HoleLayer()->Hinzufuegen(this);
     NormaleBerechnen();
+	MinMax();
 }
 
 Viereck& Viereck::operator=(const Viereck& dV)
@@ -2536,6 +2563,7 @@ Viereck& Viereck::operator=(const Viereck& dV)
 
     HoleLayer()->Hinzufuegen(this);
     NormaleBerechnen();
+	MinMax();
     return *this;
 }
 
@@ -2558,6 +2586,29 @@ void Viereck::HilfsVektorenBerechnen(void)
     m_vB = p[3]->HolePosition()-p[0]->HolePosition();
     m_vC = p[0]->HolePosition()-p[1]->HolePosition()+p[2]->HolePosition()-p[3]->HolePosition();
     return;
+}
+
+void Viereck::MinMax(void)
+{
+	for(int i = 0; i < 3; i++)
+	{
+		if(p[0]->HolePosition().GetKoordinaten(i) < p[1]->HolePosition().GetKoordinaten(i))
+		{
+			max[i] = p[1]->HolePosition().GetKoordinaten(i);
+			min[i] = p[0]->HolePosition().GetKoordinaten(i);
+		}else
+		{
+			max[i] = p[1]->HolePosition().GetKoordinaten(i);
+			min[i] = p[0]->HolePosition().GetKoordinaten(i);
+		}
+		
+		if(max[i] < p[2]->HolePosition().GetKoordinaten(i))max[i] = p[2]->HolePosition().GetKoordinaten(i);
+		if(min[i] > p[2]->HolePosition().GetKoordinaten(i))min[i] = p[2]->HolePosition().GetKoordinaten(i);
+		
+		if(max[i] < p[3]->HolePosition().GetKoordinaten(i))max[i] = p[3]->HolePosition().GetKoordinaten(i);
+		if(min[i] > p[3]->HolePosition().GetKoordinaten(i))min[i] = p[3]->HolePosition().GetKoordinaten(i);
+	}
+	return;
 }
 
 Linie* Viereck::HoleLinie(int index) const
@@ -3216,6 +3267,7 @@ void Viereck::Teilen(Punkt* punktQ, Achse prjRichtung, bool ungefaehr)
 void Viereck::Teilen(void)
 {
     Dreieck *drEins, *drZwei;
+	drEins = drZwei = NULL;
     /*teilt das Viereck entlang der kurzen Diagonalen in zwei Dreiecke*/
     double t_diagonalLaenge[2];
     t_diagonalLaenge[0] = (p[0]->HolePosition() - p[2]->HolePosition()).Laenge();
