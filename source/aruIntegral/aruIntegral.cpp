@@ -322,7 +322,6 @@ void aruIntegral::ZeichneGeradesDreieck(int iXL, int iYLo, int iYLu, int iXR, in
     /*ENDE Schnitte mit Raendern finden*/
 
     /*Abteile sortieren*/
-	std::cout<<"AnzahlAbteile: "<<iAnzAbteile<<"\n";
 	int *iIndex;
 	try{
 		iIndex = new int[iAnzAbteile];
@@ -372,6 +371,8 @@ void aruIntegral::ZeichneTrapezSenkrecht(int iMinX, int iMaxX, int iMinYu, int i
 	
 	if(iMinX < 0)iMinX = 0;
 	if(iMaxX > iBreite)iMaxX = iBreite;
+	
+	double wert = 0;
 
     for(unsigned long long int iTempX = iMinX; iTempX < iMaxX; iTempX++)
     {
@@ -384,7 +385,15 @@ void aruIntegral::ZeichneTrapezSenkrecht(int iMinX, int iMaxX, int iMinYu, int i
         {
             iStelle = iTempX + iTempY * iBreite;
             {
-                double wert = obj->OrdinateAufEbene((iTempX + iOffsetBreite)*dAufloesung, (iTempY + iOffsetHoehe)*dAufloesung, aProjektion);
+                //wert = obj->OrdinateAufEbene((iTempX + iOffsetBreite)*dAufloesung, (iTempY + iOffsetHoehe)*dAufloesung, aProjektion);
+				Vektor vkt;
+				vkt.SetKoordinaten((aProjektion+1)%3, (iTempX + iOffsetBreite)*dAufloesung);
+				vkt.SetKoordinaten((aProjektion+2)%3, (iTempY + iOffsetHoehe)*dAufloesung);
+				vkt.SetKoordinaten(aProjektion%3, 0);
+				if(obj->OrtAufFlaeche(vkt, aProjektion))
+				{
+					wert = vkt.GetKoordinaten(aProjektion%3);
+				}
 				if(iStelle >= iHoehe * iBreite)
 				{
 					continue;
