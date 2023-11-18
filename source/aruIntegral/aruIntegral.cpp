@@ -374,27 +374,27 @@ void aruIntegral::ZeichneTrapezSenkrecht(int iMinX, int iMaxX, int iMinYu, int i
 	
 	double wert = 0;
 
-    for(unsigned long long int iTempX = iMinX; iTempX < iMaxX; iTempX++)
+    for(unsigned long long int iTempX = iMinX; iTempX < (unsigned long long int)iMaxX; iTempX++)
     {
-        unsigned long long int iLocMinY = iMinYu + (iMaxYu - iMinYu) * ((float)(iTempX - iMinX) / (float)(iMaxX - iMinX));
+        unsigned long long int iLocMinY = iMinYu + (iMaxYu - iMinYu) * (((float)iTempX - iMinX) / (float)(iMaxX - iMinX));
 		if(iLocMinY < 0)iLocMinY = 0;
 		
-        unsigned long long int iLocMaxY = iMinYo + (iMaxYo - iMinYo) * ((float)(iTempX - iMinX) / (float)(iMaxX - iMinX));
-		if(iLocMaxY > iHoehe)iLocMaxY = iHoehe;
+        unsigned long long int iLocMaxY = iMinYo + (iMaxYo - iMinYo) * (((float)iTempX - iMinX) / (float)(iMaxX - iMinX));
+		if(iLocMaxY > (unsigned long long int)iHoehe)iLocMaxY = iHoehe;
         for(unsigned long long int iTempY = iLocMinY; iTempY < iLocMaxY; iTempY++)
         {
             iStelle = iTempX + iTempY * iBreite;
             {
                 //wert = obj->OrdinateAufEbene((iTempX + iOffsetBreite)*dAufloesung, (iTempY + iOffsetHoehe)*dAufloesung, aProjektion);
 				Vektor vkt;
-				vkt.SetKoordinaten((aProjektion+1)%3, (iTempX + iOffsetBreite)*dAufloesung);
-				vkt.SetKoordinaten((aProjektion+2)%3, (iTempY + iOffsetHoehe)*dAufloesung);
+				vkt.SetKoordinaten((aProjektion+1)%3, ((float)iTempX + iOffsetBreite)*dAufloesung);
+				vkt.SetKoordinaten((aProjektion+2)%3, ((float)iTempY + iOffsetHoehe)*dAufloesung);
 				vkt.SetKoordinaten(aProjektion%3, 0);
 				if(obj->OrtAufFlaeche(vkt, aProjektion))
 				{
 					wert = vkt.GetKoordinaten(aProjektion%3);
 				}
-				if(iStelle >= iHoehe * iBreite)
+				if(iStelle >= (unsigned long long int)(iHoehe * iBreite))
 				{
 					continue;
 				}
@@ -444,6 +444,7 @@ void aruIntegral::ZeichneLinie(int p1x, int p1y, int p2x, int p2y, Flaeche* obj)
             x = p1x + dSteigung * (y - p1y);
             if((x < iBreite)&&(x >= 0))
             {
+				/*ggf. gegen OrtAufFlaeche tauschen*/
                 dIntegral[x + y * iBreite] = obj->OrdinateAufEbene((x + iOffsetBreite)*dAufloesung, (y + iOffsetHoehe)*dAufloesung, aProjektion);
             }
         }
@@ -455,6 +456,7 @@ void aruIntegral::ZeichneLinie(int p1x, int p1y, int p2x, int p2y, Flaeche* obj)
             y = p1y + dSteigung * (x - p1x);
             if((y < iHoehe)&&(y >= 0))
             {
+				/*ggf. gegen OrtAufFlaeche tauschen*/
                 dIntegral[x + y * iBreite] = obj->OrdinateAufEbene((x + iOffsetBreite)*dAufloesung, (y + iOffsetHoehe)*dAufloesung, aProjektion);
             }
         }

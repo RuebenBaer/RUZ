@@ -1603,7 +1603,6 @@ void RUZmBIFrame::GefaelleVerfolgen(Vektor vStart)
 
 void RUZmBIFrame::HoehenkarteZeichnen(void)
 {
-    clock_t tLaufzeit;
     if(aktLayer)
     {
         double minX, minY, maxX, maxY, minZ, maxZ;
@@ -1632,7 +1631,7 @@ void RUZmBIFrame::HoehenkarteZeichnen(void)
                 return;
             }
             Liste<Flaeche>* lstFl = aktLayer->HoleFlaechen();
-            tLaufzeit = clock();
+
             int iAktFlaeche = 0;
             SetStatusText(wxT("Starte Integration"), 1);
             Refresh();
@@ -1664,7 +1663,6 @@ void RUZmBIFrame::HoehenkarteZeichnen(void)
                 {
                     if(!isnan(dIntegral[i+k*iB]))
                     {
-
                         if(nochNAN)
                         {
                             maxWert = minWert = dIntegral[i+k*iB];

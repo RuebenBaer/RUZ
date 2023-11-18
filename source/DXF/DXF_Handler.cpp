@@ -26,7 +26,7 @@ double aru_strtod(char* str)
         }
         if((*str=='.')||(*str==','))
         {
-            DXF_Handler::logSchreiben("Komma gefunden\n");
+            //DXF_Handler::logSchreiben("Komma gefunden\n");
             if(iNachkomma > 0)
             {
                 return NAN;
@@ -38,7 +38,7 @@ double aru_strtod(char* str)
         {
             if(bZahlBegonnen)
             {
-                DXF_Handler::logSchreiben("Zeichen in Zahl - ABBRUCH\n");
+                //DXF_Handler::logSchreiben("Zeichen in Zahl - ABBRUCH\n");
                 return NAN;
             }
         }else
@@ -82,7 +82,7 @@ void DXF_Handler::logSchreiben(const char* msg, ...)
 /*Char_Speicher*/
 Char_Speicher::Char_Speicher(const char* str)
 {
-    strncpy(m_inhalt, str, m_char_MAX-1);
+    strcpy(m_inhalt, str);
     m_inhalt[m_char_MAX-1] = '\0';
 }
 /*ENDE Char_Speicher*/

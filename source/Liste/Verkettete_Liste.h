@@ -758,7 +758,6 @@ template<class T> void Liste<T>::ListeNachWertSortieren()
         if(maxWert < tempWert) maxWert = tempWert;
         laeufer = laeufer->GetNachfolger();
     };
-    cout<<"Werte gesetzt - Grenzen ermittelt:\nmin: "<<minWert<<" max: "<<maxWert<<endl;
     MengeInMitteTeilen(Anfang, Ende, minWert, maxWert);
     return;
 }
