@@ -1632,7 +1632,6 @@ void RUZmBIFrame::HoehenkarteZeichnen(void)
             }
             Liste<Flaeche>* lstFl = aktLayer->HoleFlaechen();
 
-            int iAktFlaeche = 0;
             SetStatusText(wxT("Starte Integration"), 1);
             Refresh();
             for(Flaeche* aktFl = lstFl->GetErstesElement(); aktFl != NULL; aktFl = lstFl->GetNaechstesElement())
@@ -1767,7 +1766,6 @@ void RUZmBIFrame::UWertMitGefaelle(void)
                 return;
             }
             Liste<Flaeche>* lstFl = aktLayer->HoleFlaechen();
-            int iAktFlaeche = 0;
             SetStatusText(wxT("Starte Integration"), 1);
             Refresh();
             for(Flaeche* aktFl = lstFl->GetErstesElement(); aktFl != NULL; aktFl = lstFl->GetNaechstesElement())
@@ -1783,7 +1781,6 @@ void RUZmBIFrame::UWertMitGefaelle(void)
             }
 
             double maxWert, minWert;
-            unsigned char aktWert;
             int iB = tempIntegral->HoleBreite();
             int iH = tempIntegral->HoleHoehe();
 
@@ -2147,7 +2144,6 @@ void RUZmBIFrame::LayerMalen(wxDC &dc, RUZ_Layer* tempLayer)
     Kreis* tempKreis;
     Liste<Strich>* strSammlung;
     Fangpunkt* tempFangpunkt;
-    int anzEcken;
 	
 	int nFntSize = dc.GetFont().GetPointSize();
 	
@@ -2359,7 +2355,6 @@ bool RUZmBIFrame::LeseAusD45(char* dateiName)
     Datei.open(dateiName, ios_base::in);
     logSchreiben("%s konnte geöffnet werden (D45)\n", dateiName);
 
-    char zeile[11];
     char x[11], y[11], z[11], pktName[8];
     Punkt* tempPkt;
     /*alles Nullen*/
@@ -2375,37 +2370,27 @@ bool RUZmBIFrame::LeseAusD45(char* dateiName)
             Datei.ignore(2);/*Eintrag 45 aus dem stream entfernen*/
 
             /*Punktname lesen*/
-            Datei.get(zeile, 8);
-            strncpy(pktName, zeile, 8);
-            pktName[7] = '\0';
+            Datei.get(pktName, 8);
 
             Datei.ignore(1);/*Leerzeichen überspringen*/
 
             /*Y-Koordinate lesen*/
-            Datei.get(zeile, 11);
-            strncpy(x, zeile, 11);
-            //y[11] = '\0';
+            Datei.get(x, 11);
 
             /*X-Koordinate lesen*/
-            Datei.get(zeile, 11);
-            strncpy(y, zeile, 11);
-            //x[11] = '\0';
+            Datei.get(y, 11);
 
             /*Z-Koordinate lesen*/
-            Datei.get(zeile, 11);
-            strncpy(z, zeile, 11);
-            //z[11] = '\0';
+            Datei.get(z, 11);
 
             while(Datei.peek()=='\n')Datei.ignore();
 
             if(aktLayer!=NULL)
             {
+				/*'/1000' wegen Umwandlung von [mm] in [m]*/
                 tempPkt = new Punkt((double)(atof(x))/1000, -(double)(atof(y))/1000, (double)(atof(z))/1000, aktLayer);
                 tempPkt->SetzeName(pktName);
             }
-            /*int ergebnis = wxMessageDialog(this, wxT(".")+wxString(pktName)+wxT(".")+wxT("\n")+wxT(".")+wxString(x)+wxT(".")
-                                           +wxT("\n")+wxT(".")+wxString(y)+wxT(".")+wxT("\n")+wxT(".")+wxString(z)+wxT("."), wxT("aktPkt"), wxOK|wxCANCEL).ShowModal();
-            if(ergebnis == wxID_CANCEL) return 0;*/
         }
     }
     return 1;
@@ -2435,20 +2420,17 @@ bool RUZmBIFrame::LeseAusD58(char* dateiName)
             Datei.ignore(23);/*Eintrag 58 bis Dreieckname aus dem stream entfernen*/
 
             /*Punkt 1 lesen*/
-            Datei.get(zeile, 8);
-            strncpy(p1, zeile, 8);
+            Datei.get(p1, 8);
 
             Datei.ignore(3);/*Drei Zeichen überspringen (in D45 sind Punktnamen nur 7 lang!!)*/
 
             /*Punkt 2 lesen*/
-            Datei.get(zeile, 8);
-            strncpy(p2, zeile, 8);
+            Datei.get(p2, 8);
 
             Datei.ignore(3);/*Drei Zeichen überspringen (in D45 sind Punktnamen nur 7 lang!!)*/
 
             /*Punkt 3 lesen*/
-            Datei.get(zeile, 8);
-            strncpy(p3, zeile, 8);
+            Datei.get(p3, 8);
 
             Datei.getline(zeile, 64, '\n');
             while(Datei.peek()=='\n')Datei.ignore();
@@ -2488,10 +2470,6 @@ bool RUZmBIFrame::LeseAusD58(char* dateiName)
                     Dreieck::NeuesDreieck(t_rand[0], t_rand[1], t_rand[2]);
                 }
             }
-
-            /*int ergebnis = wxMessageDialog(this, wxT(".")+wxString(p1)+wxT(".")+wxT("\n")+wxT(".")+wxString(p2)+wxT(".")
-                                           +wxT("\n")+wxT(".")+wxString(p3)+wxT("."), wxT("Kontrolle"), wxOK|wxCANCEL).ShowModal();
-            if(ergebnis == wxID_CANCEL) return 0;*/
         }
     }
     if(aktLayer != NULL)
@@ -3507,7 +3485,7 @@ void RUZmBIFrame::OnBearbeitungsBefehl(wxCommandEvent &event)
         aktBefehl = bef_ID_linieZeichnen;
         if(aktLayer != NULL)
         {
-            SetStatusText(wxT("Linien zeichnen auf Layer ") + wxString::FromUTF8(aktLayer->HoleName()), 2);
+            SetStatusText(wxT("Linien zeichnen auf Layer ") + wxString(aktLayer->HoleName()), 2);
         }
         KoordinatenMaske->Show();
         m_auswahl->ListeLeeren("");
@@ -3524,7 +3502,7 @@ void RUZmBIFrame::OnBearbeitungsBefehl(wxCommandEvent &event)
         m_markierModus = true;
         if(aktLayer != NULL)
         {
-            SetStatusText(wxT("Parallelen zeichnen auf Layer") + wxString::FromUTF8(aktLayer->HoleName()), 2);
+            SetStatusText(wxT("Parallelen zeichnen auf Layer") + wxString(aktLayer->HoleName()), 2);
         }
         m_auswahl->ListeLeeren("");
         break;
@@ -3539,7 +3517,7 @@ void RUZmBIFrame::OnBearbeitungsBefehl(wxCommandEvent &event)
         aktBefehl = bef_ID_linieExtrudieren;
         if(aktLayer != NULL)
         {
-            SetStatusText(wxT("Linie extrudieren auf Layer") + wxString::FromUTF8(aktLayer->HoleName()), 2);
+            SetStatusText(wxT("Linie extrudieren auf Layer") + wxString(aktLayer->HoleName()), 2);
         }
         m_auswahl->ListeLeeren("");
         break;
@@ -4225,8 +4203,8 @@ void RUZmBIFrame::OnLayerinhaltAnzeigen(wxCommandEvent &event)
         int anzHP = aktLayer->HoleHoehenMarken()->GetListenGroesse();
         int anzGM = aktLayer->HoleGefaelleMarken()->GetListenGroesse();
         wxMessageDialog(this, wxString::FromUTF8(aktLayer->HoleName()) +
-                            wxString::FromUTF8(wxString::Format(" enthält: \n%d Punkt(e)\n%d Linie(n)\n%d Kreis(e)\n%d Fangpunkt(e)\n%d Dreieck(e)\n%d Viereck(e)\n%d Höhenmarke(n)\n%d Gefällemarke(n)",
-                                             anzPkt, anzLn, anzKr, anzFP, anzDrk, anzVrk, anzHP, anzGM))).ShowModal();
+                            wxString::Format(" enthält: \n%d Punkt(e)\n%d Linie(n)\n%d Kreis(e)\n%d Fangpunkt(e)\n%d Dreieck(e)\n%d Viereck(e)\n%d Höhenmarke(n)\n%d Gefällemarke(n)",
+                                             anzPkt, anzLn, anzKr, anzFP, anzDrk, anzVrk, anzHP, anzGM)).ShowModal();
     }
     return;
 }
@@ -4258,8 +4236,16 @@ void RUZmBIFrame::OnLayerKopieren(wxCommandEvent &event)
     if(sel_Layer)
     {
         char layerName[256];
+		const char *copyName;
         strcpy(layerName, "Cc_");
-        strncat(layerName, sel_Layer->HoleName(), 253);
+		copyName = sel_Layer->HoleName();
+		for(int i = 3; i < 256; i++)
+		{
+			layerName[i] = copyName[i-3];
+			if(copyName[i-3] == '\0')
+				break;
+		}
+        //strncat(layerName, sel_Layer->HoleName(), 253);
         LayerKopieren(sel_Layer, layerName);
     }
     return;
@@ -5843,7 +5829,7 @@ void RUZmBIFrame::OnPaint(wxPaintEvent &event)
 
     if(aktLayer)
     {
-        SetStatusText(wxT("Aktiver Layer: " + wxString::FromUTF8(aktLayer->HoleName())));
+        SetStatusText(wxT("Aktiver Layer: " + wxString(aktLayer->HoleName())));
         if(m_zeigeFlaeche)aktLayer->FlaechenAktualisieren(hlAnzeigen);
     }else{
         SetStatusText("Kein aktiver Layer");
@@ -6748,7 +6734,6 @@ void RUZmBIFrame::OnVolumenZwischenLayern(wxCommandEvent &event)
     }
 
     /*Volumen ermitteln*/
-    clock_t tLaufzeit;
 
     double dAuftrag, dAbtrag, dOffsetNeu, dOffsetUr;
     dAuftrag = dAbtrag = 0.0;
@@ -6832,7 +6817,6 @@ void RUZmBIFrame::OnVolumenZwischenLayern(wxCommandEvent &event)
             }
 
             Liste<Flaeche>* lstFl = zweiter_Layer->HoleFlaechen();
-            int iAktFlaeche = 0;
             for(Flaeche* aktFl = lstFl->GetErstesElement(); aktFl != NULL; aktFl = lstFl->GetNaechstesElement())
             {
                 if(aktFl->HoleTyp() == RUZ_Dreieck)
@@ -6872,8 +6856,6 @@ void RUZmBIFrame::OnVolumenZwischenLayern(wxCommandEvent &event)
             }
 
             lstFl = erster_Layer->HoleFlaechen();
-            tLaufzeit = clock();
-            iAktFlaeche = 0;
             for(Flaeche* aktFl = lstFl->GetErstesElement(); aktFl != NULL; aktFl = lstFl->GetNaechstesElement())
             {
                 if(aktFl->HoleTyp() == RUZ_Dreieck)
@@ -7033,8 +7015,6 @@ void RUZmBIFrame::OnVolumenZwischenLayern(wxCommandEvent &event)
     Liste<Flaeche> *flLst1 = erster_Layer->HoleFlaechen();
     Liste<Flaeche> *flLst2 = zweiter_Layer->HoleFlaechen();
 
-	Liste<Punkt> *pktLst1 = erster_Layer->HolePunkte();
-	Liste<Punkt> *pktLst2 = zweiter_Layer->HolePunkte();
     Vektor swPkt;
     double vergleichsHoehe;
 
@@ -9009,9 +8989,11 @@ DXF_Import_Auswahl_Dialog::DXF_Import_Auswahl_Dialog(wxWindow* parent, Liste<Cha
     wxString layerArray[listenGroesse];
     if(!listenGroesse)wxMessageDialog(this, wxT("Liste Leer")).ShowModal();
     int i = 0;
+	std::cout<<"Umwandlung von char* nach wxString::FromUTF8\n";
     for(Listenelement<Char_Speicher> *char_LE_Laeufer = layerLst->GetErstesListenelement(); char_LE_Laeufer != NULL; char_LE_Laeufer = char_LE_Laeufer->GetNachfolger())
     {
-        layerArray[i] = wxString::FromUTF8(char_LE_Laeufer->GetElement()->HoleInhalt());
+        layerArray[i] = wxString(char_LE_Laeufer->GetElement()->HoleInhalt());
+		std::cout<<char_LE_Laeufer->GetElement()->HoleInhalt()<<" <=> "<<layerArray[i]<<"\n";
         i++;
     }
     //layerLst->ListeLoeschen("");
@@ -9044,11 +9026,13 @@ void DXF_Import_Auswahl_Dialog::OnOKButton(wxCommandEvent &event)
 {
     m_layerLst->ListeLoeschen("");
     unsigned int listenGroesse = layerListBox->GetCount();
+	std::cout<<"nach Layerauswahl:\n";
     for(unsigned int i = 0; i < listenGroesse; i++)
     {
         if(layerListBox->IsSelected(i))
         {
             Char_Speicher *tempChar = new Char_Speicher(layerListBox->GetString(i).mb_str());
+			std::cout<<tempChar->HoleInhalt()<<"\n";
             //wxMessageDialog(this, wxString(tempChar->HoleInhalt())).ShowModal();
             m_layerLst->Hinzufuegen(tempChar);
         }
@@ -9307,7 +9291,7 @@ Layer_Auswahl_Dialog::Layer_Auswahl_Dialog(wxWindow* parent, Liste<RUZ_Layer> *l
         for(RUZ_Layer* laeufer_Layer = m_layerLst->GetErstesElement(); laeufer_Layer != NULL; laeufer_Layer = m_layerLst->GetNaechstesElement())
         {
             wxListItem neuesListItem;
-            neuesListItem.SetText(wxString::FromUTF8(laeufer_Layer->HoleName()));
+            neuesListItem.SetText(wxString(laeufer_Layer->HoleName()));
             neuesListItem.SetId(itemID);
             m_layerLst->Wert(laeufer_Layer, itemID);
             layerLst->Wert(laeufer_Layer, itemID);
