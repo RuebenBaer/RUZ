@@ -464,6 +464,11 @@ void aruIntegral::ZeichneLinie(int p1x, int p1y, int p2x, int p2y, Flaeche* obj)
     return;
 }
 
+void aruIntegral::ZeichneLinie(int p1x, int p1y, int p2x, int p2y, int p1z, int p2z)
+{
+	return;
+}
+
 void aruIntegral::IntegralNullen(void)
 {
     for(int i = 0; i < iBreite * iHoehe; i ++)

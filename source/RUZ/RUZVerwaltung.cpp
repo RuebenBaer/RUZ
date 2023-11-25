@@ -538,10 +538,10 @@ void RUZ_Layer::ViereckeFinden(void)
         vergleichLinie[1]->SetzeKantenklasse(BE);
         vergleichLinie[2]->SetzeKantenklasse(BE);
         vergleichLinie[3]->SetzeKantenklasse(BE);
-        Viereck* tempViereck = NULL;
+
         if((anliegerFlaeche[0]->HoleTyp() == RUZ_Dreieck)&&(anliegerFlaeche[1]->HoleTyp() == RUZ_Dreieck))
         {
-            tempViereck = Viereck::NeuesViereck((Dreieck*)anliegerFlaeche[0], (Dreieck*)anliegerFlaeche[1]);
+            Viereck::NeuesViereck((Dreieck*)anliegerFlaeche[0], (Dreieck*)anliegerFlaeche[1]);
         }else{
             continue;
         }
