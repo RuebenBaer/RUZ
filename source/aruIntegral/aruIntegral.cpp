@@ -393,6 +393,9 @@ void aruIntegral::ZeichneTrapezSenkrecht(int iMinX, int iMaxX, int iMinYu, int i
 				if(obj->OrtAufFlaeche(vkt, aProjektion))
 				{
 					wert = vkt.GetKoordinaten(aProjektion%3);
+				}else
+				{
+					continue;
 				}
 				if(iStelle >= (unsigned long long int)(iHoehe * iBreite))
 				{
