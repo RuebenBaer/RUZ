@@ -281,7 +281,7 @@ public:
     virtual RUZ_Objekt* IstInnerhalb(double, double, Achse) = 0;
     virtual RUZ_Objekt* IstInnerhalb(Punkt*) = 0;
     virtual RUZ_Objekt* IstInnerhalb(Vektor) = 0;
-    virtual bool OrtAufFlaeche(Vektor&, Achse) = 0;
+    virtual bool OrtAufFlaeche(Vektor& vkt, Achse achse, bool innenPruefung = 1) = 0;
     virtual bool Gefaelle(Vektor& vOrt, Vektor& vGefaelle, Achse aProjRichtung) = 0;
     virtual void Teilen(Punkt*, Achse, bool) = 0;
     virtual void ZwangsTeilung(Punkt*) = 0;
@@ -337,10 +337,10 @@ public:
     virtual double FlaechenInhalt(Achse);
     virtual double Volumen(Achse);
     virtual double Seitenverhaeltnis(void);
-    virtual RUZ_Objekt* IstInnerhalb(double, double, Achse);
+    virtual RUZ_Objekt* IstInnerhalb(double x, double y, Achse a);
     virtual RUZ_Objekt* IstInnerhalb(Punkt*);
     virtual RUZ_Objekt* IstInnerhalb(Vektor);
-    virtual bool OrtAufFlaeche(Vektor&, Achse);
+    virtual bool OrtAufFlaeche(Vektor& vkt, Achse achse, bool innenPruefung = 1);
     virtual bool Gefaelle(Vektor&, Vektor&, Achse);
     virtual void Teilen(Punkt*, Achse, bool);
     virtual void ZwangsTeilung(Punkt*);
@@ -393,7 +393,7 @@ public:
     virtual RUZ_Objekt* IstInnerhalb(double, double, Achse);
     virtual RUZ_Objekt* IstInnerhalb(Punkt *pkt){return NULL;};
     virtual RUZ_Objekt* IstInnerhalb(Vektor pkt){return NULL;};
-    virtual bool OrtAufFlaeche(Vektor&, Achse = z);
+    virtual bool OrtAufFlaeche(Vektor& vkt, Achse achse = z, bool innenPruefung = 1);
     virtual bool Gefaelle(Vektor&, Vektor&, Achse);
     void HoleNormale(Vektor&, Vektor&, Achse);
     virtual bool OrdinateAufEbene(Punkt*, Achse);

@@ -1919,14 +1919,17 @@ bool Dreieck::Gefaelle(Vektor& punktQ, Vektor& v_gefaelle, Achse prjRichtung)
     return true;
 }
 
-bool Dreieck::OrtAufFlaeche(Vektor& punktQ, Achse prjRichtung)
+bool Dreieck::OrtAufFlaeche(Vektor& punktQ, Achse prjRichtung, bool innenPruefung)
 {
     int x, y, z;
     x = (prjRichtung+1)%3;
     y = (prjRichtung+2)%3;
     z = (prjRichtung+3)%3;
 
-    if(!(IstInnerhalb(punktQ.GetKoordinaten(x), punktQ.GetKoordinaten(y), prjRichtung)))return false;
+    if(innenPruefung)
+	{
+		if(!(IstInnerhalb(punktQ.GetKoordinaten(x), punktQ.GetKoordinaten(y), prjRichtung)))return false;
+	}
 
     double qx, qy, ax, ay, bx, by, cx, cy;
     qx = punktQ.GetKoordinaten(x);
@@ -2780,11 +2783,14 @@ void Viereck::HoleNormale(Vektor& punktQ, Vektor& vNormale, Achse prjRichtung)
     return;
 }
 
-bool Viereck::OrtAufFlaeche(Vektor& punktQ, Achse prjRichtung)
+bool Viereck::OrtAufFlaeche(Vektor& punktQ, Achse prjRichtung, bool innenPruefung)
 {
     int z = (prjRichtung+3)%3;
 
-    if(!(IstInnerhalb(punktQ.GetKoordinaten(x), punktQ.GetKoordinaten(y), prjRichtung)))return false;
+	if(innenPruefung)
+	{
+		if(!(IstInnerhalb(punktQ.GetKoordinaten(x), punktQ.GetKoordinaten(y), prjRichtung)))return false;
+	}
 
     Vektor punktQ2 = punktQ + Vektor((z==0), (z==1), (z==2));
     Vektor vErgebnis1, vErgebnis2;

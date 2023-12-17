@@ -11,10 +11,10 @@ aruIntegral::aruIntegral(double *Integral, double dStartX, double dStartY, doubl
     aProjektion = Projektion;
     if(dAufloesung)
     {
-        iBreite = (dEndeX - dStartX)  / dAufloesung;
-        iHoehe = (dEndeY - dStartY)  / dAufloesung;
-        iOffsetBreite = dStartX / dAufloesung;
-        iOffsetHoehe = dStartY / dAufloesung;
+        iBreite = (dEndeX - dStartX)  / dAufloesung + 0.5;
+        iHoehe = (dEndeY - dStartY)  / dAufloesung + 0.5;
+        iOffsetBreite = dStartX / dAufloesung + 0.5;
+        iOffsetHoehe = dStartY / dAufloesung + 0.5;
     }else{
         iHoehe = 0;
         iBreite = 0;
@@ -67,8 +67,8 @@ void aruIntegral::IntegriereFlaeche(Dreieck *obj)
         for(int i = 0; i < 3; i++)
         {
             vOrt = obj->HolePunkt(i)->HolePosition();
-            px[i] = (int)(vOrt.GetKoordinaten((aProjektion + 1)%3) / dAufloesung) - iOffsetBreite;
-            py[i] = (int)(vOrt.GetKoordinaten((aProjektion + 2)%3) / dAufloesung) - iOffsetHoehe;
+            px[i] = (int)(vOrt.GetKoordinaten((aProjektion + 1)%3) / dAufloesung + 0.5) - iOffsetBreite;
+            py[i] = (int)(vOrt.GetKoordinaten((aProjektion + 2)%3) / dAufloesung + 0.5) - iOffsetHoehe;
         }
     }
     int iXLinks, iXMitte, iXRechts;
@@ -390,7 +390,7 @@ void aruIntegral::ZeichneTrapezSenkrecht(int iMinX, int iMaxX, int iMinYu, int i
 				vkt.SetKoordinaten((aProjektion+1)%3, ((float)iTempX + iOffsetBreite)*dAufloesung);
 				vkt.SetKoordinaten((aProjektion+2)%3, ((float)iTempY + iOffsetHoehe)*dAufloesung);
 				vkt.SetKoordinaten(aProjektion%3, 0);
-				if(obj->OrtAufFlaeche(vkt, aProjektion))
+				if(obj->OrtAufFlaeche(vkt, aProjektion, false))
 				{
 					wert = vkt.GetKoordinaten(aProjektion%3);
 				}else
