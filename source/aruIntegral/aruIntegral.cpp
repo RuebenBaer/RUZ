@@ -67,8 +67,8 @@ void aruIntegral::IntegriereFlaeche(Dreieck *obj)
         for(int i = 0; i < 3; i++)
         {
             vOrt = obj->HolePunkt(i)->HolePosition();
-            px[i] = (int)(vOrt.GetKoordinaten((aProjektion + 1)%3) / dAufloesung) - iOffsetBreite;
-            py[i] = (int)(vOrt.GetKoordinaten((aProjektion + 2)%3) / dAufloesung) - iOffsetHoehe;
+            px[i] = (int)(vOrt.GetKoordinaten((aProjektion + 1)%3) / dAufloesung + 0.5) - iOffsetBreite;
+            py[i] = (int)(vOrt.GetKoordinaten((aProjektion + 2)%3) / dAufloesung + 0.5) - iOffsetHoehe;
         }
     }
     int iXLinks, iXMitte, iXRechts;
@@ -141,8 +141,8 @@ void aruIntegral::IntegriereFlaeche(Viereck *obj)
         for(int i = 0; i < 4; i++)
         {
             vOrt = obj->HolePunkt(i)->HolePosition();
-            px[i] = (int)(vOrt.GetKoordinaten((aProjektion + 1)%3) / dAufloesung) - iOffsetBreite;
-            py[i] = (int)(vOrt.GetKoordinaten((aProjektion + 2)%3) / dAufloesung) - iOffsetHoehe;
+            px[i] = (int)(vOrt.GetKoordinaten((aProjektion + 1)%3) / dAufloesung + 0.5) - iOffsetBreite;
+            py[i] = (int)(vOrt.GetKoordinaten((aProjektion + 2)%3) / dAufloesung + 0.5) - iOffsetHoehe;
         }
     }
     int iYo[4], iYu[4], iIndex[4];
@@ -395,6 +395,7 @@ void aruIntegral::ZeichneTrapezSenkrecht(int iMinX, int iMaxX, int iMinYu, int i
 					wert = vkt.GetKoordinaten(aProjektion%3);
 				}else
 				{
+					std::cout<<"Nicht in Flaeche\n\n";
 					continue;
 				}
 				if(iStelle >= (unsigned long long int)(iHoehe * iBreite))

@@ -1926,7 +1926,14 @@ bool Dreieck::OrtAufFlaeche(Vektor& punktQ, Achse prjRichtung)
     y = (prjRichtung+2)%3;
     z = (prjRichtung+3)%3;
 
-    if(!(IstInnerhalb(punktQ.GetKoordinaten(x), punktQ.GetKoordinaten(y), prjRichtung)))return false;
+    if(!(IstInnerhalb(punktQ.GetKoordinaten(x), punktQ.GetKoordinaten(y), prjRichtung)))
+	{
+		std::cout<<"Punkt "<<punktQ.GetKoordinaten(x)<<", "<<punktQ.GetKoordinaten(y)<<"\nist nicht im Dreieck: ";
+		std::cout<<p[0]->HolePosition().x()<<", "<<p[0]->HolePosition().y()<<", "<<p[0]->HolePosition().z();
+		std::cout<<" | "<<p[1]->HolePosition().x()<<", "<<p[1]->HolePosition().y()<<", "<<p[1]->HolePosition().z();
+		std::cout<<" | "<<p[2]->HolePosition().x()<<", "<<p[2]->HolePosition().y()<<", "<<p[2]->HolePosition().z()<<"\n";
+		return false;
+	}
 
     double qx, qy, ax, ay, bx, by, cx, cy;
     qx = punktQ.GetKoordinaten(x);
@@ -2784,7 +2791,7 @@ bool Viereck::OrtAufFlaeche(Vektor& punktQ, Achse prjRichtung)
 {
     int z = (prjRichtung+3)%3;
 
-    if(!(IstInnerhalb(punktQ.GetKoordinaten(x), punktQ.GetKoordinaten(y), prjRichtung)))return false;
+    //if(!(IstInnerhalb(punktQ.GetKoordinaten(x), punktQ.GetKoordinaten(y), prjRichtung)))return false;
 
     Vektor punktQ2 = punktQ + Vektor((z==0), (z==1), (z==2));
     Vektor vErgebnis1, vErgebnis2;
