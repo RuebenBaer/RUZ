@@ -127,7 +127,7 @@ void aruIntegral::IntegriereFlaeche(Dreieck *obj)
     {
         iYunten = iYMitte;
     }
-    ZeichneGeradesDreieck(iXLinks, iYLinks, iYLinks, iXMitte, iYoben, iYunten, obj);
+	ZeichneGeradesDreieck(iXLinks, iYLinks, iYLinks, iXMitte, iYoben, iYunten, obj);
     ZeichneGeradesDreieck(iXMitte, iYoben, iYunten, iXRechts, iYRechts, iYRechts, obj);
     /*ENDE Dreieck senkrecht in der Mitte durchschneiden*/
     return;
@@ -357,7 +357,7 @@ void aruIntegral::ZeichneGeradesDreieck(int iXL, int iYLo, int iYLu, int iXR, in
     /*Trapeze zeichnen*/
     for(int i = 0; i < iAnzAbteile-1; i++)
     {
-        ZeichneTrapezSenkrecht(iX[iIndex[i]], iX[iIndex[i+1]], iYu[iIndex[i]], iYu[iIndex[i+1]], iYo[iIndex[i]], iYo[iIndex[i+1]], obj);
+        ZeichneTrapezSenkrecht(iX[iIndex[i]]-1, iX[iIndex[i+1]]+1, iYu[iIndex[i]]-1, iYu[iIndex[i+1]]-1, iYo[iIndex[i]]+1, iYo[iIndex[i+1]]+1, obj);
     }
     delete []iIndex;
     /*ENDE Trapeze zeichnen*/
@@ -390,7 +390,7 @@ void aruIntegral::ZeichneTrapezSenkrecht(int iMinX, int iMaxX, int iMinYu, int i
 				vkt.SetKoordinaten((aProjektion+1)%3, ((float)iTempX + iOffsetBreite)*dAufloesung);
 				vkt.SetKoordinaten((aProjektion+2)%3, ((float)iTempY + iOffsetHoehe)*dAufloesung);
 				vkt.SetKoordinaten(aProjektion%3, 0);
-				if(obj->OrtAufFlaeche(vkt, aProjektion, false))
+				if(obj->OrtAufFlaeche(vkt, aProjektion, true))
 				{
 					wert = vkt.GetKoordinaten(aProjektion%3);
 				}else
