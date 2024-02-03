@@ -13,6 +13,7 @@ class Matrix
        void InhaltDrehen(void);
 	public:
 	   Matrix(int,int);
+	   Matrix(const Vektor, const Vektor, const Vektor);/**3-dimensionale Matrix; Vektoren werden in die Spalten eingefuegt*/
 	   Matrix(const Matrix&);
 	   ~Matrix(void);
 	   Matrix& operator=(const Matrix&);

@@ -26,6 +26,7 @@ public:
     void Verschieben(double, double, double);/*nach rechts, vorne, oben relativ zur Kamerablickrichtung*/
     void Drehen(double, double);/*Winkelaenderung gegen die waagerechte und gegen die X-Achse*/
     Vektor Aufnahme(const Vektor& realPkt);/*Umrechnung eines dreidimensionalen Punkts in ein zweidimensionales Abbild*/
+    Vektor Aufnahme2(const Vektor& realPkt);/*Umrechnung eines dreidimensionalen Punkts in ein zweidimensionales Abbild*/
     const Vektor HoleOrt(void);
     const Vektor HoleBlickRichtung(void);
     const double HoleAbstand(void){return msAbstand;};

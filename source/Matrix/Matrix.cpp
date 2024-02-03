@@ -1,6 +1,5 @@
 #include <iostream>
 #include "Matrix.h"
-using namespace std;
 
 /*************************
 Implementierung von Matrix
@@ -12,6 +11,21 @@ Matrix::Matrix(int x_dim, int y_dim)
     tDim_y = y_dim;
     tElement = new double[tDim_x * tDim_y];
     tInvElement = new double[tDim_x * tDim_y];
+}
+
+Matrix::Matrix(const Vektor a, const Vektor b, const Vektor c)
+{
+	tDim_x = 3;
+	tDim_y = 3;
+    tElement = new double[tDim_x * tDim_y];
+    tInvElement = new double[tDim_x * tDim_y];
+
+	for(int i = 0; i < 3; i++)
+	{
+		tElement[i * tDim_y + 0] = a.GetKoordinaten(i);
+		tElement[i * tDim_y + 1] = b.GetKoordinaten(i);
+		tElement[i * tDim_y + 2] = c.GetKoordinaten(i);
+	}
 }
 
 Matrix::Matrix(const Matrix& Vorlage)
@@ -53,7 +67,7 @@ Matrix Matrix::operator*(const Matrix& MultMatr)
     Matrix Rueckgabe = Matrix(tDim_x, MultMatr.Dimension(1));
     if(MultMatr.Dimension(0)!=tDim_y)
     {
-        cerr<<"Dimensionen Stimmen nicht! Keine Multiplikation moeglich.";
+        std::cerr<<"Dimensionen Stimmen nicht! Keine Multiplikation moeglich.";
         return Rueckgabe;
     }
 
@@ -81,10 +95,18 @@ Matrix Matrix::operator*(const Matrix& MultMatr)
     return Rueckgabe;
 }
 
-Vektor Matrix::operator*(const Vektor&)
+Vektor Matrix::operator*(const Vektor& vkt)
 {
-    /*TODO: Hier muss noch was implementiert werden!!!*/
-    return Vektor(0, 0, 0);
+	Vektor vRueck(0, 0, 0);
+	if((tDim_x != 3) || (tDim_y != 3))return vRueck;
+    
+	for(int i = 0; i < 3; i++)
+	{
+		vRueck.SetKoordinaten(i, vkt.x() *  tElement[i * tDim_y + 0] +
+								vkt.y() *  tElement[i * tDim_y + 1] +
+								vkt.z() *  tElement[i * tDim_y + 2]);
+	}
+    return vRueck;
 }
 
 double Matrix::wert(int Reihe, int Spalte)const
@@ -222,12 +244,12 @@ void Matrix::printScreen(void)const
 {
     for(int Reihe=0; Reihe<tDim_x; Reihe++)
     {
-        cout<<endl;
+        std::cout<<std::endl;
         for(int Spalte=0; Spalte<tDim_y; Spalte++)
         {
-            cout<<tElement[Reihe * tDim_y + Spalte]<<" ";
+            std::cout<<tElement[Reihe * tDim_y + Spalte]<<" ";
         }
     }
-    cout<<endl;
+    std::cout<<std::endl;
     return;
 }

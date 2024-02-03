@@ -1,5 +1,7 @@
 #include "Kamera_3D.h"
+#include "..\Matrix\Matrix.h"
 #include "..\Vektor\Vektor.h"
+#include <iostream>
 
 Kamera::Kamera(Vektor& v_Standpunkt, double v_hoehenwinkel, double v_seitenwinkel, double v_FOV, double v_Abstand)
 {
@@ -88,6 +90,19 @@ Vektor Kamera::Aufnahme(const Vektor& realPkt)
     zRueck = delta_n0.x() * detcx + delta_n0.y() * detcy + delta_n0.z() * detcz;
 
     return(Vektor(xRueck/gDet, yRueck/gDet, zRueck/gDet));
+}
+
+Vektor Kamera::Aufnahme2(const Vektor& realPkt)
+{
+    Vektor sehStrahl = sPkt;
+    sehStrahl = sehStrahl - realPkt;
+	
+	Matrix sysM(r0, h0, sehStrahl);
+
+	if(!sysM.MInverse())return(Vektor(0, 0, -1));
+
+	Vektor rueck = sysM * n0 * (-1.0);
+    return(rueck);
 }
 
 const Vektor Kamera::HoleOrt(void)
