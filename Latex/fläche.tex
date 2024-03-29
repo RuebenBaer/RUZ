@@ -1,0 +1,326 @@
+\section{Flächen}
+Flächen unterteilen sich in Dreiecke und Vierecke. Vierecke müssen konvex angelegt sein, damit die zugrundeliegenden Berechnungen zu vorhersehbaren Ergebnissen führen.
+
+\subsection{Flächengleichungen}
+\subsubsection{Dreieck}Ein Dreieck $(\vec{D})$ entspricht einer Ebene, definiert durch die drei Eckpunkt $\vec{p}_{0}$, $\vec{p}_{1}$ und $\vec{p}_{2}$. Das Dreieck ist die Menge aller  Punkte $\vec{q}$, die folgender Gleichung genügen:
+\begin{equation*}
+	\vec{q}=\vec{p}_{0} + \lambda (\vec{p}_{1} - \vec{p}_{0}) + \mu (\vec{p}_{2} - \vec{p}_{0});
+\end{equation*}
+Die Wahl des Startpunktes erfolgt dabei beliebig. Zur Verkürzung der Schreibweise setzen wir $\vec{p}_{1} - \vec{p}_{0} = \vec{p}_{10}$ und $\vec{p}_{2} - \vec{p}_{0} = \vec{p}_{20}$:
+\begin{equation}
+	\label{GleichungDreieck}
+	\boxed{ \vec{q}=\vec{p}_{0} + \lambda \cdot \vec{p}_{10} + \mu \cdot \vec{p}_{20} } \quad \lambda \in [0;1]; \mu \in [0;(1-\lambda)]
+\end{equation}
+
+\subsubsection{Viereck}Ein Viereck ($\vec{V}$) wird als hyperboles Paraboloid modelliert. Alle Punkte $\vec{q}$ der Fläche liegen auf der Verbindunglinie zweier Punkte auf sich gegenüberliegenden Seiten des Vierecks, die zum jeweiligen Anfangspunkt den gleichen relativen Abstand $(\lambda \, bzw.\, \mu)$ haben. \cref{SkizzeHyperbolesParaboloid} veranschaulicht dies.
+
+\begin{figure}[h]
+\centering
+\caption{Viereck: hyperboles Paraboloid}
+\label{SkizzeHyperbolesParaboloid}
+\begin{tikzpicture}
+	\coordinate (p0) at (0, 0) {};
+	\coordinate (p1) at (5, 2) {};
+	\coordinate (p2) at (3.5, 3.5){};
+	\coordinate (p3) at (-0.5, 4.5){};
+
+	\coordinate (q'l) at ($(p0)!0.32!(p1)$){};
+	\coordinate (q''l) at ($(p3)!0.32!(p2)$){};
+	\coordinate (q'm) at ($(p0)!0.54!(p3)$){};
+	\coordinate (q''m) at ($(p1)!0.54!(p2)$){};
+	\coordinate (q) at ($(q'l)!0.54!(q''l)$){};
+
+	\draw (p0) -- (p1) -- (p2) -- (p3) -- cycle;
+	\foreach \x in {0.1,0.2,...,0.9}
+		\draw[lightgray, thin] ($(p0)!\x!(p1)$) -- ($(p3)!\x!(p2)$);
+	\foreach \y in {0.1,0.2,...,0.9}
+		\draw[lightgray, thin] ($(p0)!\y!(p3)$) -- ($(p1)!\y!(p2)$);
+
+	\fill[black] (p0) circle(0.5mm);
+	\fill[black] (p1) circle (0.5mm);
+	\fill[black] (p2) circle (0.5mm);
+	\fill[black] (p3) circle (0.5mm);
+
+	\fill[red] (q'm) circle(0.5mm);
+	\fill[red] (q''m) circle (0.5mm);
+	\fill[red] (q'l) circle (0.5mm);
+	\fill[red] (q''l) circle (0.5mm);
+
+	\draw[red] (q'm) -- (q''m);
+	\draw[red] (q'l) -- (q''l);
+	\draw[red](q) circle (1mm);
+
+	\path (p0) node[anchor=north east] {$p_{0}$};
+	\path (p1) node[anchor=north west] {$p_{1}$};
+	\path (p2) node[anchor=south west] {$p_{2}$};
+	\path (p3) node[anchor=south east] {$p_{3}$};
+	\path (q'l) node[anchor=north, red] {$q'_{\lambda}$};
+	\path (q''l) node[anchor=south, red] {$q''_{\lambda}$};
+	\path (q'm) node[anchor=east, red] {$q'_{\mu}$};
+	\path (q''m) node[anchor=west, red] {$q''_{\mu}$};
+	\path (q) node[anchor= south west, red] {$q$};
+
+	\draw[thin] ($(p0)!-0.6cm!(p3)$) -- ($(p0)!-0.9cm!(p3)$) node[anchor= north]{$0$};
+	\draw[thin] ($(q'l)!-0.6cm!(q''l)$) -- ($(q'l)!-0.9cm!(q''l)$)node[anchor= north]{$\lambda$};
+	\draw[thin, -Latex] ($(p0)!-0.75cm!(p3)$) -- ($(q'l)!-0.75cm!(q''l)$);
+
+	\draw[thin] ($(p3)!-0.6cm!(p0)$) -- ($(p3)!-0.9cm!(p0)$) node[anchor= south]{$0$};
+	\draw[thin] ($(q''l)!-0.6cm!(q'l)$) -- ($(q''l)!-0.9cm!(q'l)$)node[anchor= south]{$\lambda$};
+	\draw[thin, -Latex] ($(p3)!-0.75cm!(p0)$) -- ($(q''l)!-0.75cm!(q'l)$);
+
+	\draw[thin] ($(p0)!-0.6cm!(p1)$) -- ($(p0)!-0.9cm!(p1)$) node[anchor= east]{$0$};
+	\draw[thin] ($(q'm)!-0.6cm!(q''m)$) -- ($(q'm)!-0.9cm!(q''m)$)node[anchor= east]{$\mu$};
+	\draw[thin, -Latex] ($(p0)!-0.75cm!(p1)$) -- ($(q'm)!-0.75cm!(q''m)$);
+
+	\draw[thin] ($(p1)!-0.6cm!(p0)$) -- ($(p1)!-0.9cm!(p0)$) node[anchor= west]{$0$};
+	\draw[thin] ($(q''m)!-0.6cm!(q'm)$) -- ($(q''m)!-0.9cm!(q'm)$)node[anchor= west]{$\mu$};
+	\draw[thin, -Latex] ($(p1)!-0.75cm!(p0)$) -- ($(q''m)!-0.75cm!(q'm)$);
+
+\end{tikzpicture}
+\end{figure}
+
+\begin{align*}
+	\vec{q}& = \vec{q}^{\, \prime}_{\lambda} + \mu ( \vec{q}^{\, \prime\prime}_{\lambda} - \vec{q}^{\, \prime}_{\lambda} ) \\
+	\\
+	mit&\begin{cases}\vec{q}^{\, \prime}_{\lambda} &= \vec{p}_{0} + \lambda ( \vec{p}_{1} - \vec{p}_{0} ); \\
+	\vec{q}^{\, \prime\prime}_{\lambda} &= \vec{p}_{3} + \lambda ( \vec{p}_{2} - \vec{p}_{3} );
+	\end{cases}\\
+	\\
+	=>\vec{q}&= \vec{p}_{0} + \lambda ( \vec{p}_{1} - \vec{p}_{0} ) + \mu \{ \vec{p}_{3} + \lambda ( \vec{p}_{2} - \vec{p}_{3} ) -  [\vec{p}_{0} + \lambda ( \vec{p}_{1} - \vec{p}_{0} ) ] \} 
+\end{align*}
+
+Durch Umstellen und Einsetzen der verkürzten Schreibweise $\vec{p}_{i} - \vec{p}_{k} = \vec{p}_{ik}$ ergibt sich:
+
+\begin{equation}
+	\label{GleichungViereck}
+	\boxed{ \vec{q}=\vec{p}_{0} + \lambda \cdot \vec{p}_{10} + \mu \cdot \vec{p}_{30} + \lambda\mu \cdot (\vec{p}_{01}+\vec{p}_{23})} \quad \lambda, \mu \in [0; 1]
+\end{equation}
+
+
+
+\subsection{Lage eines Punktes auf einer Fläche}
+Ist die Lage eines Punktes in zwei Dimensionen, z. B. $q_{x}$ und $q_{y}$ bekannt, kann die dritte Koordinate $q_{z}$ so ermittelt werden, dass der Punkt in einer betrachteten Fläche zu liegen kommt. Das Problem beinhaltet die drei unbekannte Größen $\lambda, \, \mu \, und \, q_{z}$. Die Flächengleichungen \cref{GleichungDreieck} und \cref{GleichungViereck} sind tatsächlich eine verkürzte Schreibweise für drei Gleichungen, für jede Raumdimension eine. Daraus lässt sich eine Gleichungssystem aufstellen, das es erlaubt die $Unbekannten$ zu ermitteln.
+\subsubsection{Punkt in Dreieck}
+Das Gleichungssystem für einen Punkt im Dreieck lautet (Unbekannte sind fett gedruckt).
+\begin{align}
+	\label{GSQD1} q_{x} &= p_{1x} + \bm{\lambda} \cdot p_{21x} + \bm{\mu} \cdot p_{31x}\\
+	\label{GSQD2} q_{y} &= p_{1y} + \bm{\lambda} \cdot p_{21y} + \bm{\mu} \cdot p_{31y} \\
+	\label{GSQD3} \bm{q_{z}} &= p_{1z} + \bm{\lambda} \cdot p_{21z} + \bm{\mu} \cdot p_{31z}
+\end{align}
+Die Gleichungen \ref{GSQD1} und \ref{GSQD2} sind unabhängig von $q_{z}$
+\begin{align}
+	\label{GleiSysDreieck1}
+	\Rightarrow &\myvec{p_{21x} & p_{31x} \\ p_{21y} & p_{31y}} \cdot \myvec{\lambda \\ \mu} = \myvec{qp_{1x} \\ qp_{1y}} \\ \nonumber \\
+	\nonumber & \text{wobei } \vec{qp}_{1} = \vec{q} - \vec{p}_{1}.
+\end{align}
+
+Durch Lösen der \cref{GleiSysDreieck1} ergeben sich die Flächenparameter $\lambda_{q}$ und  $\mu_{q}$ bei Punkt $q$.
+\begin{align}
+	\label{lambdaqD}
+	\lambda_{q} &= \frac{qp_{1y} \cdot p_{31x} - qp_{1x} \cdot p_{31y}}{p_{21y} \cdot p_{31x} - p_{21x} \cdot p_{31y}}\\
+	\nonumber \\
+	\label{muqD}
+	\mu_{q} &= \frac{qp_{1y} \cdot p_{21x} - qp_{1x} \cdot p_{21y}}{p_{31y} \cdot p_{21x} - p_{31x} \cdot p_{21y}}
+\end{align}
+Einsetzen von \cref{lambdaqD} und \cref{muqD} in \cref{GSQD3} liefert die Lösung für $q_{z}$.
+\begin{equation}
+	\boxed{
+		q_{z} = p_{1z} + \lambda_{q} \cdot p_{21z} + \mu_{q} \cdot p_{31z}
+	}
+\end{equation}
+\subsubsection{Punkt in Viereck}
+
+
+
+\subsection{Gefälle}
+Das Gefälle einer Ebene $\vec{E}$ definiert sich als Höhenänderung bezogen auf eine Grundlänge. Dies impliziert, dass ein Gefälle nur mit Bezug auf eine Grundebene definiert werden kann, in pratischer Anwendung ist dies üblicherweise die Horizontale, d. h. die Bezugsebene, deren normierte Flächennormale mit der z-Achse übereinstimmt. Der Betrag des Gefälles ist weiter abhängig von der betrachteten Richtung im Grundriss. Es lässt sich durch Verschneidung der Ebene $\vec{E}$ mit der, durch die Richtung und die Flächennormale der Grundebene aufgespannten Ebene ermitteln.
+
+\subsubsection{Gefälle aus Flächennormale $\vec{n_{0}}$}
+Die Flächennormale steht senkrecht auf der Ebene $\vec{E}$; das Hauptgefälle\footnote{Das Hauptgefälle liegt rechtwinklig zu der Richtung ohne Gefälle auf einer Ebene} liegt auf der Schnittgeraden dieser Ebene $\vec{E}$ und der von der Projektionsachse und der Ebenennormalen aufgespannten Ebene. In \cref{Gefälle einer Ebene} ist dies die z-Achse; der Übersichtlichkeit halber ist diese hier nicht dargestellt.
+
+Die Flächennormale wird normiert $(\vec{n_{0}} = \frac{\vec{n}}{|n|})$, weil diese Form für viele Folgeberechnungen benötigt wird, und kann in zwei Vektoren aufgeteilt werden (siehe \cref{Gefälle einer Ebene}):
+\begin{equation*}
+	\vec{n}_{0} = \myvec{ n_{x} \\ n_{y} \\ n_{z} }
+	=\myvec{ n_{x} \\ n_{y} \\ 0 } + \myvec{ 0 \\ 0 \\ n_{z} }
+	=\vec{n}_{xy, 0} + \vec{n}_{z, 0}
+\end{equation*}
+
+\begin{figure}[h]
+\centering
+\caption{Gefälle einer Ebene}
+\label{Gefälle einer Ebene}
+\begin{tikzpicture}
+	\coordinate (A) at (0, 0) {};
+	\coordinate (B) at (1.6, -0.4) {};
+	\coordinate (C) at (1.6, -1.25) {};
+	\coordinate (D) at (1.6, 2.85) {};
+
+	%Ebene
+	\path[draw][thin] (-2.8, -0.375) -- (0.4, -2.875);
+	\path[draw][thin] (1.2, 1.625) -- (4.4, -0.875);
+	\path[draw][thin] (-2.8, -0.375) -- (1.2, 1.625);
+	\path[draw][thin] (0.4, -2.875) -- (4.4, -0.875);
+
+	%Unterbrecher für Pfeile
+	\path[draw=white] [line width = 5pt](A) to (D) ;
+	\path[draw=white] [line width = 5pt](B) to (D) ;
+
+	%Pfeile
+	\path[draw] [-Latex, line width = 1pt](A) to node[sloped, above, xslant=0.3]{$\vec{n}_{0}$} (D) ;
+	\path[draw] [-Latex, line width = 1pt](A) to node[sloped, above, xslant=-0.25]{$\vec{n}_{xy} $} (B) ;
+	\path[draw] [-Latex, line width = 1pt](A) to node[sloped, below, xslant=0.2]{$\vec{g}_{0}$} (C) ;
+	\path[draw] [-Latex, line width = 1pt](B) to node[right, yslant=-0.25, fill=white]{$\vec{n}_{z}$} (D) ;
+	\path[draw] [-Latex, line width = 1pt](B) to node[right, yslant=-0.25]{$\vec{g}_{z}$} (C) ;
+	
+	\path (-2.2, -0.6) node[xslant= -1.3, yslant=0.35]{$\vec{E}$};
+	
+	\path[draw] [line width = 0.5pt](0.08, 0.1425) to +(0.16, -0.125);
+	\path[draw] [line width = 0.5pt] (0.16, -0.125) to +(0.08, 0.1425);
+\end{tikzpicture}
+\end{figure}
+
+Wie in der Abbildung \cref{Gefälle einer Ebene} ersichtlich, ist der Gefällevektor $\vec{g}_{0}$ die Summe der Vektoren $\vec{n}_{x, y}$ und $\vec{g}_{z}$. Gleichzeitig ist das Skalarprodukt der Normalen $\vec{n}_{0}$ und des Gefällevektors $\vec{g}_{0}$ gleich Null, da die Vektoren rechtwinklig zueinander stehen - die Normale ist \emph{per definitionem} rechtwinklig zur Ebene, der Gefällevektor liegt \emph{in} der Ebene!
+
+\begin{equation}
+	\label{g0}
+	\vec{g}_{0} =  \myvec{ g_{x} \\ g_{y} \\ g_{z} } = \myvec{ n_{x} \\ n_{y} \\ g_{z} }
+\end{equation}
+ 
+\begin{equation}
+	\label{g0maln0}
+	\vec{g}_{0} \cdot \vec{n}_{0} =  n_{x} \cdot g_{x} +  n_{y} \cdot g_{y} + n_{z} \cdot  g_{z} = 0
+\end{equation}
+
+Durch Kombination von \cref{g0} und \cref{g0maln0} ergibt sich:
+
+\begin{equation}
+	\nonumber
+	n_{x} \cdot n_{x} +  n_{y} \cdot n_{y} + n_{z} \cdot  g_{z} = n_{x}^{2} + n_{y}^{2} + n_{z} \cdot g_{z} = 0
+\end{equation}
+
+\begin{align}
+	\boxed{ g_{z} = - \frac{(n_{x}^{2} + n_{y}^{2} )}{n_{z}} }
+\end{align}
+
+Der Betrag des Gefälles $g$ ist:
+\begin{align*}
+	g=\frac{ g_{z}}{ \lvert \vec{n}_{xy} \rvert }
+	=- \frac{(n_{x}^{2} + n_{y}^{2})}{n_{z}} \cdot \frac{1}{\sqrt{(n_{x}^{2} + n_{y}^{2})}}
+\end{align*}
+\begin{equation}
+	\boxed{g= - \frac{\sqrt{(n_{x}^{2} + n_{y}^{2})}}{n_{z}} }
+\end{equation}
+
+Analoges ergibt sich für Projektion entlang der x- bzw. y-Achse.
+
+\subsubsection{Normale des Dreiecks}
+Weil das Dreiecke eine Ebene darstellt, ist seine Normale in jedem Punkt $\vec{q}$ gleich. Die Normale errechnet sich aus dem Kreuzprodukt zweier voneinander linear unabhängiger Richtungsvektoren, die in der Fläche liegen. Setzt man für den ersten Richtungsvektor $\vec{r}_{0}$ $\lambda = 1$ und $\mu = 0$ und für den zweiten Vektor $\vec{r}_{1}$ $\lambda = 0$ und $\mu = 1$ erhält man zwei Gleichungen:
+\begin{align*}
+	\vec{r}_{0} &=  \vec{p}_{10} \\
+	\vec{r}_{1} &=  \vec{p}_{20}
+\end{align*}
+Daraus kann direkt die Normale errechnet werden:
+\begin{equation}
+	\boxed{
+		\vec{n} = \vec{r}_{0} \times \vec{r}_{1} = \vec{p}_{10} \times \vec{p}_{20}
+	}
+\end{equation}
+
+\subsubsection{Normale eines Vierecks}
+Das Gefälle des Vierecks ist im allgemeinen nicht konstant über die Fläche hinweg. Entlang der "Gitterlinien" eines hyperbolen Paraboloids jedoch, bei denen je einer der Flächenparameter $\lambda$ oder $\mu$ konstant ist, ist auch das Gefälle konstant. Bei gegebenem $\lambda$ und $\mu$ ergibt sich die Flächennormale im Punkt $\vec{q}$ aus dem Kreuzprodukt der Richtungsvektoren $\vec{r}_{\lambda}$ und $\vec{r}_{\mu}$, wie aus \cref{SkizzeNormaleViereck} ersichtlich.
+
+\begin{figure}[h]
+\centering
+\caption{Flächennormale des Vierecks im Punkt $\vec{q}$}
+\label{SkizzeNormaleViereck}
+\begin{tikzpicture}
+	\coordinate (p0) at (0, 0) {};
+	\coordinate (p1) at (5, 2) {};
+	\coordinate (p2) at (3.5, 3.5){};
+	\coordinate (p3) at (-0.5, 4.5){};
+
+	\coordinate (q'l) at ($(p0)!0.32!(p1)$){};
+	\coordinate (q''l) at ($(p3)!0.32!(p2)$){};
+	\coordinate (q'm) at ($(p0)!0.4!(p3)$){};
+	\coordinate (q''m) at ($(p1)!0.4!(p2)$){};
+	\coordinate (q) at ($(q'l)!0.4!(q''l)$){};
+
+	\draw (p0) -- (p1) -- (p2) -- (p3) -- cycle;
+
+	\fill[black] (p0) circle(0.5mm);
+	\fill[black] (p1) circle (0.5mm);
+	\fill[black] (p2) circle (0.5mm);
+	\fill[black] (p3) circle (0.5mm);
+
+	\fill[black] (q'm) circle(0.5mm);
+	\fill[black] (q''m) circle (0.5mm);
+	\fill[black] (q'l) circle (0.5mm);
+	\fill[black] (q''l) circle (0.5mm);
+
+	\draw[thick, -Latex] (q'm) -- node[anchor=south]{$\vec{r}_{\mu}$} (q''m);
+	\draw[thick, -Latex] (q'l) -- (q''l);
+	\draw[thin] (q) -- node[anchor=east]{$\vec{r}_{\lambda}$} (q''l);
+	\fill[black] (q) circle (0.5mm);
+
+	\path (p0) node[anchor=north east] {$p_{0}$};
+	\path (p1) node[anchor=north west] {$p_{1}$};
+	\path (p2) node[anchor=south west] {$p_{2}$};
+	\path (p3) node[anchor=south east] {$p_{3}$};
+	\path (q'l) node[anchor=north] {$q'_{\lambda}$};
+	\path (q''l) node[anchor=south] {$q''_{\lambda}$};
+	\path (q'm) node[anchor=east] {$q'_{\mu}$};
+	\path (q''m) node[anchor=west] {$q''_{\mu}$};
+	\path (q) node[anchor= north east] {$q$};
+
+	%Vermassungen mü und lambda
+	\draw[thin] ($(p0)!-0.6cm!(p3)$) -- ($(p0)!-0.9cm!(p3)$) node[anchor= north]{$0$};
+	\draw[thin] ($(q'l)!-0.6cm!(q''l)$) -- ($(q'l)!-0.9cm!(q''l)$)node[anchor= north]{$\lambda$};
+	\draw[thin, ->] ($(p0)!-0.75cm!(p3)$) -- ($(q'l)!-0.75cm!(q''l)$);
+
+	\draw[thin] ($(p3)!-0.6cm!(p0)$) -- ($(p3)!-0.9cm!(p0)$) node[anchor= south]{$0$};
+	\draw[thin] ($(q''l)!-0.6cm!(q'l)$) -- ($(q''l)!-0.9cm!(q'l)$)node[anchor= south]{$\lambda$};
+	\draw[thin, ->] ($(p3)!-0.75cm!(p0)$) -- ($(q''l)!-0.75cm!(q'l)$);
+
+	\draw[thin] ($(p0)!-0.6cm!(p1)$) -- ($(p0)!-0.9cm!(p1)$) node[anchor= east]{$0$};
+	\draw[thin] ($(q'm)!-0.6cm!(q''m)$) -- ($(q'm)!-0.9cm!(q''m)$)node[anchor= east]{$\mu$};
+	\draw[thin, ->] ($(p0)!-0.75cm!(p1)$) -- ($(q'm)!-0.75cm!(q''m)$);
+
+	\draw[thin] ($(p1)!-0.6cm!(p0)$) -- ($(p1)!-0.9cm!(p0)$) node[anchor= west]{$0$};
+	\draw[thin] ($(q''m)!-0.6cm!(q'm)$) -- ($(q''m)!-0.9cm!(q'm)$)node[anchor= west]{$\mu$};
+	\draw[thin, ->] ($(p1)!-0.75cm!(p0)$) -- ($(q''m)!-0.75cm!(q'm)$);
+
+	%Normale
+	\coordinate (nSpitze) at ($(q) +(1.6, 3)$);
+	\coordinate (hn) at ($(q)!0.3cm!(nSpitze)$) {};
+	\coordinate (hl) at  ($(q)!0.3cm!(q'l)$){};
+	\coordinate (hm) at ($(q)!0.3cm!(q'm)$) {};
+
+	\coordinate (hilfspkt) at ($(hl) +(1.6, 3)$);
+	\coordinate (hlo) at  ($(hl)!0.3cm!(hilfspkt)$){};
+	\draw[white, line width=3pt] (hn) -- (hlo);
+	\draw[thin] (hn) -- (hlo);
+	\draw[thin] (hl) -- (hlo);
+
+	\coordinate (hilfspkt) at ($(hm) +(1.6, 3)$);
+	\coordinate (hmo) at  ($(hm)!0.3cm!(hilfspkt)$){};
+	\draw[white, line width=3pt] (hn) -- (hmo);
+	\draw[thin] (hn) -- (hmo);
+	\draw[thin] (hm) -- (hmo);
+
+	\draw[thick, -Latex] (q) -- node[sloped, anchor=south, xslant=0.533, fill=white]{$\vec{n}$} (nSpitze);
+\end{tikzpicture}
+\end{figure}
+
+\begin{align*}
+	\vec{n} &= \vec{r}_{\lambda} \times \vec{r}_{\mu}\\
+	mit &\begin{cases}
+	\vec{r}_{\lambda} &= \vec{q}^{\, \prime\prime}_{\lambda} - \vec{q}^{\, \prime}_{\lambda} \\
+	\vec{r}_{\mu} &= \vec{q}^{\, \prime\prime}_{\mu} - \vec{q}^{\, \prime}_{\mu}
+	\end{cases}
+\end{align*}
+Somit ergibt sich nach längerer Rechnung, mit $\vec{p}_{\varnothing} = \vec{p}_{0} - \vec{p}_{1} + \vec{p}_{2} - \vec{p}_{3}$
+\begin{equation}
+	\boxed{
+		\vec{n} = (\vec{p}_{10} + \mu \cdot \vec{p}_{\varnothing}) \times (\vec{p}_{30} + \lambda \cdot \vec{p}_{\varnothing})
+	} 
+\end{equation}

@@ -37,3 +37,8 @@ Beispiele/
 *.txt
 *.log
 *.ini
+
+#Latexextensions
+*.aux
+*.gz
+*.toc

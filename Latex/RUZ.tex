@@ -1,0 +1,59 @@
+\documentclass[ngerman]{article}
+\usepackage[T1]{fontenc}
+\usepackage[ngerman]{babel}
+\usepackage{parskip} %Einrückung neuer Paragraphen verhindern
+\usepackage{booktabs}%Tabellenlinien etc.
+
+\usepackage{amssymb, amsmath}
+\newcommand{\myvec}[1]{\ensuremath{\begin{pmatrix}#1\end{pmatrix}}}
+\usepackage{bm}
+
+\usepackage{tikz}
+\usetikzlibrary {arrows.meta, calc}
+
+\usepackage{hyperref}
+\usepackage{cleveref}
+\hypersetup{hidelinks}
+
+\title{\textbf{R}echner\textbf{U}nterstütztes\textbf{Z}eichnen RUZ\\Technische Spezifikationen}
+\author{Ansgar Rütten}
+\date{09. März 2024\\Stand:\today}
+
+
+\begin{document}
+\maketitle
+\newpage
+\tableofcontents
+\newpage
+\section{Elemente der Zeichnung}
+Zeichnungen sind in verschiedene Layer unterteilt, welche die Zeichnungsobjekte enthalten, die angezeigt, manipuliert und auf deren Grundlage Berechnungen angestellt werden können.
+
+Folgende Zeichnungsobjekte stehen derzeit zur Verfügung:
+
+\begin{tabular}{p{2cm} p{9cm}}
+	\toprule
+	Punkt:		&eindimensionaler Ort im drei-dimensionalen Raum \\
+	Linie:			&Verbindung zweier Punkte \\
+	Dreieck:		&drei-dimensionale Ebene, umgrenzt von drei Linien \\
+	Viereck:		&hyperboles Paraboloid, definiert und umgrenzt von 4 Linien \\
+	\midrule
+	\multicolumn{2}{l}{Zeichnerische Hilfsobjekte} \\
+	\midrule
+	Kreis:			&zwei-dimensionaler Kreis mit Mittelpunkt und Radius \\
+	Fangpunkt:		&Hilfspunkt, der zur Markierung z. B. von Schnittpunkten zweier Zeichnungsobjekte dient \\
+	Höhenmarke:	&Punkt in der Zeichnung, der die Höhe eines Zeichenobjekts an dieser Stelle anzeigt \\
+	Gefällemarke:	&Punkt in der Zeichnung, der das Gefälle einer Fläche an dieser Stelle anzeigt \\
+	Höhenlinie:		&Programmatisch erzeugt Linie, die den Verlauf der Isohypsen einer Fläche nachzeichnet, im Falle eines Vierecks näherungsweise \\
+	\midrule
+	\multicolumn{2}{l}{Elemente die z. B. der Darstellung von Hintergrundzeichnungen dienen} \\
+	\midrule
+	Strich:		&Linie, die nicht vom Benutzer erzeugt und verändert werden kann. Ein Strich kann ggf. in eine Linie umgewandelt werden, wenn Punkte in der Nähe des Anfangs und des Endes des Striches liegen. \\
+	Bogen:		&Teilkreis, der nicht vom Benutzer erzeugt und verändert werden kann. \\
+	\bottomrule
+\end{tabular}
+
+\input{punkt}
+
+\input{fläche}
+
+\end{document}

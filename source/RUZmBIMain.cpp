@@ -7062,7 +7062,7 @@ void RUZmBIFrame::OnVolumenZwischenLayern(wxCommandEvent &event)
                     aktFl1->SetzeFarbe(col_Flaeche_darunter.Red(), col_Flaeche_darunter.Green(), col_Flaeche_darunter.Blue());
                     break;
                 }else
-                if(swPkt.GetKoordinaten(aktProjZ) < vergleichsHoehe)
+                if(swPkt.GetKoordinaten(aktProjZ) <= vergleichsHoehe)
                 {
                     dAbtrag += volumen;
 					PrismaSchreiben(prismaAltDrueber, aktFl1, flaeche, volumen);
@@ -7089,7 +7089,7 @@ void RUZmBIFrame::OnVolumenZwischenLayern(wxCommandEvent &event)
                     aktFl2->SetzeFarbe(col_Flaeche_darunter.Red(), col_Flaeche_darunter.Green(), col_Flaeche_darunter.Blue());
                     break;
                 }else
-                if(swPkt.GetKoordinaten(aktProjZ) < vergleichsHoehe)
+                if(swPkt.GetKoordinaten(aktProjZ) <= vergleichsHoehe)
                 {
                     dAuftrag += aktFl2->Volumen(aktProjZ);
 					PrismaSchreiben(prismaNeuDrueber, aktFl2, flaeche, volumen);
