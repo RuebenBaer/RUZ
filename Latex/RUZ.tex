@@ -1,4 +1,4 @@
-\documentclass[ngerman]{article}
+\documentclass[ngerman]{report}
 \usepackage[T1]{fontenc}
 \usepackage[ngerman]{babel}
 \usepackage{parskip} %Einrückung neuer Paragraphen verhindern
@@ -25,7 +25,7 @@
 \newpage
 \tableofcontents
 \newpage
-\section{Elemente der Zeichnung}
+\chapter{Elemente der Zeichnung}
 Zeichnungen sind in verschiedene Layer unterteilt, welche die Zeichnungsobjekte enthalten, die angezeigt, manipuliert und auf deren Grundlage Berechnungen angestellt werden können.
 
 Folgende Zeichnungsobjekte stehen derzeit zur Verfügung:
@@ -52,8 +52,12 @@ Folgende Zeichnungsobjekte stehen derzeit zur Verfügung:
 	\bottomrule
 \end{tabular}
 
-\input{punkt}
+Punkt, Linie und Dreiecke bzw. Vierecke bauen aufeinander auf. Linien werden von Punkten, Flächen werden von Linien begrenzt. Werden begrenzende Elemente verändert, ändern sich die darauf aufbauenden Elemente mit. Eine Linie enthält (programmatisch) keine Informationen über Ihre Anfangs- und Endkoordinaten, außer über den Verweis auf die begrenzenden Punkte. Analoges gilt für die Flächen; die Eckpunkte der Flächen sind dabei nur als indirekte Verweise - über die begrenzenden Linien - Teil der Fläche.
 
-\input{fläche}
+Die Grundgleichungen und Eigenschaften der einzelnen Elemente werden im Folgenden beschrieben.
+
+\input{Grundgleichungen}
+
+
 
 \end{document}
