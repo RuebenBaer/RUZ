@@ -117,37 +117,41 @@ Durch Umstellen und Einsetzen der verkürzten Schreibweise $\vec{p}_{i} - \vec{p
 \subsection{Lage eines Punktes auf einer Fläche}
 Ist die Lage eines Punktes in zwei Dimensionen, z. B. $q_{x}$ und $q_{y}$ bekannt, kann die dritte Koordinate $q_{z}$ so ermittelt werden, dass der Punkt in einer betrachteten Fläche zu liegen kommt. Das Problem beinhaltet die drei unbekannte Größen $\lambda, \, \mu \, und \, q_{z}$. Die Flächengleichungen \cref{GleichungDreieck} und \cref{GleichungViereck} sind tatsächlich eine verkürzte Schreibweise für drei Gleichungen, für jede Raumdimension eine. Daraus lässt sich eine Gleichungssystem aufstellen, das es erlaubt die $Unbekannten$ zu ermitteln.
 \subsubsection{Punkt in Dreieck}
-Das Gleichungssystem für einen Punkt im Dreieck lautet (Unbekannte sind fett gedruckt).
+Das Gleichungssystem für einen Punkt im Dreieck lautet (Unbekannte sind fett gedruckt):
 \begin{align}
-	\label{GSQD1} q_{x} &= p_{1x} + \bm{\lambda} \cdot p_{21x} + \bm{\mu} \cdot p_{31x}\\
-	\label{GSQD2} q_{y} &= p_{1y} + \bm{\lambda} \cdot p_{21y} + \bm{\mu} \cdot p_{31y} \\
-	\label{GSQD3} \bm{q_{z}} &= p_{1z} + \bm{\lambda} \cdot p_{21z} + \bm{\mu} \cdot p_{31z}
+	\label{GSQD1} q_{x} &= p_{0x} + \bm{\lambda} \cdot p_{10x} + \bm{\mu} \cdot p_{20x}\\
+	\label{GSQD2} q_{y} &= p_{0y} + \bm{\lambda} \cdot p_{10y} + \bm{\mu} \cdot p_{20y} \\
+	\label{GSQD3} \bm{q_{z}} &= p_{0z} + \bm{\lambda} \cdot p_{10z} + \bm{\mu} \cdot p_{20z}
 \end{align}
 Die Gleichungen \ref{GSQD1} und \ref{GSQD2} sind unabhängig von $q_{z}$
 \begin{align}
 	\label{GleiSysDreieck1}
-	\Rightarrow &\myvec{p_{21x} & p_{31x} \\ p_{21y} & p_{31y}} \cdot \myvec{\lambda \\ \mu} = \myvec{qp_{1x} \\ qp_{1y}} \\ \nonumber \\
-	\nonumber & \text{wobei } \vec{qp}_{1} = \vec{q} - \vec{p}_{1}.
+	\Rightarrow &\myvec{p_{10x} & p_{20x} \\ p_{10y} & p_{20y}} \cdot \myvec{\lambda \\ \mu} = \myvec{qp_{0x} \\ qp_{0y}} \\ \nonumber \\
+	\nonumber & \text{wobei } \vec{qp}_{0} = \vec{q} - \vec{p}_{0}.
 \end{align}
 
 Durch Lösen der \cref{GleiSysDreieck1} ergeben sich die Flächenparameter $\lambda_{q}$ und  $\mu_{q}$ bei Punkt $\vec{q}$.
 \begin{align}
 	\label{lambdaqD}
-	\lambda_{q} &= \frac{p_{31x} \cdot qp_{1y} - p_{31y} \cdot qp_{1x}}{p_{31x} \cdot p_{21y} - p_{31y} \cdot p_{21x}} = \frac{(\vec{p}_{31} \times \vec{qp}_{1})_{z}}{(\vec{p}_{31} \times \vec{p}_{21})_{z}}
+	\lambda_{q} &= \frac{p_{20x} \cdot qp_{0y} - p_{20y} \cdot qp_{0x}}{p_{20x} \cdot p_{10y} - p_{20y} \cdot p_{10x}} = \frac{(\vec{p}_{20} \times \vec{qp}_{0})_{z}}{(\vec{p}_{20} \times \vec{p}_{10})_{z}}
 	\\
 	\nonumber \\
 	\label{muqD}
-	\mu_{q} &= \frac{p_{21x} \cdot qp_{1y} - p_{21y} \cdot qp_{1x}}{p_{21x} \cdot p_{31y} - p_{21y} \cdot p_{31x}}
+	\mu_{q} &= \frac{p_{10x} \cdot qp_{0y} - p_{10y} \cdot qp_{0x}}{p_{10x} \cdot p_{20y} - p_{10y} \cdot p_{20x}} = \frac{(\vec{p}_{10} \times \vec{qp}_{0})_{z}}{(\vec{p}_{10} \times \vec{p}_{20})_{z}}
 \end{align}
 Einsetzen von \cref{lambdaqD} und \cref{muqD} in \cref{GSQD3} liefert die Lösung für $q_{z}$.
 \begin{equation}
 	\boxed{
-		q_{z} = p_{1z} + \lambda_{q} \cdot p_{21z} + \mu_{q} \cdot p_{31z}
+		q_{z} = p_{0z} + \lambda_{q} \cdot p_{10z} + \mu_{q} \cdot p_{20z}
 	}
 \end{equation}
 \subsubsection{Punkt in Viereck}
-
-
+Das Gleichungssystem für einen Punkt im Viereck lautet (Unbekannte sind fett gedruckt), mit $\vec{p}_{\varnothing} = \vec{p}_{0} - \vec{p}_{1} + \vec{p}_{2} - \vec{p}_{3}$:
+\begin{align}
+	\label{GSQD1} q_{x} &= p_{0x} + \bm{\lambda} \cdot p_{10x} + \bm{\mu} \cdot p_{20x} + \bm{\lambda}\bm{\mu} \cdot p_{\varnothing x} \\
+	\label{GSQD2} q_{y} &= p_{0y} + \bm{\lambda} \cdot p_{10y} + \bm{\mu} \cdot p_{20y} + \bm{\lambda}\bm{\mu} \cdot p_{\varnothing y} \\
+	\label{GSQD3} \bm{q_{z}} &= p_{0z} + \bm{\lambda} \cdot p_{10z} + \bm{\mu} \cdot p_{20z} + \bm{\lambda}\bm{\mu} \cdot p_{\varnothing z}
+\end{align}
 
 \subsection{Gefälle}
 Das Gefälle einer Ebene $\vec{E}$ definiert sich als Höhenänderung bezogen auf eine Grundlänge. Dies impliziert, dass ein Gefälle nur mit Bezug auf eine Grundebene definiert werden kann, in pratischer Anwendung ist dies üblicherweise die Horizontale, d. h. die Bezugsebene, deren normierte Flächennormale mit der z-Achse übereinstimmt. Der Betrag des Gefälles ist weiter abhängig von der betrachteten Richtung im Grundriss. Es lässt sich durch Verschneidung der Ebene $\vec{E}$ mit der, durch die Richtung und die Flächennormale der Grundebene aufgespannten Ebene ermitteln.
