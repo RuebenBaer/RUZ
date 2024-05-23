@@ -5766,8 +5766,8 @@ void RUZmBIFrame::OnOpenFile(wxCommandEvent &event)
 void RUZmBIFrame::OnPaint(wxPaintEvent &event)
 {
     wxClientDC CL_dc(this);
-    if(CL_dc.GetSize().GetHeight() == 0)return;
-    if(CL_dc.GetSize().GetWidth() == 0)return;
+    if(CL_dc.GetSize().GetHeight() <= 0)return;
+    if(CL_dc.GetSize().GetWidth() <= 0)return;
 
     wxBufferedPaintDC dc(this);
 
@@ -6374,7 +6374,7 @@ void RUZmBIFrame::OnPaint(wxPaintEvent &event)
 	dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
 	dc.SetTextForeground(col_Pkt_Ln);
 	
-	int mbStart = dc.GetSize().GetHeight() - 10;
+	int mbStart = CL_dc.GetSize().GetHeight() - 10;
 	dc.DrawLine(10, mbStart, 10, mbStart - 5);
 	dc.DrawLine(mbSkalierung.iLaenge1 + 10, mbStart, mbSkalierung.iLaenge1 + 10, mbStart - 5);
 	dc.DrawLine(mbSkalierung.iLaenge2 + 10, mbStart, mbSkalierung.iLaenge2 + 10, mbStart - 5);
