@@ -148,9 +148,9 @@ Einsetzen von \cref{lambdaqD} und \cref{muqD} in \cref{GSQD3} liefert die Lösun
 \subsubsection{Punkt in Viereck}
 Das Gleichungssystem für einen Punkt im Viereck lautet (Unbekannte sind fett gedruckt), mit $\vec{p}_{\varnothing} = \vec{p}_{0} - \vec{p}_{1} + \vec{p}_{2} - \vec{p}_{3}$:
 \begin{align}
-	\label{GSQV1} q_{x} &= p_{0x} + \bm{\lambda} \cdot p_{10x} + \bm{\mu} \cdot p_{20x} + \bm{\lambda}\bm{\mu} \cdot p_{\varnothing x} \\
-	\label{GSQV2} q_{y} &= p_{0y} + \bm{\lambda} \cdot p_{10y} + \bm{\mu} \cdot p_{20y} + \bm{\lambda}\bm{\mu} \cdot p_{\varnothing y} \\
-	\label{GSQV3} \bm{q_{z}} &= p_{0z} + \bm{\lambda} \cdot p_{10z} + \bm{\mu} \cdot p_{20z} + \bm{\lambda}\bm{\mu} \cdot p_{\varnothing z}
+	\label{GSQV1} q_{x} &= p_{0x} + \bm{\lambda} \cdot p_{10x} + \bm{\mu} \cdot p_{30x} + \bm{\lambda}\bm{\mu} \cdot p_{\varnothing x} \\
+	\label{GSQV2} q_{y} &= p_{0y} + \bm{\lambda} \cdot p_{10y} + \bm{\mu} \cdot p_{30y} + \bm{\lambda}\bm{\mu} \cdot p_{\varnothing y} \\
+	\label{GSQV3} \bm{q_{z}} &= p_{0z} + \bm{\lambda} \cdot p_{10z} + \bm{\mu} \cdot p_{30z} + \bm{\lambda}\bm{\mu} \cdot p_{\varnothing z}
 \end{align}
 
 Auflösen von \cref{GSQV1} nach $\mu$ ergibt, mit $q-p_{0x}=qp_{0x}$:
@@ -163,8 +163,11 @@ Auflösen von \cref{GSQV1} nach $\mu$ ergibt, mit $q-p_{0x}=qp_{0x}$:
 \cref{GleichungFuerMu} wird in \cref{GSQV2} eingesetzt und die Gleichung nach $\lambda$ aufgelöst.
 
 \begin{align}
-	\nonumber 0 &=-qp_{0y}+\lambda \cdot p_{10y}+p_{30y}\frac{qp_{0x}-\lambda \cdot p_{10x}}{p_{30x}+\lambda \cdot p_{\varnothing x}} + \lambda \cdot p_{\varnothing y} \frac{qp_{0x}-\lambda \cdot p_{10x}}{p_{30x}+\lambda \cdot p_{\varnothing x}} \\
-	\nonumber \iff 0 &= (\lambda \cdot p_{10y}-qp_{0y})(\lambda \cdot p_{\varnothing x}+p_{30x})-(\lambda \cdot p_{10x}-qp_{0x})(\lambda \cdot p_{\varnothing y}+p_{30y})
+	\nonumber 0 &=&&-qp_{0y}+\lambda \cdot p_{10y}+p_{30y}\frac{qp_{0x}-\lambda \cdot p_{10x}}{p_{30x}+\lambda \cdot p_{\varnothing x}} + \lambda \cdot p_{\varnothing y} \frac{qp_{0x}-\lambda \cdot p_{10x}}{p_{30x}+\lambda \cdot p_{\varnothing x}} \\
+	\nonumber \iff 0 &=&&(\lambda \cdot p_{10y}-qp_{0y})(\lambda \cdot p_{\varnothing x}+p_{30x})-(\lambda \cdot p_{10x}-qp_{0x})(\lambda \cdot p_{\varnothing y}+p_{30y}) \\
+	\nonumber \iff 0 &=&&\lambda ^{2} \cdot (p_{10y} \cdot p_{\varnothing x} - p_{10x} \cdot p_{\varnothing y})+\\
+	\nonumber & &&\lambda \cdot (p_{10y}\cdot p_{30x}-p_{10x}\cdot p_{30y}+qp_{0x}\cdot p_{\varnothing y}-qp_{0y}\cdot p_{\varnothing x})+\\
+	\nonumber & &&qp_{0x}\cdot p_{30y}-qp_{0y}\cdot p_{30x}
 \end{align}
 
 \subsection{Gefälle}
