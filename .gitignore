@@ -10,6 +10,9 @@ Beispiele/
 *.o
 *.obj
 
+#Resource
+*.res
+
 # Precompiled Headers
 *.gch
 *.pch
@@ -30,7 +33,7 @@ Beispiele/
 *.lib
 
 # Executables
-#*.exe
+*.exe
 *.out
 *.app
 
