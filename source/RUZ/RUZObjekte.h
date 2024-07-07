@@ -366,7 +366,7 @@ class Viereck : public Flaeche /*konkave Vierecke!*/
 private:
     Linie *l[4];
     Punkt *p[4];
-    Vektor m_vA, m_vB, m_vC;
+    Vektor m_p10, m_p30, m_p0123;
     int farbe[3];
     Viereck();
     Viereck(Punkt** p1, Punkt** p2, Punkt** p3, Punkt** p4, Linie** l1, Linie** l2, Linie** l3, Linie** l4);

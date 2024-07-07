@@ -153,7 +153,7 @@ Das Gleichungssystem für einen Punkt im Viereck lautet (Unbekannte sind fett ge
 	\label{GSQV3} \bm{q_{z}} &= p_{0z} + \bm{\lambda} \cdot p_{10z} + \bm{\mu} \cdot p_{30z} + \bm{\lambda}\bm{\mu} \cdot p_{\varnothing z}
 \end{align}
 
-Auflösen von \cref{GSQV1} nach $\mu$ ergibt, mit $q-p_{0x}=qp_{0x}$:
+Auflösen von \cref{GSQV1} nach $\mu$ ergibt, mit $q_{x}-p_{0x}=qp_{0x}$:
 
 \begin{equation}
 	\label{GleichungFuerMu}
@@ -163,18 +163,36 @@ Auflösen von \cref{GSQV1} nach $\mu$ ergibt, mit $q-p_{0x}=qp_{0x}$:
 \cref{GleichungFuerMu} wird in \cref{GSQV2} eingesetzt und die Gleichung nach $\lambda$ aufgelöst.
 
 \begin{align}
-	\nonumber 0 &=&&-qp_{0y}+\lambda \cdot p_{10y}+p_{30y}\frac{qp_{0x}-\lambda \cdot p_{10x}}{p_{30x}+\lambda \cdot p_{\varnothing x}} + \lambda \cdot p_{\varnothing y} \frac{qp_{0x}-\lambda \cdot p_{10x}}{p_{30x}+\lambda \cdot p_{\varnothing x}} \\
-	\nonumber \iff 0 &=&&(\lambda \cdot p_{10y}-qp_{0y})(\lambda \cdot p_{\varnothing x}+p_{30x})-(\lambda \cdot p_{10x}-qp_{0x})(\lambda \cdot p_{\varnothing y}+p_{30y}) \\
-	\nonumber \iff 0 &=&&\lambda ^{2} \cdot (p_{10y} \cdot p_{\varnothing x} - p_{10x} \cdot p_{\varnothing y})+\\
-	\nonumber & &&\lambda \cdot (p_{10y}\cdot p_{30x}-p_{10x}\cdot p_{30y}+qp_{0x}\cdot p_{\varnothing y}-qp_{0y}\cdot p_{\varnothing x})+\\
-	\nonumber & &&qp_{0x}\cdot p_{30y}-qp_{0y}\cdot p_{30x}
+	\nonumber 0 &=&&qp_{0y}-\lambda \cdot p_{10y}-p_{30y}\frac{qp_{0x}-\lambda \cdot p_{10x}}{p_{30x}+\lambda \cdot p_{\varnothing x}} - \lambda \cdot p_{\varnothing y} \frac{qp_{0x}-\lambda \cdot p_{10x}}{p_{30x}+\lambda \cdot p_{\varnothing x}} \\
+	\nonumber \\
+	\nonumber \iff 0 &=&&(\lambda \cdot p_{10x}-qp_{0x})(\lambda \cdot p_{\varnothing y}+p_{30y})-(\lambda \cdot p_{10y}-qp_{0y})(\lambda \cdot p_{\varnothing x}+p_{30x}) \\
+	\nonumber \\
+	\nonumber \iff 0 &=&&\lambda ^{2} \cdot (p_{10x} \cdot p_{\varnothing y} - p_{10y} \cdot p_{\varnothing x})+\\
+	\nonumber & &&\lambda \cdot [p_{10x}\cdot p_{30y}-p_{10y}\cdot p_{30x}-(qp_{0x}\cdot p_{\varnothing y}-qp_{0y}\cdot p_{\varnothing x})]+\\
+	\nonumber & &&p_{30x}\cdot qp_{0y}- p_{30y}\cdot qp_{0x}
+\end{align}
+
+$\lambda$ ergibt sich damit zu:
+\begin{align}
+	\boxed{
+		\lambda_{1, 2} = \frac{(-b\pm \sqrt{b^{2}-4ac})}{2a}
+	} \quad mit \begin{cases}a = (p_{10} \times p_{\varnothing})_{z}\\
+	b = (p_{10} \times p_{30})_{z} - (qp_{0} \times p_{\varnothing})_{z}\\
+	c = (p_{30} \times qp_{0})_{z}
+	\end{cases}
+\end{align}
+bzw.
+\begin{align}
+	\boxed{
+		\lambda = -\frac{c}{b}
+	} \quad wenn \quad a=0; b\neq0;
 \end{align}
 
 \subsection{Gefälle}
-Das Gefälle einer Ebene $\vec{E}$ definiert sich als Höhenänderung bezogen auf eine Grundlänge. Dies impliziert, dass ein Gefälle nur mit Bezug auf eine Grundebene definiert werden kann, in pratischer Anwendung ist dies üblicherweise die Horizontale, d. h. die Bezugsebene, deren normierte Flächennormale mit der z-Achse übereinstimmt. Der Betrag des Gefälles ist weiter abhängig von der betrachteten Richtung im Grundriss. Es lässt sich durch Verschneidung der Ebene $\vec{E}$ mit der, durch die Richtung und die Flächennormale der Grundebene aufgespannten Ebene ermitteln.
+Das Gefälle einer Ebene $\vec{E}$ definiert sich als Höhenänderung bezogen auf eine Grundlänge. Das Gefälle kann somit nur mit Bezug auf eine Grundebene definiert werden, in pratischer Anwendung ist dies üblicherweise die Horizontale, d. h. die Bezugsebene, deren Flächennormale, die Projektionsachse, mit der z-Achse colinear ist. Der Betrag des Gefälles ist weiter abhängig von der betrachteten Richtung im Grundriss. Es lässt sich durch Verschneidung der Ebene $\vec{E}$ mit der, durch die Richtung und die Flächennormale der Grundebene aufgespannten Ebene ermitteln.
 
 \subsubsection{Gefälle aus Flächennormale $\vec{n_{0}}$}
-Die Flächennormale steht senkrecht auf der Ebene $\vec{E}$; das Hauptgefälle\footnote{Das Hauptgefälle liegt rechtwinklig zu der Richtung ohne Gefälle auf einer Ebene} liegt auf der Schnittgeraden dieser Ebene $\vec{E}$ und der von der Projektionsachse und der Ebenennormalen aufgespannten Ebene. In \cref{Gefälle einer Ebene} ist dies die z-Achse; der Übersichtlichkeit halber ist diese hier nicht dargestellt.
+Die Flächennormale steht senkrecht auf der Ebene $\vec{E}$; das Hauptgefälle\footnote{Das Hauptgefälle liegt rechtwinklig zu der Richtung ohne Gefälle auf einer Ebene; die ist die Richtung der Schnittgeraden von Ebene unf Bezugs- / Projektionsebene} liegt auf der Schnittgeraden dieser Ebene $\vec{E}$ und der von der Projektionsachse und der Ebenennormalen aufgespannten Ebene. In \cref{Gefälle einer Ebene} ist dies die z-Achse; der Übersichtlichkeit halber ist diese hier nicht dargestellt.
 
 Die Flächennormale wird normiert $(\vec{n_{0}} = \frac{\vec{n}}{|n|})$, weil diese Form für viele Folgeberechnungen benötigt wird, und kann in zwei Vektoren aufgeteilt werden (siehe \cref{Gefälle einer Ebene}):
 \begin{equation*}
@@ -252,7 +270,7 @@ Der Betrag des Gefälles $g$ ist:
 Analoges ergibt sich für Projektion entlang der x- bzw. y-Achse.
 
 \subsubsection{Normale des Dreiecks}
-Weil das Dreiecke eine Ebene darstellt, ist seine Normale in jedem Punkt $\vec{q}$ gleich. Die Normale errechnet sich aus dem Kreuzprodukt zweier voneinander linear unabhängiger Richtungsvektoren, die in der Fläche liegen. Setzt man für den ersten Richtungsvektor $\vec{r}_{0}$ $\lambda = 1$ und $\mu = 0$ und für den zweiten Vektor $\vec{r}_{1}$ $\lambda = 0$ und $\mu = 1$ erhält man zwei Gleichungen:
+Weil das Dreieck eine Ebene darstellt, ist seine Normale in jedem Punkt $\vec{q}$ gleich. Die Normale errechnet sich aus dem Kreuzprodukt zweier voneinander linear unabhängiger Richtungsvektoren, die in der Fläche liegen. Setzt man für den ersten Richtungsvektor $\vec{r}_{0}$ $\lambda = 1$ und $\mu = 0$ und für den zweiten Vektor $\vec{r}_{1}$ $\lambda = 0$ und $\mu = 1$ erhält man zwei Gleichungen:
 \begin{align*}
 	\vec{r}_{0} &=  \vec{p}_{10} \\
 	\vec{r}_{1} &=  \vec{p}_{20}
@@ -265,7 +283,7 @@ Daraus kann direkt die Normale errechnet werden:
 \end{equation}
 
 \subsubsection{Normale eines Vierecks}
-Das Gefälle des Vierecks ist im allgemeinen nicht konstant über die Fläche hinweg. Entlang der "Gitterlinien" eines hyperbolen Paraboloids jedoch, bei denen je einer der Flächenparameter $\lambda$ oder $\mu$ konstant ist, ist auch das Gefälle konstant. Bei gegebenem $\lambda$ und $\mu$ ergibt sich die Flächennormale im Punkt $\vec{q}$ aus dem Kreuzprodukt der Richtungsvektoren $\vec{r}_{\lambda}$ und $\vec{r}_{\mu}$, wie aus \cref{SkizzeNormaleViereck} ersichtlich.
+Das Gefälle des Vierecks ist im allgemeinen nicht konstant über die Fläche hinweg. Entlang der \emph{Gitterlinien} eines hyperbolen Paraboloids jedoch, bei denen je einer der Flächenparameter $\lambda$ oder $\mu$ konstant ist, ist auch das Gefälle konstant. Bei gegebenem $\lambda$ und $\mu$ ergibt sich die Flächennormale im Punkt $\vec{q}$ aus dem Kreuzprodukt der Richtungsvektoren $\vec{r}_{\lambda}$ und $\vec{r}_{\mu}$, wie aus \cref{SkizzeNormaleViereck} ersichtlich.
 
 \begin{figure}[h]
 \centering
@@ -273,9 +291,9 @@ Das Gefälle des Vierecks ist im allgemeinen nicht konstant über die Fläche hi
 \label{SkizzeNormaleViereck}
 \begin{tikzpicture}
 	\coordinate (p0) at (0, 0) {};
-	\coordinate (p1) at (5, 2) {};
-	\coordinate (p2) at (3.5, 3.5){};
-	\coordinate (p3) at (-0.5, 4.5){};
+	\coordinate (p1) at (4, 1) {};
+	\coordinate (p2) at (3, 2.5){};
+	\coordinate (p3) at (0.2, 3){};
 
 	\coordinate (q'l) at ($(p0)!0.32!(p1)$){};
 	\coordinate (q''l) at ($(p3)!0.32!(p2)$){};
@@ -284,6 +302,11 @@ Das Gefälle des Vierecks ist im allgemeinen nicht konstant über die Fläche hi
 	\coordinate (q) at ($(q'l)!0.4!(q''l)$){};
 
 	\draw (p0) -- (p1) -- (p2) -- (p3) -- cycle;
+	%Gitter im Viereck
+	\foreach \x in {0.2,0.4,...,0.8}
+		\draw[lightgray, thin] ($(p0)!\x!(p1)$) -- ($(p3)!\x!(p2)$);
+	\foreach \y in {0.2,0.4,...,0.8}
+		\draw[lightgray, thin] ($(p0)!\y!(p3)$) -- ($(p1)!\y!(p2)$);
 
 	\fill[black] (p0) circle(0.5mm);
 	\fill[black] (p1) circle (0.5mm);
@@ -328,24 +351,25 @@ Das Gefälle des Vierecks ist im allgemeinen nicht konstant über die Fläche hi
 	\draw[thin, ->] ($(p1)!-0.75cm!(p0)$) -- ($(q''m)!-0.75cm!(q'm)$);
 
 	%Normale
-	\coordinate (nSpitze) at ($(q) +(1.6, 3)$);
+	\coordinate (offSpitze) at (1.2, 1.8);
+	\coordinate (nSpitze) at ($(q) +(offSpitze)$);
 	\coordinate (hn) at ($(q)!0.3cm!(nSpitze)$) {};
 	\coordinate (hl) at  ($(q)!0.3cm!(q'l)$){};
 	\coordinate (hm) at ($(q)!0.3cm!(q'm)$) {};
 
-	\coordinate (hilfspkt) at ($(hl) +(1.6, 3)$);
+	\coordinate (hilfspkt) at ($(hl) +(offSpitze)$);
 	\coordinate (hlo) at  ($(hl)!0.3cm!(hilfspkt)$){};
 	\draw[white, line width=3pt] (hn) -- (hlo);
-	\draw[thin] (hn) -- (hlo);
-	\draw[thin] (hl) -- (hlo);
+	\draw[purple, thin] (hn) -- (hlo);
+	\draw[purple, thin] (hl) -- (hlo);
 
-	\coordinate (hilfspkt) at ($(hm) +(1.6, 3)$);
+	\coordinate (hilfspkt) at ($(hm) +(offSpitze)$);
 	\coordinate (hmo) at  ($(hm)!0.3cm!(hilfspkt)$){};
 	\draw[white, line width=3pt] (hn) -- (hmo);
-	\draw[thin] (hn) -- (hmo);
-	\draw[thin] (hm) -- (hmo);
+	\draw[purple, thin] (hn) -- (hmo);
+	\draw[purple, thin] (hm) -- (hmo);
 
-	\draw[thick, -Latex] (q) -- node[sloped, anchor=south, xslant=0.533, fill=white]{$\vec{n}$} (nSpitze);
+	\draw[purple, thick, -Latex] (q) -- node[sloped, anchor=south, xslant=0.533, fill=white]{$\vec{n}$} (nSpitze);
 \end{tikzpicture}
 \end{figure}
 
