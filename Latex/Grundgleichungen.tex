@@ -116,6 +116,8 @@ Durch Umstellen und Einsetzen der verkürzten Schreibweise $\vec{p}_{i} - \vec{p
 
 \subsection{Lage eines Punktes auf einer Fläche}
 Ist die Lage eines Punktes in zwei Dimensionen, z. B. $q_{x}$ und $q_{y}$ bekannt, kann die dritte Koordinate $q_{z}$ so ermittelt werden, dass der Punkt in einer betrachteten Fläche zu liegen kommt. Das Problem beinhaltet die drei unbekannte Größen $\lambda, \, \mu \, und \, q_{z}$. Die Flächengleichungen \cref{GleichungDreieck} und \cref{GleichungViereck} sind tatsächlich eine verkürzte Schreibweise für drei Gleichungen, für jede Raumdimension eine. Daraus lässt sich eine Gleichungssystem aufstellen, das es erlaubt die $Unbekannten$ zu ermitteln.
+
+Innerhalb dieses Abschnittes wird angenommen, die unbekannte Koordinate sei die z-Komponente.
 \subsubsection{Punkt in Dreieck}
 Das Gleichungssystem für einen Punkt im Dreieck lautet (Unbekannte sind fett gedruckt):
 \begin{align}
@@ -176,9 +178,9 @@ $\lambda$ ergibt sich damit zu:
 \begin{align}
 	\boxed{
 		\lambda_{1, 2} = \frac{(-b\pm \sqrt{b^{2}-4ac})}{2a}
-	} \quad mit \begin{cases}a = (p_{10} \times p_{\varnothing})_{z}\\
-	b = (p_{10} \times p_{30})_{z} - (qp_{0} \times p_{\varnothing})_{z}\\
-	c = (p_{30} \times qp_{0})_{z}
+	} \quad mit \begin{cases}a = (\vec{p}_{10} \times \vec{p}_{\varnothing})_{z}\\
+	b = (\vec{p}_{10} \times \vec{p}_{30})_{z} - (\vec{qp}_{0} \times \vec{p}_{\varnothing})_{z}\\
+	c = (\vec{p}_{30} \times \vec{qp}_{0})_{z}
 	\end{cases}
 \end{align}
 bzw.
