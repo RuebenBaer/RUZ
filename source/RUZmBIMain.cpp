@@ -6792,13 +6792,6 @@ void RUZmBIFrame::OnVolumenZwischenLayern(wxCommandEvent &event)
 			Liste<Flaeche>* lstFl = zweiter_Layer->HoleFlaechen();
 			for(Flaeche* aktFl = lstFl->GetErstesElement(); aktFl != NULL; aktFl = lstFl->GetNaechstesElement())
 			{
-				if(aktFl->HoleTyp() == RUZ_Dreieck)
-				{
-					Vektor vNormale = aktFl->HoleNormale();
-					Vektor vSenkrechte(0, 0, 0);
-					vSenkrechte.SetKoordinaten(aktProjZ, 1.0);
-					if(vNormale*vSenkrechte < 0.05)continue;//0.05 = ca. cos(87°) - fast senkrechte Flächen überspringen (ergibt an den Rändern unbrauchbar hohe Werte)
-				}
 				tempIntegral_Neu->IntegriereFlaeche(aktFl);
 			}
 
@@ -6831,13 +6824,6 @@ void RUZmBIFrame::OnVolumenZwischenLayern(wxCommandEvent &event)
 			lstFl = erster_Layer->HoleFlaechen();
 			for(Flaeche* aktFl = lstFl->GetErstesElement(); aktFl != NULL; aktFl = lstFl->GetNaechstesElement())
 			{
-				if(aktFl->HoleTyp() == RUZ_Dreieck)
-				{
-					Vektor vNormale = aktFl->HoleNormale();
-					Vektor vSenkrechte(0, 0, 0);
-					vSenkrechte.SetKoordinaten(aktProjZ, 1.0);
-					if(vNormale*vSenkrechte < 0.05)continue;//0.05 = ca. cos(87°) - fast senkrechte Flächen überspringen (ergibt an den Rändern unbrauchbar hohe Werte)
-				}
 				tempIntegral_Ur->IntegriereFlaeche(aktFl);
 			}
 
@@ -6847,96 +6833,34 @@ void RUZmBIFrame::OnVolumenZwischenLayern(wxCommandEvent &event)
 
 			maxWert = minWert = 0.0;
 			bool nochNAN = true;
-
-			SetStatusText(wxT("Stopfe Löcher (Neues Gelände)"), 1);
-			Refresh();
-			for(int i = 0; i < iB; i++)
-			{
-				for(int k = 0; k < iH; k++)
-				{
-					if(!isnan(dIntegral_NeuesGelaende[i+k*iB]))
-					{
-
-						if(nochNAN)
-						{
-							maxWert = minWert = dIntegral_NeuesGelaende[i+k*iB];
-							nochNAN = false;
-						}
-						if(maxWert < dIntegral_NeuesGelaende[i+k*iB])maxWert = dIntegral_NeuesGelaende[i+k*iB];
-						if(minWert > dIntegral_NeuesGelaende[i+k*iB])minWert = dIntegral_NeuesGelaende[i+k*iB];
-					}else
-					{
-						//Löcher stopfen
-						if((i>0)&&(k>0)&&(i<iB-1)&&(k<iH-1))
-						{
-							int iNachbarn = 0;
-							double dSumme = 0;
-							for(int di = -1; di < 2; di++)
-								for(int dk = -1; dk < 2; dk++)
-								{
-									if(!isnan(dIntegral_NeuesGelaende[i+di+(k+dk)*iB]))
-									{
-										iNachbarn++;
-										dSumme += dIntegral_NeuesGelaende[i+di+(k+dk)*iB];
-									}
-								}
-							if(iNachbarn > 5)//Loch ist (vermutlich) in Fläche und nicht am Rand
-							{
-								dIntegral_NeuesGelaende[i+k*iB] = dSumme/iNachbarn;
-							}
-						}
-					}
-				}
-			}
-
-			SetStatusText(wxT("Stopfe Löcher (Urgelände)"), 1);
-			Refresh();
-
-			for(int i = 0; i < iB; i++)
-			{
-				for(int k = 0; k < iH; k++)
-				{
-					if(!isnan(dIntegral_Urgelaende[i+k*iB]))
-					{
-						if(nochNAN)
-						{
-							maxWert = minWert = dIntegral_Urgelaende[i+k*iB];
-							nochNAN = false;
-						}
-						if(maxWert < dIntegral_Urgelaende[i+k*iB])maxWert = dIntegral_Urgelaende[i+k*iB];
-						if(minWert > dIntegral_Urgelaende[i+k*iB])minWert = dIntegral_Urgelaende[i+k*iB];
-					}else
-					{
-						//Löcher stopfen
-						if((i>0)&&(k>0)&&(i<iB-1)&&(k<iH-1))
-						{
-							int iNachbarn = 0;
-							double dSumme = 0;
-							for(int di = -1; di < 2; di++)
-								for(int dk = -1; dk < 2; dk++)
-								{
-									if(!isnan(dIntegral_Urgelaende[i+di+(k+dk)*iB]))
-									{
-										iNachbarn++;
-										dSumme += dIntegral_Urgelaende[i+di+(k+dk)*iB];
-									}
-								}
-							if(iNachbarn > 5)//Loch ist (vermutlich) in Fläche und nicht am Rand
-							{
-								dIntegral_Urgelaende[i+k*iB] = dSumme/iNachbarn;
-							}
-						}
-					}
-				}
-			}
-
-
+			
 			for(int i = 0; i < iB; i++)
 			{
 				for(int k = 0; k < iH; k++)
 				{
 					dIntegral_NeuesGelaende[i+k*iB] -= dIntegral_Urgelaende[i+k*iB] + dOffsetUr - dOffsetNeu;
+					if(isnan(dIntegral_NeuesGelaende[i+k*iB]))
+					{
+						continue;
+					}
+					if(nochNAN)
+					{
+						maxWert = minWert = dIntegral_NeuesGelaende[i+k*iB];
+						nochNAN = false;
+					}
+					if(maxWert < dIntegral_NeuesGelaende[i+k*iB])maxWert = dIntegral_NeuesGelaende[i+k*iB];
+					if(minWert > dIntegral_NeuesGelaende[i+k*iB])minWert = dIntegral_NeuesGelaende[i+k*iB];
 				}
+			}
+			if(maxWert == 0)
+			{
+				std::cout<<"Integral: größter Wert = 0! Wird zu 1 gesetzt\n";
+				maxWert = 1.0;
+			}
+			if(minWert == 0)
+			{
+				std::cout<<"Integral: kleinster Wert = 0! Wird zu 1 gesetzt\n";
+				minWert = 1.0;
 			}
 
 			lwBild.NeueLeinwand(iB, iH, 1/m_flaechenRaster, minX, minY);
@@ -6947,21 +6871,25 @@ void RUZmBIFrame::OnVolumenZwischenLayern(wxCommandEvent &event)
 					lwBild.ucLeinwand[i*3] = col_ZeichenHintergrund.Red();
 					lwBild.ucLeinwand[i*3+1] = col_ZeichenHintergrund.Green();
 					lwBild.ucLeinwand[i*3+2] = col_ZeichenHintergrund.Blue();
-				}else if(dIntegral_NeuesGelaende[i] >= 0)
+					continue;
+				}
+				if(dIntegral_NeuesGelaende[i] >= 0)
 				{
 					dAuftrag += dIntegral_NeuesGelaende[i];
-					lwBild.ucLeinwand[i*3] = col_Flaeche_darunter.Red();
-					lwBild.ucLeinwand[i*3+1] = col_Flaeche_darunter.Green();
-					lwBild.ucLeinwand[i*3+2] = col_Flaeche_darunter.Blue();
+					lwBild.ucLeinwand[i*3] = col_Flaeche_darueber.Red() * (1.0 - 0.9 * dIntegral_NeuesGelaende[i] / maxWert) + 255 * 0.9 * dIntegral_NeuesGelaende[i] / maxWert;
+					lwBild.ucLeinwand[i*3+1] = col_Flaeche_darueber.Green() * (1.0 - 0.9 * dIntegral_NeuesGelaende[i] / maxWert) + 255 * 0.9 * dIntegral_NeuesGelaende[i] / maxWert;
+					lwBild.ucLeinwand[i*3+2] = col_Flaeche_darueber.Blue() * (1.0 - 0.9 * dIntegral_NeuesGelaende[i] / maxWert) + 255 * 0.9 * dIntegral_NeuesGelaende[i] / maxWert;
 					anzAuftragsflaechen++;
+					continue;
 				}
-				else if(dIntegral_NeuesGelaende[i] < 0)
+				if(dIntegral_NeuesGelaende[i] < 0)
 				{
 					dAbtrag -= dIntegral_NeuesGelaende[i];
-					lwBild.ucLeinwand[i*3] = col_Flaeche_darueber.Red();
-					lwBild.ucLeinwand[i*3+1] = col_Flaeche_darueber.Green();
-					lwBild.ucLeinwand[i*3+2] = col_Flaeche_darueber.Blue();
+					lwBild.ucLeinwand[i*3] = col_Flaeche_darunter.Red() * (1.0 - 0.9 * dIntegral_NeuesGelaende[i] / minWert);
+					lwBild.ucLeinwand[i*3+1] = col_Flaeche_darunter.Green() * (1.0 - 0.9 * dIntegral_NeuesGelaende[i] / minWert);
+					lwBild.ucLeinwand[i*3+2] = col_Flaeche_darunter.Blue() * (1.0 - 0.9 * dIntegral_NeuesGelaende[i] / minWert);
 					anzAbtragsflaechen++;
+					continue;
 				}
 			}
 		}

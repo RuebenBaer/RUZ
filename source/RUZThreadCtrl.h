@@ -52,6 +52,7 @@ public:
 	DECLARE_EVENT_TABLE()
 private:
   void OnPaint(wxPaintEvent& event);
+  void OnEraseBackground(wxEraseEvent &event);
   RUZ_Layer *hilfsLayer, *randLayer1, *randLayer2, *Layer1, *Layer2;
 
   thread_info_verschnitt *thInf;
