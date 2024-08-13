@@ -1705,7 +1705,7 @@ void RUZmBIFrame::HoehenkarteZeichnen(void)
                     lwBild.ucLeinwand[i*3] = col_ZeichenHintergrund.Red();
                     lwBild.ucLeinwand[i*3+1] = col_ZeichenHintergrund.Green();
                     lwBild.ucLeinwand[i*3+2] = col_ZeichenHintergrund.Blue();
-                }/*else if(dIntegral[i] > maxZ)
+                }else if(dIntegral[i] > maxZ)
                 {
                     lwBild.ucLeinwand[i*3] = 255;
                     lwBild.ucLeinwand[i*3+1] = 78;
@@ -1716,7 +1716,7 @@ void RUZmBIFrame::HoehenkarteZeichnen(void)
                     lwBild.ucLeinwand[i*3] = 78;
                     lwBild.ucLeinwand[i*3+1] = 46;
                     lwBild.ucLeinwand[i*3+2] = 255;
-                }*/else
+                }else
                 {
                     aktWert = (unsigned char)((dIntegral[i]-minWert)/hoehenSchritt)*(unsigned char)(max(256 / dSchrittzahl, 1.0));
                     lwBild.ucLeinwand[i*3] = aktWert;

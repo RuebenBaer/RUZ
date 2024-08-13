@@ -2708,7 +2708,6 @@ bool Viereck::LageAufFlaeche(Vektor& vOrt, RelativLage& rl_Lage_1, RelativLage& 
 		}
 	}
 
-	std::cout<<"Projektionsrichtung = "<<projRichtung<<"; plus 1 %3= "<<(projRichtung+1)%3<<"\n";
 	double mue1 = NAN;
 	double mue2 = NAN;
 	double Divisor1 = m_p30.GetKoordinaten((projRichtung+1)%3) + m_p0123.GetKoordinaten((projRichtung+1)%3) * lambda1;
