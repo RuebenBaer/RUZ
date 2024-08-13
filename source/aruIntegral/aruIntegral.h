@@ -27,12 +27,6 @@ private:
     int iBreite, iHoehe, iOffsetHoehe, iOffsetBreite;
     Achse aProjektion;
 
-    void ZeichneDreieckSenkrecht(int iXL, int iYLo, int iYLu, int iXR, int iYRo, int iYRu);
-    void ZeichneGeradesDreieck(int iXL, int iYLo, int iYLu, int iXR, int iYRo, int iYRu, Flaeche* obj);
-    void ZeichneTrapezSenkrecht(int iMinX, int iMaxX, int iMinYu, int iMaxYu, int iMinYo, int iMaxYo, Flaeche* obj);
-    void ZeichneLinie(int p1x, int p1y, int p2x, int p2y, Flaeche* obj);
-	
-    void ZeichneLinie(int p1x, int p1y, int p2x, int p2y, int p1z, int p2z);
     /*Logbuch*/
     void logSchreiben(const char*);
     void logSchreiben(const float msg, int i=0);
