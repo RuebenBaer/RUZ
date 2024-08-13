@@ -15,6 +15,7 @@
 
 BEGIN_EVENT_TABLE(MyPanel, wxPanel)
     EVT_PAINT(MyPanel::OnPaint)
+	EVT_ERASE_BACKGROUND(MyPanel::OnEraseBackground)
 END_EVENT_TABLE()
 
 MyPanel::MyPanel(thread_info_verschnitt* _thInf, wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size)
@@ -87,6 +88,12 @@ void MyPanel::OnPaint(wxPaintEvent& event)
     dc.DrawText(msg, 30, 30);
   }
   return;
+}
+
+void MyPanel::OnEraseBackground(wxEraseEvent &event)
+{
+	/*nichts machen, damit es nicht flackert*/
+	return;
 }
 
 
