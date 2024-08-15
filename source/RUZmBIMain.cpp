@@ -1,4 +1,4 @@
-﻿/***************************************************************
+/***************************************************************
  * Name:	  RUZmBIMain.cpp
  * Purpose:   Code for Application Frame
  * Author:	Ansgar Rütten ()
@@ -6863,6 +6863,7 @@ void RUZmBIFrame::OnVolumenZwischenLayern(wxCommandEvent &event)
 				minWert = 1.0;
 			}
 
+			SetStatusText(wxT("Ergebnis zeichnen"), 1);
 			lwBild.NeueLeinwand(iB, iH, 1/m_flaechenRaster, minX, minY);
 			for(int i = 0; i < (iB * iH); i++)
 			{
@@ -6896,18 +6897,31 @@ void RUZmBIFrame::OnVolumenZwischenLayern(wxCommandEvent &event)
 		/*Ergebnisausgabe*/
 		dAuftrag *= m_flaechenRaster * m_flaechenRaster;
 		dAbtrag *= m_flaechenRaster * m_flaechenRaster;
+		char buffer[50];
 		SetStatusText(wxString::Format("Auftrag:\t%0.3f\tAbtrag:\t%0.3f", dAuftrag, dAbtrag), 1);
 		wxMessageDialog(this, wxString::Format("Auftrag:\t%0.3f\nAbtrag:\t%0.3f", dAuftrag, dAbtrag), wxT("Ergebnis")).ShowModal();
-		logSchreiben("\n\n/**Ergebnis der Volumenberechnung zwischen Layern**/\n/***************Flächenintegration****************/\n");
-		logSchreiben("Urgelände:\t%s\tVerschub:\t%0.3f\n", erster_Layer->HoleName(), dOffsetUr);
-		logSchreiben("neues Gelände:\t%s\tVerschub:\t%0.3f\n", zweiter_Layer->HoleName(), dOffsetNeu);
-		logSchreiben("Rastergröße:\t%0.3f\n", m_flaechenRaster);
-		char buffer[50];
-		sprintf(buffer, "Auftrag:\t%c0.%df auf Flaeche:\t%c0.%df\n", '%', m_anzeigeGenauigkeit, '%', m_anzeigeGenauigkeit);
-		logSchreiben(buffer, dAuftrag, m_flaechenRaster * m_flaechenRaster * anzAuftragsflaechen);
-		sprintf(buffer, "Abtrag:\t%c0.%df auf Flaeche:\t%c0.%df\n", '%', m_anzeigeGenauigkeit, '%', m_anzeigeGenauigkeit);
-		logSchreiben(buffer, dAbtrag, m_flaechenRaster * m_flaechenRaster * anzAbtragsflaechen);
-		logSchreiben("/**ENDE Volumenberechnung**/\n");
+		
+		printf("\n\n/**Ergebnis der Volumenberechnung zwischen Layern**/\n/***************Fl%schenintegration****************/\n", "\x84");
+		logSchreiben("\n\n/**Ergebnis der Volumenberechnung zwischen Layern**/\n/***************Fl%schenintegration****************/\n", "\x84");
+		
+		printf("Rastergr%s%se:\t%0.3f\n\n", "\x94", "\xE1", m_flaechenRaster);
+		logSchreiben("Rastergr%s%se:\t%0.3f\n\n", "\x94", "\xE1", m_flaechenRaster);
+		
+		printf("Urgel%snde:\t%s\tVerschub:\t%0.3f\n", "\x84", erster_Layer->HoleName(), dOffsetUr);
+		logSchreiben("Urgel%snde:\t%s\tVerschub:\t%0.3f\n", "\x84", erster_Layer->HoleName(), dOffsetUr);
+		
+		printf("neues Gel%snde:\t%s\tVerschub:\t%0.3f\n\n", "\x84", zweiter_Layer->HoleName(), dOffsetNeu);
+		logSchreiben("neues Gel%snde:\t%s\tVerschub:\t%0.3f\n\n", "\x84", zweiter_Layer->HoleName(), dOffsetNeu);
+		
+		sprintf(buffer, "Auftrag:\t%c0.%df\tauf Fl%sche:\t%c0.%df\n", '%', m_anzeigeGenauigkeit, "\x84", '%', m_anzeigeGenauigkeit);
+			printf(buffer, dAuftrag, m_flaechenRaster * m_flaechenRaster * anzAuftragsflaechen);
+			logSchreiben(buffer, dAuftrag, m_flaechenRaster * m_flaechenRaster * anzAuftragsflaechen);
+		
+		sprintf(buffer, "Abtrag: \t%c0.%df\tauf Fl%sche:\t%c0.%df\n", '%', m_anzeigeGenauigkeit, "\x84", '%', m_anzeigeGenauigkeit);
+			printf(buffer, dAbtrag, m_flaechenRaster * m_flaechenRaster * anzAbtragsflaechen); 
+			logSchreiben(buffer, dAbtrag, m_flaechenRaster * m_flaechenRaster * anzAbtragsflaechen);
+		printf("/**ENDE Volumenberechnung**/\n\n");
+		logSchreiben("/**ENDE Volumenberechnung**/\n\n");
 		/*ENDE Ergebnisausgabe*/
 		return;
 	}
