@@ -63,7 +63,7 @@ protected:
 public:
     RUZ_Layer(const char*);
     ~RUZ_Layer();
-    double PunkteVernetzen(Liste<Punkt>* t_pktLst = NULL);
+    void PunkteVernetzen(thread_info_vernetzen *thInfo, Liste<Punkt>* t_pktLst = NULL);
     RUZ_Layer* Kopieren(char* name);
 
     void LinienNachLaengeSortieren(void);
@@ -141,6 +141,8 @@ public:
     void EntlangLinienSchneiden(Liste<Linie>*, thread_info_verschnitt*);
     void EntferneTieferes(Achse);
     void EntferneHoeheres(Achse);
+
+	void UngeschuetzteLinienLoeschen(void);
     /*ENDE Verschiedenes*/
 
     Liste<Punkt>* HolePunkte(void) const;

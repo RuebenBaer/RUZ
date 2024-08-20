@@ -4140,8 +4140,8 @@ void RUZmBIFrame::OnKomplettVernetzen(wxCommandEvent &event)
 	{
 		aktLayer->LinienAusStrichen(peEinstellungenDlg->HoleWert(IDlnWandelGenauigkeit), z);
 		SetStatusText(wxT("Punkte vernetzen"));
-		double dauer = aktLayer->PunkteVernetzen();
-		SetStatusText(wxString::Format("Vernetzen dauerte %1.5f Sekunden", dauer), 1);
+		//aktLayer->PunkteVernetzen();
+		//SetStatusText(wxString::Format("Vernetzen dauerte %1.5f Sekunden", dauer), 1);
 		aktLayer->DreieckeFinden();
 		aktLayer->ViereckeFinden();
 		Refresh();
@@ -4176,7 +4176,7 @@ void RUZmBIFrame::OnLayerinhaltAnzeigen(wxCommandEvent &event)
 		int anzHP = aktLayer->HoleHoehenMarken()->GetListenGroesse();
 		int anzGM = aktLayer->HoleGefaelleMarken()->GetListenGroesse();
 		wxMessageDialog(this, wxString::FromUTF8(aktLayer->HoleName()) +
-							wxString::Format(" enthält: \n%d Punkt(e)\n%d Linie(n)\n%d Kreis(e)\n%d Fangpunkt(e)\n%d Dreieck(e)\n%d Viereck(e)\n%d Höhenmarke(n)\n%d Gefällemarke(n)",
+							wxString::Format(wxT(" enthält: \n%d Punkt(e)\n%d Linie(n)\n%d Kreis(e)\n%d Fangpunkt(e)\n%d Dreieck(e)\n%d Viereck(e)\n%d Höhenmarke(n)\n%d Gefällemarke(n)"),
 											 anzPkt, anzLn, anzKr, anzFP, anzDrk, anzVrk, anzHP, anzGM)).ShowModal();
 	}
 	return;
@@ -4332,16 +4332,14 @@ void RUZmBIFrame::OnLayerVerschneiden(wxCommandEvent &event)
 	if((!erster_neuer_Layer)||(!zweiter_neuer_Layer))return;
 	/*ENDE Die zu verschneidenden Layer auswählen*/
 
-	/*Das eigentliche Verschneiden*/
+	/*Thread Verschneiden*/
 		thread_info_verschnitt thInf(erster_neuer_Layer, zweiter_neuer_Layer);
-		//RUZ_Layer *hilfsLayer, *randLayer1, *randLayer2;
-		//thInf.HoleLayer(&hilfsLayer, &randLayer1, &randLayer2, &erster_neuer_Layer, &zweiter_neuer_Layer);
 		int t_genauigkeit = m_anzeigeGenauigkeit+3;
 		std::thread thVerschnitt(&RUZ_Layer::Verschneiden, erster_neuer_Layer, zweiter_neuer_Layer, &thInf, &t_genauigkeit);
 		thVerschnitt.detach();
 
-		RUZThreadCtrl(&thInf, 200, this, wxID_ANY, wxString::Format("Layer verschneiden")).ShowModal();
-	/*ENDE Das eigentliche Verschneiden*/
+		RUZVerschnittThCtrl(&thInf, 200, this, wxID_ANY, wxString::Format("Layer verschneiden")).ShowModal();
+	/*ENDE Thread Verschneiden*/
 	return;
 }
 
@@ -6387,15 +6385,16 @@ void RUZmBIFrame::OnPunkteVernetzen(wxCommandEvent &event)
 			}
 		}
 		m_auswahl->ListeLeeren("");
-		double dauer;
-		if(pktLst->GetListenGroesse() == 0)
-		{
-			dauer = aktLayer->PunkteVernetzen();
-		}else{
-			dauer = aktLayer->PunkteVernetzen(pktLst);
-		}
+
+		/*Thread Vernetzen*/
+		thread_info_vernetzen thInf(aktLayer);
+		std::thread thVernetzen(&RUZ_Layer::PunkteVernetzen, aktLayer, &thInf, pktLst);
+		thVernetzen.detach();
+
+		RUZVernetzenThCtrl(&thInf, 200, this, wxID_ANY, wxString::Format("Layer vernetzen")).ShowModal();
+		/*ENDE Thread Vernetzen*/
+
 		delete pktLst;
-		SetStatusText(wxString::Format("Vernetzen dauerte %1.5f Sekunden", dauer), 1);
 		Refresh();
 	}else{
 		SetStatusText(wxT("Kein aktueller Layer vorhanden!"), 1);

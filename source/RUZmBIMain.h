@@ -57,7 +57,8 @@
 #include "RUZmBIApp.h"
 #include "RUZ\RUZObjekte.h"
 #include "RUZ\RUZVerwaltung.h"
-#include "RUZThreadCtrl.h"
+#include "RUZVerschnittThCtrl.h"
+#include "RUZVernetzenThCtrl.h"
 #include "Vektor\Vektor.h"
 
 using namespace std;

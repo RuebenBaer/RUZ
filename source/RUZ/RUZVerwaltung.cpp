@@ -69,29 +69,42 @@ void RUZ_Layer::Benennen(const char* name)
     return;
 }
 
-double RUZ_Layer::PunkteVernetzen(Liste<Punkt>* t_pktLst)
+void RUZ_Layer::PunkteVernetzen(thread_info_vernetzen *thInf, Liste<Punkt>* t_pktLst)
 {
-    clock_t zeit;
-    zeit = clock();
     Punkt *von, *nach;
     Linie *strich1, *strich2;
     Listenelement<Linie> *LE_strich1, *LE_strich2;
+	
+	for(Linie *laeufer = m_linienLst->GetErstesElement(); laeufer != NULL; laeufer = m_linienLst->GetNaechstesElement())
+    {
+        laeufer->SetzeGeschuetzt(true);
+		thInf->InkrVorhandeneLinie();
+    }
+	
     /*jeden Punkt mit jedem verbinden*/
     Liste<Punkt>* pktSammlung;
-    if(t_pktLst != NULL)
+    if(t_pktLst->GetListenGroesse() != 0)
     {
         pktSammlung = t_pktLst;
     }else{
         pktSammlung = m_punktLst;
     }
+	thInf->SetzeStatus(0);
     LoescheDoppeltePunkte(pktSammlung, 4);
+	thInf->SetzeStatus(1);
     for(von = pktSammlung->GetErstesElement(); von != NULL; von = pktSammlung->GetNachfolger(von))
     {
         if(von->HoleLayer() != this)
         {
             pktSammlung->Entfernen(von);
         }
+		if(thInf->BeendenAngefragt())//Abbruch angefragt
+		{
+			thInf->BeendigungFeststellen();
+			return;
+		}
     }
+	thInf->SetzeStatus(2);
     for(von = pktSammlung->GetErstesElement(); von != NULL; von = pktSammlung->GetNachfolger(von))
     {
         for(nach = pktSammlung->GetNachfolger(von); nach != NULL; nach = pktSammlung->GetNachfolger(nach))
@@ -100,17 +113,25 @@ double RUZ_Layer::PunkteVernetzen(Liste<Punkt>* t_pktLst)
             Linie *verbindungsLinie = Verbunden(von, nach);
             if(verbindungsLinie != NULL)//prüfen, ob Punkte bereits verbunden sind
             {
-                verbindungsLinie->SetzeGeschuetzt(true);
                 continue;
             }
             Linie::NeueLinie(von, nach);
+			thInf->InkrNeueLinie();
+			if(thInf->BeendenAngefragt())//Abbruch angefragt
+			{
+				thInf->BeendigungFeststellen();
+				return;
+			}
         }
     }
-
+	thInf->SetzeStatus(3);
     LinienNachLaengeSortieren();
     /*von kurzen Linien geschnittene Linien loeschen*/
+	thInf->SetzeStatus(4);
+	unsigned long long int aktLinieNr = 0;
     for(LE_strich1 = m_linienLst->GetErstesListenelement(); LE_strich1 != NULL;)
     {
+		thInf->BearbeiteteLinie(aktLinieNr++);
         strich1 = LE_strich1->GetElement();
         for(LE_strich2 = LE_strich1->GetNachfolger(); LE_strich2 != NULL;)
         {
@@ -125,13 +146,18 @@ double RUZ_Layer::PunkteVernetzen(Liste<Punkt>* t_pktLst)
             }else{
                 LE_strich2 = LE_strich2->GetNachfolger();
             }
+			if(thInf->BeendenAngefragt())//Abbruch angefragt
+			{
+				thInf->BeendigungFeststellen();
+				return;
+			}
         }
         LE_strich1 = LE_strich1->GetNachfolger();
     }
-
-    zeit = clock() - zeit;
     /*ENDE von kurzen Linien geschnittene Linien loeschen*/
-    return ((double)zeit/CLOCKS_PER_SEC);
+	
+    thInf->BeendigungFeststellen();/*Beendet modalen Dialog*/
+    return;
 }
 
 RUZ_Layer* RUZ_Layer::Kopieren(char* name)
@@ -263,7 +289,8 @@ void RUZ_Layer::LinienNachLaengeSortieren()
     {
         if(laeufer->GetElement()->IstGeschuetzt())
         {
-            laeufer->Wert(-1.0);
+			laeufer->Wert(-1/(laeufer->GetElement()->ProjLaenge(z)));
+            //laeufer->Wert(-1.0);
         }else{
             laeufer->Wert(laeufer->GetElement()->ProjLaenge(z));
         }
@@ -295,7 +322,7 @@ void RUZ_Layer::DreieckeFinden(void)
       for(Linie* ln_p1 = ln_Sammlung1->GetErstesElement(); ln_p1 != NULL; ln_p1 = ln_Sammlung1->GetNaechstesElement())
       {
         if(ln_p1 == ln_laeufer)continue;
-        /*HIER WEITER*/
+        /*HIER WEITER: ACHTUNG BAUSTELLE*/
       }
     }
   }
@@ -956,7 +983,7 @@ void RUZ_Layer::EntlangLinienSchneiden(Liste<Linie>* schnittLinien, thread_info_
       thInf->InkrementBearbeitet();
       if(thInf->BeendenAngefragt())
       {
-        thInf->BeendungFeststellen();
+        thInf->BeendigungFeststellen();
         return;
       }
       for(int k = 0; k < 2; k++)//Alle Endpunkte der Randlinien teilen die Flächen über oder unter Ihnen auf dem anderen Layer
@@ -969,7 +996,7 @@ void RUZ_Layer::EntlangLinienSchneiden(Liste<Linie>* schnittLinien, thread_info_
             /*Thread Kontrollpunkt*/
             if(thInf->BeendenAngefragt())
             {
-              thInf->BeendungFeststellen();
+              thInf->BeendigungFeststellen();
               return;
             }
             if(fl_laeufer->HoleBesucht() == 'j')
@@ -994,7 +1021,7 @@ void RUZ_Layer::EntlangLinienSchneiden(Liste<Linie>* schnittLinien, thread_info_
         /*Thread Kontrollpunkt*/
         if(thInf->BeendenAngefragt())
         {
-          thInf->BeendungFeststellen();
+          thInf->BeendigungFeststellen();
           return;
         }
         if(ln_laeufer->schneidet(schneideLinie, pos, z))//Alle Randlinien werden mit den Randlinien des anderen Layers verschnitten
@@ -1041,7 +1068,7 @@ void RUZ_Layer::Verschneiden(RUZ_Layer *andererLayer, thread_info_verschnitt *th
     if(thInf->IstBeendet())return;
     if(thInf->BeendenAngefragt())
     {
-      thInf->BeendungFeststellen();
+      thInf->BeendigungFeststellen();
       return;
     }
     logSchreiben("Schnittlinien gefunden (%d Stueck)", hilfsLayer->HoleLinien()->GetListenGroesse());
@@ -1067,7 +1094,7 @@ void RUZ_Layer::Verschneiden(RUZ_Layer *andererLayer, thread_info_verschnitt *th
     layer1->EntlangLinienSchneiden(hilfsLayer->HoleLinien(), thInf);
     if(thInf->BeendenAngefragt())
     {
-      thInf->BeendungFeststellen();
+      thInf->BeendigungFeststellen();
       return;
     }
     layer1->LoescheDoppeltePunkte(*genauigkeit);
@@ -1076,7 +1103,7 @@ void RUZ_Layer::Verschneiden(RUZ_Layer *andererLayer, thread_info_verschnitt *th
     layer1->EntlangLinienSchneiden(randLayer2->HoleLinien(), thInf);
     if(thInf->BeendenAngefragt())
     {
-      thInf->BeendungFeststellen();
+      thInf->BeendigungFeststellen();
       return;
     }
     layer1->LoescheDoppeltePunkte(*genauigkeit);
@@ -1085,7 +1112,7 @@ void RUZ_Layer::Verschneiden(RUZ_Layer *andererLayer, thread_info_verschnitt *th
     layer2->EntlangLinienSchneiden(hilfsLayer->HoleLinien(), thInf);
     if(thInf->BeendenAngefragt())
     {
-      thInf->BeendungFeststellen();
+      thInf->BeendigungFeststellen();
       return;
     }
     layer2->LoescheDoppeltePunkte(*genauigkeit);
@@ -1094,7 +1121,7 @@ void RUZ_Layer::Verschneiden(RUZ_Layer *andererLayer, thread_info_verschnitt *th
     layer2->EntlangLinienSchneiden(randLayer1->HoleLinien(), thInf);
     if(thInf->BeendenAngefragt())
     {
-      thInf->BeendungFeststellen();
+      thInf->BeendigungFeststellen();
       return;
     }
     layer2->LoescheDoppeltePunkte(*genauigkeit);
@@ -1103,14 +1130,14 @@ void RUZ_Layer::Verschneiden(RUZ_Layer *andererLayer, thread_info_verschnitt *th
     if(thInf->IstBeendet())return;
     if(thInf->BeendenAngefragt())
     {
-      thInf->BeendungFeststellen();
+      thInf->BeendigungFeststellen();
       return;
     }
 
     layer2->LoescheFreiliegendeFlaechen(layer1);
     layer1->LoescheFreiliegendeFlaechen(layer2);
 
-    thInf->BeendungFeststellen();/*Beendet modalen Dialog*/
+    thInf->BeendigungFeststellen();/*Beendet modalen Dialog*/
     return;
 }
 
@@ -1158,7 +1185,7 @@ void RUZ_Layer::SchnittlinienFinden(Liste<Flaeche>* lst_1, Liste<Flaeche>* lst_2
     {
       if(thInf->BeendenAngefragt())//Abbruch angefragt
       {
-        thInf->BeendungFeststellen();
+        thInf->BeendigungFeststellen();
         return;
       }
       aktFl1  = akt_LE_Fl1->GetElement();
@@ -1167,7 +1194,7 @@ void RUZ_Layer::SchnittlinienFinden(Liste<Flaeche>* lst_1, Liste<Flaeche>* lst_2
       {
         if(thInf->BeendenAngefragt())//Abbruch angefragt
         {
-          thInf->BeendungFeststellen();
+          thInf->BeendigungFeststellen();
           return;
         }
           aktFl2 = akt_LE_Fl2->GetElement();
@@ -1593,4 +1620,16 @@ void RUZ_Layer::ElementlisteAusgeben(void)
         logSchreiben("\n");
     }
     return;
+}
+
+void RUZ_Layer::UngeschuetzteLinienLoeschen(void)
+{
+	for(Linie *laeufer = m_linienLst->GetErstesElement(); laeufer != NULL; laeufer = m_linienLst->GetNaechstesElement())
+    {
+        if(!laeufer->IstGeschuetzt())
+		{
+			delete laeufer;
+		}
+    }
+	return;
 }
