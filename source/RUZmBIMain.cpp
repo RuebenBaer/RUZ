@@ -4340,7 +4340,7 @@ void RUZmBIFrame::OnLayerVerschneiden(wxCommandEvent &event)
 		std::thread thVerschnitt(&RUZ_Layer::Verschneiden, erster_neuer_Layer, zweiter_neuer_Layer, &thInf, &t_genauigkeit);
 		thVerschnitt.detach();
 
-		RUZThreadCtrl(&thInf, 200, this, wxID_ANY, wxString::Format("Layer verschneiden")).ShowModal();
+		RUZVerschnittThCtrl(&thInf, 200, this, wxID_ANY, wxString::Format("Layer verschneiden")).ShowModal();
 	/*ENDE Das eigentliche Verschneiden*/
 	return;
 }

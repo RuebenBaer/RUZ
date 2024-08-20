@@ -69,7 +69,7 @@ void RUZ_Layer::Benennen(const char* name)
     return;
 }
 
-double RUZ_Layer::PunkteVernetzen(Liste<Punkt>* t_pktLst)
+double RUZ_Layer::PunkteVernetzen(, thread_info_vernetzen &thInf, Liste<Punkt>* t_pktLst)
 {
     clock_t zeit;
     zeit = clock();
@@ -91,6 +91,11 @@ double RUZ_Layer::PunkteVernetzen(Liste<Punkt>* t_pktLst)
         {
             pktSammlung->Entfernen(von);
         }
+		if(thInf->BeendenAngefragt())//Abbruch angefragt
+		{
+			thInf->BeendigungFeststellen();
+			return;
+		}
     }
     for(von = pktSammlung->GetErstesElement(); von != NULL; von = pktSammlung->GetNachfolger(von))
     {
@@ -104,6 +109,11 @@ double RUZ_Layer::PunkteVernetzen(Liste<Punkt>* t_pktLst)
                 continue;
             }
             Linie::NeueLinie(von, nach);
+			if(thInf->BeendenAngefragt())//Abbruch angefragt
+			{
+				thInf->BeendigungFeststellen();
+				return;
+			}
         }
     }
 
@@ -125,6 +135,11 @@ double RUZ_Layer::PunkteVernetzen(Liste<Punkt>* t_pktLst)
             }else{
                 LE_strich2 = LE_strich2->GetNachfolger();
             }
+			if(thInf->BeendenAngefragt())//Abbruch angefragt
+			{
+				thInf->BeendigungFeststellen();
+				return;
+			}
         }
         LE_strich1 = LE_strich1->GetNachfolger();
     }
@@ -956,7 +971,7 @@ void RUZ_Layer::EntlangLinienSchneiden(Liste<Linie>* schnittLinien, thread_info_
       thInf->InkrementBearbeitet();
       if(thInf->BeendenAngefragt())
       {
-        thInf->BeendungFeststellen();
+        thInf->BeendigungFeststellen();
         return;
       }
       for(int k = 0; k < 2; k++)//Alle Endpunkte der Randlinien teilen die Flächen über oder unter Ihnen auf dem anderen Layer
@@ -969,7 +984,7 @@ void RUZ_Layer::EntlangLinienSchneiden(Liste<Linie>* schnittLinien, thread_info_
             /*Thread Kontrollpunkt*/
             if(thInf->BeendenAngefragt())
             {
-              thInf->BeendungFeststellen();
+              thInf->BeendigungFeststellen();
               return;
             }
             if(fl_laeufer->HoleBesucht() == 'j')
@@ -994,7 +1009,7 @@ void RUZ_Layer::EntlangLinienSchneiden(Liste<Linie>* schnittLinien, thread_info_
         /*Thread Kontrollpunkt*/
         if(thInf->BeendenAngefragt())
         {
-          thInf->BeendungFeststellen();
+          thInf->BeendigungFeststellen();
           return;
         }
         if(ln_laeufer->schneidet(schneideLinie, pos, z))//Alle Randlinien werden mit den Randlinien des anderen Layers verschnitten
@@ -1041,7 +1056,7 @@ void RUZ_Layer::Verschneiden(RUZ_Layer *andererLayer, thread_info_verschnitt *th
     if(thInf->IstBeendet())return;
     if(thInf->BeendenAngefragt())
     {
-      thInf->BeendungFeststellen();
+      thInf->BeendigungFeststellen();
       return;
     }
     logSchreiben("Schnittlinien gefunden (%d Stueck)", hilfsLayer->HoleLinien()->GetListenGroesse());
@@ -1067,7 +1082,7 @@ void RUZ_Layer::Verschneiden(RUZ_Layer *andererLayer, thread_info_verschnitt *th
     layer1->EntlangLinienSchneiden(hilfsLayer->HoleLinien(), thInf);
     if(thInf->BeendenAngefragt())
     {
-      thInf->BeendungFeststellen();
+      thInf->BeendigungFeststellen();
       return;
     }
     layer1->LoescheDoppeltePunkte(*genauigkeit);
@@ -1076,7 +1091,7 @@ void RUZ_Layer::Verschneiden(RUZ_Layer *andererLayer, thread_info_verschnitt *th
     layer1->EntlangLinienSchneiden(randLayer2->HoleLinien(), thInf);
     if(thInf->BeendenAngefragt())
     {
-      thInf->BeendungFeststellen();
+      thInf->BeendigungFeststellen();
       return;
     }
     layer1->LoescheDoppeltePunkte(*genauigkeit);
@@ -1085,7 +1100,7 @@ void RUZ_Layer::Verschneiden(RUZ_Layer *andererLayer, thread_info_verschnitt *th
     layer2->EntlangLinienSchneiden(hilfsLayer->HoleLinien(), thInf);
     if(thInf->BeendenAngefragt())
     {
-      thInf->BeendungFeststellen();
+      thInf->BeendigungFeststellen();
       return;
     }
     layer2->LoescheDoppeltePunkte(*genauigkeit);
@@ -1094,7 +1109,7 @@ void RUZ_Layer::Verschneiden(RUZ_Layer *andererLayer, thread_info_verschnitt *th
     layer2->EntlangLinienSchneiden(randLayer1->HoleLinien(), thInf);
     if(thInf->BeendenAngefragt())
     {
-      thInf->BeendungFeststellen();
+      thInf->BeendigungFeststellen();
       return;
     }
     layer2->LoescheDoppeltePunkte(*genauigkeit);
@@ -1103,7 +1118,7 @@ void RUZ_Layer::Verschneiden(RUZ_Layer *andererLayer, thread_info_verschnitt *th
     if(thInf->IstBeendet())return;
     if(thInf->BeendenAngefragt())
     {
-      thInf->BeendungFeststellen();
+      thInf->BeendigungFeststellen();
       return;
     }
 
@@ -1158,7 +1173,7 @@ void RUZ_Layer::SchnittlinienFinden(Liste<Flaeche>* lst_1, Liste<Flaeche>* lst_2
     {
       if(thInf->BeendenAngefragt())//Abbruch angefragt
       {
-        thInf->BeendungFeststellen();
+        thInf->BeendigungFeststellen();
         return;
       }
       aktFl1  = akt_LE_Fl1->GetElement();
@@ -1167,7 +1182,7 @@ void RUZ_Layer::SchnittlinienFinden(Liste<Flaeche>* lst_1, Liste<Flaeche>* lst_2
       {
         if(thInf->BeendenAngefragt())//Abbruch angefragt
         {
-          thInf->BeendungFeststellen();
+          thInf->BeendigungFeststellen();
           return;
         }
           aktFl2 = akt_LE_Fl2->GetElement();

@@ -3,6 +3,7 @@
 
 class thread_info;
 class thread_info_verschnitt;
+class thread_info_vernetzen;
 #include "RUZVerwaltung.h"
 
 class thread_info
@@ -28,7 +29,7 @@ private:
 
   RUZ_Layer *Layer1, *Layer2;
 
-  int iStatus = 0; /*Layer2 Rand abschneiden | Layer2 verschneiden | Layer1 Rand abschneiden | Layer1 verschneiden | Schniiilinien finden*/
+  int iStatus = 0; /*Layer2 Rand abschneiden | Layer2 verschneiden | Layer1 Rand abschneiden | Layer1 verschneiden | Schnittlinien finden*/
   int iBearbeitet, iGes;
 public:
   thread_info_verschnitt(RUZ_Layer*, RUZ_Layer*);
@@ -42,6 +43,15 @@ public:
   void NulleBearbeitet(void);
   void InkrementBearbeitet(void);
   int HoleBearbeitet(void);
+};
+
+class thread_info_vernetzen : public thread_info
+{
+private:
+	RUZ_Layer* m_Layer;
+public:
+  thread_info_vernetzen(RUZ_Layer* lay);
+  ~thread_info_vernetzen();
 };
 
 #endif //__RUZ_THREADINFO_

@@ -3,7 +3,7 @@
     Verwaltet mehrere Teilzeichnungen ("Layer"), erlaubt das Erzeugen von Punkten, Linien, Flächen und speichern als dxf-Datei.
     Copyright (C) 2016-2019  Ansgar Rütten
 
-    Modul ThreadControl (wxWidgets)
+    Modul VerschnittThreadControl (wxWidgets)
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
 /***************************************************************
- * Name:      RUZmBIMain.h
+ * Name:      RUZVerschnittThCtrl.h
  * Purpose:   Defines Application Frame
  * Author:    Ansgar Rütten ()
  * Created:   2018-08-25
@@ -27,8 +27,8 @@
  * License:
  **************************************************************/
 
-#ifndef RUZTHREADCTRL_H
-#define RUZTHREADCTRL_H
+#ifndef RUZVERSCHNITT_TH_CTRL_H
+#define RUZVERSCHNITT_TH_CTRL_H
 
 #ifndef WX_PRECOMP
     #include <wx/wx.h>
@@ -44,12 +44,11 @@ enum threadCtrlID{
   tc_abbruchID = 3000, tc_timerID
 };
 
-class MyPanel: public wxPanel
+class VerschnittThCtrlPanel: public wxPanel
 {
 public:
-	MyPanel(thread_info_verschnitt*, wxWindow*, wxWindowID, const wxPoint&, const wxSize&);
-	~MyPanel();
-	DECLARE_EVENT_TABLE()
+	VerschnittThCtrlPanel(thread_info_verschnitt*, wxWindow*, wxWindowID, const wxPoint&, const wxSize&);
+	~VerschnittThCtrlPanel();
 private:
   void OnPaint(wxPaintEvent& event);
   void OnEraseBackground(wxEraseEvent &event);
@@ -58,18 +57,18 @@ private:
   thread_info_verschnitt *thInf;
 };
 
-class RUZThreadCtrl: public wxDialog
+class RUZVerschnittThCtrl: public wxDialog
 {
 public:
-  RUZThreadCtrl(thread_info_verschnitt *_thInf, int _timerTick, wxWindow *parent,
+  RUZVerschnittThCtrl(thread_info_verschnitt *_thInf, int _timerTick, wxWindow *parent,
     wxWindowID id, const wxString &title, const wxPoint &pos=wxDefaultPosition,
     const wxSize &size=wxDefaultSize);
-  ~RUZThreadCtrl();
+  ~RUZVerschnittThCtrl();
 
 private:
   thread_info_verschnitt *thInf;
   wxBoxSizer *sizerButtons, *sizerText, *sizerHaupt;
-  MyPanel *pAnzeige;
+  VerschnittThCtrlPanel *pAnzeige;
 
   /*Eventhandling*/
   void OnTimer(wxTimerEvent &event);
@@ -79,8 +78,6 @@ private:
 
   wxTimer timer;
   int TIMERTICK;
-
-  DECLARE_EVENT_TABLE()
 };
 
-#endif //RUZTHREADCTRL_H
+#endif //RUZVERSCHNITT_TH_CTRL_H
