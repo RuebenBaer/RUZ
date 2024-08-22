@@ -9,49 +9,61 @@ class thread_info_vernetzen;
 class thread_info
 {
 private:
-  bool bAnfrage_beenden, bBeendet;
+	bool bAnfrage_beenden, bBeendet;
+	int iStatus = 0;
 public:
-  thread_info();
+	thread_info();
 
-  bool BeendenAngefragt(void);
-  void BeendenAnfragen(void);
-  bool IstBeendet(void);
-  void BeendungFeststellen(void);
-  void logSchreiben(const char* msg, ...);
+	bool BeendenAngefragt(void);
+	void BeendenAnfragen(void);
+	bool IstBeendet(void);
+	void BeendungFeststellen(void);
+	int HoleStatus(void);
+	void SetzeStatus(int);
+	void logSchreiben(const char* msg, ...);
 };
 
 class thread_info_verschnitt : public thread_info
 {
+	/*iStatus:	1=Layer2 Rand abschneiden
+				2=Layer2 verschneiden
+				3=Layer1 Rand abschneiden
+				4=Layer1 verschneiden
+				5=Schnittlinien finden*/
 private:
-  RUZ_Layer* hilfsLayer;
-  RUZ_Layer* randLayer1;
-  RUZ_Layer* randLayer2;
+	RUZ_Layer* hilfsLayer;
+	RUZ_Layer* randLayer1;
+	RUZ_Layer* randLayer2;
 
-  RUZ_Layer *Layer1, *Layer2;
-
-  int iStatus = 0; /*Layer2 Rand abschneiden | Layer2 verschneiden | Layer1 Rand abschneiden | Layer1 verschneiden | Schnittlinien finden*/
-  int iBearbeitet, iGes;
+	RUZ_Layer *Layer1, *Layer2;
+	int iBearbeitet, iGes;
 public:
-  thread_info_verschnitt(RUZ_Layer*, RUZ_Layer*);
-  ~thread_info_verschnitt();
+	thread_info_verschnitt(RUZ_Layer*, RUZ_Layer*);
+	~thread_info_verschnitt();
 
-  void HoleLayer(RUZ_Layer**, RUZ_Layer**, RUZ_Layer**, RUZ_Layer**, RUZ_Layer**);
-  int HoleStatus(void);
-  void SetzeStatus(int);
-  void SetzeGesamtzahl(int wert);
-  int HoleGesamtzahl(void);
-  void NulleBearbeitet(void);
-  void InkrementBearbeitet(void);
-  int HoleBearbeitet(void);
+	void HoleLayer(RUZ_Layer**, RUZ_Layer**, RUZ_Layer**, RUZ_Layer**, RUZ_Layer**);
+	void SetzeGesamtzahl(int wert);
+	int HoleGesamtzahl(void);
+	void NulleBearbeitet(void);
+	void InkrementBearbeitet(void);
+	int HoleBearbeitet(void);
 };
 
 class thread_info_vernetzen : public thread_info
 {
+	/*iStatus:	0=Doppelte Punkte loeschen
+				1=Layerfremde Punkte entfernen
+				2=Punkte mit Linien verbinden
+				3= Linien nach Laenge sortieren
+				4=von kurzen Linien geschnittene Linien loeschen*/
 private:
 	RUZ_Layer* m_Layer;
+	unsigned long long int m_anzVorhLinien, m_anzNeueLinien, m_aktLinieNr;
 public:
-  thread_info_vernetzen(RUZ_Layer* lay);
-  ~thread_info_vernetzen();
+	thread_info_vernetzen(RUZ_Layer* lay);
+	~thread_info_vernetzen();
+	void InkrVorhandeneLinie(void);
+	void InkrNeueLinie(void);
 };
 
 #endif //__RUZ_THREADINFO_

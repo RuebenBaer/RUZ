@@ -69,7 +69,7 @@ void RUZ_Layer::Benennen(const char* name)
     return;
 }
 
-double RUZ_Layer::PunkteVernetzen(, thread_info_vernetzen &thInf, Liste<Punkt>* t_pktLst)
+double RUZ_Layer::PunkteVernetzen(thread_info_vernetzen *thInf, Liste<Punkt>* t_pktLst)
 {
     clock_t zeit;
     zeit = clock();
@@ -84,7 +84,9 @@ double RUZ_Layer::PunkteVernetzen(, thread_info_vernetzen &thInf, Liste<Punkt>* 
     }else{
         pktSammlung = m_punktLst;
     }
+	thInf->SetzeStatus(0);
     LoescheDoppeltePunkte(pktSammlung, 4);
+	thInf->SetzeStatus(1);
     for(von = pktSammlung->GetErstesElement(); von != NULL; von = pktSammlung->GetNachfolger(von))
     {
         if(von->HoleLayer() != this)
@@ -97,6 +99,7 @@ double RUZ_Layer::PunkteVernetzen(, thread_info_vernetzen &thInf, Liste<Punkt>* 
 			return;
 		}
     }
+	thInf->SetzeStatus(2);
     for(von = pktSammlung->GetErstesElement(); von != NULL; von = pktSammlung->GetNachfolger(von))
     {
         for(nach = pktSammlung->GetNachfolger(von); nach != NULL; nach = pktSammlung->GetNachfolger(nach))
@@ -106,9 +109,11 @@ double RUZ_Layer::PunkteVernetzen(, thread_info_vernetzen &thInf, Liste<Punkt>* 
             if(verbindungsLinie != NULL)//prüfen, ob Punkte bereits verbunden sind
             {
                 verbindungsLinie->SetzeGeschuetzt(true);
+				thInf->InkrVorhandeneLinie();
                 continue;
             }
             Linie::NeueLinie(von, nach);
+			thInf->InkrNeueLinie();
 			if(thInf->BeendenAngefragt())//Abbruch angefragt
 			{
 				thInf->BeendigungFeststellen();
@@ -116,11 +121,14 @@ double RUZ_Layer::PunkteVernetzen(, thread_info_vernetzen &thInf, Liste<Punkt>* 
 			}
         }
     }
-
+	thInf->SetzeStatus(3);
     LinienNachLaengeSortieren();
     /*von kurzen Linien geschnittene Linien loeschen*/
+	thInf->SetzeStatus(4);
+	unsigned long long int aktLinieNr = 0;
     for(LE_strich1 = m_linienLst->GetErstesListenelement(); LE_strich1 != NULL;)
     {
+		thInf->BearbeiteteLinie(aktLinieNr++);
         strich1 = LE_strich1->GetElement();
         for(LE_strich2 = LE_strich1->GetNachfolger(); LE_strich2 != NULL;)
         {
@@ -278,7 +286,8 @@ void RUZ_Layer::LinienNachLaengeSortieren()
     {
         if(laeufer->GetElement()->IstGeschuetzt())
         {
-            laeufer->Wert(-1.0);
+			laeufer->Wert(-1/(laeufer->GetElement()->ProjLaenge(z)));
+            //laeufer->Wert(-1.0);
         }else{
             laeufer->Wert(laeufer->GetElement()->ProjLaenge(z));
         }
@@ -310,7 +319,7 @@ void RUZ_Layer::DreieckeFinden(void)
       for(Linie* ln_p1 = ln_Sammlung1->GetErstesElement(); ln_p1 != NULL; ln_p1 = ln_Sammlung1->GetNaechstesElement())
       {
         if(ln_p1 == ln_laeufer)continue;
-        /*HIER WEITER*/
+        /*HIER WEITER: ACHTUNG BAUSTELLE*/
       }
     }
   }

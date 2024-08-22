@@ -63,7 +63,7 @@ protected:
 public:
     RUZ_Layer(const char*);
     ~RUZ_Layer();
-    double PunkteVernetzen(thread_info_vernetzen &thInfo, Liste<Punkt>* t_pktLst = NULL);
+    double PunkteVernetzen(thread_info_vernetzen *thInfo, Liste<Punkt>* t_pktLst = NULL);
     RUZ_Layer* Kopieren(char* name);
 
     void LinienNachLaengeSortieren(void);
