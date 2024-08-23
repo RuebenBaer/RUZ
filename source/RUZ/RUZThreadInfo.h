@@ -67,6 +67,9 @@ public:
 	void InkrVorhandeneLinie(void);
 	void InkrNeueLinie(void);
 	void BearbeiteteLinie(unsigned long long int Nr);
+	unsigned long long int HoleBearbeitet(void);
+	unsigned long long int HoleVorhandeneLinien(void);
+	unsigned long long int HoleNeueLinien(void);
 };
 
 #endif //__RUZ_THREADINFO_

@@ -141,6 +141,8 @@ public:
     void EntlangLinienSchneiden(Liste<Linie>*, thread_info_verschnitt*);
     void EntferneTieferes(Achse);
     void EntferneHoeheres(Achse);
+
+	void UngeschuetzteLinienLoeschen(void);
     /*ENDE Verschiedenes*/
 
     Liste<Punkt>* HolePunkte(void) const;

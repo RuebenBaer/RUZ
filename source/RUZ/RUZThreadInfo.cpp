@@ -76,7 +76,7 @@ thread_info_verschnitt::~thread_info_verschnitt()
 	delete randLayer2;
 }
 
-void thread_info_verschnitt::HoleLayer(RUZ_Layer** hl, RUZ_Layer** rl1, RUZ_Layer** rl2,	RUZ_Layer** lay1, RUZ_Layer** lay2)
+void thread_info_verschnitt::HoleLayer(RUZ_Layer** hl, RUZ_Layer** rl1, RUZ_Layer** rl2, RUZ_Layer** lay1, RUZ_Layer** lay2)
 {
 	*hl = hilfsLayer;
 	*rl1 = randLayer1;
@@ -149,5 +149,20 @@ void thread_info_vernetzen::BearbeiteteLinie(unsigned long long int Nr)
 {
 	m_aktLinieNr = Nr;
 	return;
+}
+
+unsigned long long int thread_info_vernetzen::HoleBearbeitet(void)
+{
+	return m_aktLinieNr;
+}
+
+unsigned long long int thread_info_vernetzen::HoleVorhandeneLinien(void)
+{
+	return m_anzVorhLinien;
+}
+
+unsigned long long int thread_info_vernetzen::HoleNeueLinien(void)
+{
+	return m_anzNeueLinien;
 }
 /*ENDE thread_info_ververnetzen*/

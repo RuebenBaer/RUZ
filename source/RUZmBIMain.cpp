@@ -4176,7 +4176,7 @@ void RUZmBIFrame::OnLayerinhaltAnzeigen(wxCommandEvent &event)
 		int anzHP = aktLayer->HoleHoehenMarken()->GetListenGroesse();
 		int anzGM = aktLayer->HoleGefaelleMarken()->GetListenGroesse();
 		wxMessageDialog(this, wxString::FromUTF8(aktLayer->HoleName()) +
-							wxString::Format(" enthält: \n%d Punkt(e)\n%d Linie(n)\n%d Kreis(e)\n%d Fangpunkt(e)\n%d Dreieck(e)\n%d Viereck(e)\n%d Höhenmarke(n)\n%d Gefällemarke(n)",
+							wxString::Format(wxT(" enthält: \n%d Punkt(e)\n%d Linie(n)\n%d Kreis(e)\n%d Fangpunkt(e)\n%d Dreieck(e)\n%d Viereck(e)\n%d Höhenmarke(n)\n%d Gefällemarke(n)"),
 											 anzPkt, anzLn, anzKr, anzFP, anzDrk, anzVrk, anzHP, anzGM)).ShowModal();
 	}
 	return;

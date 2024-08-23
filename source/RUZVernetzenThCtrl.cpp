@@ -42,20 +42,27 @@ void VernetzenThCtrlPanel::OnPaint(wxPaintEvent& event)
 	wxString msg = wxString::Format("Vernetzen\n\n");
 	int iStatus = thInf->HoleStatus();
 	if(iStatus == 0){
-		msg += wxString::Format("Status = %d", iStatus);
+		msg += wxString::Format(wxT("Doppelte Punkte löschen..."));
 	}
 	if(iStatus == 1){
-		msg += wxString::Format("Status = %d", iStatus);
+		msg += wxString::Format(wxT("Doppelte Punkte löschen beendet.\n\n"));
+		msg += wxString::Format(wxT("Punkteliste bereinigen..."));
 	}
-
 	if(iStatus == 2){
-		msg += wxString::Format("Status = %d", iStatus);
+		msg += wxString::Format(wxT("Doppelte Punkte löschen beendet.\n"));
+		msg += wxString::Format(wxT("Punkteliste bereinigen beendet.\n\n"));
+		msg += wxString::Format(wxT("Punkte untereinander verbinden\n    %llu geschützte Linien\n    %llu neue Linien\n"), thInf->HoleVorhandeneLinien(), thInf->HoleNeueLinien());
 	}
 	if(iStatus == 3){
-		msg += wxString::Format("Status = %d", iStatus);
+		msg += wxString::Format(wxT("Doppelte Punkte löschen beendet.\n"));
+		msg += wxString::Format(wxT("Punkteliste bereinigen beendet.\n\n"));
+		msg += wxString::Format(wxT("Linien nach Länge sortieren..."));
 	}
 	if(iStatus == 4){
-		msg += wxString::Format("Status = %d", iStatus);
+		msg += wxString::Format(wxT("Doppelte Punkte löschen beendet.\n"));
+		msg += wxString::Format(wxT("Punkteliste bereinigen beendet.\n"));
+		msg += wxString::Format(wxT("Linien nach Länge sortieren beendet.\n\n"));
+		msg += wxString::Format(wxT("Linien verschneiden\n    Linie %llu von %d"), thInf->HoleBearbeitet(), m_Layer->HoleLinien()->GetListenGroesse());
 	}
 	dc.DrawText(msg, 30, 30);
 	return;
@@ -72,6 +79,8 @@ RUZVernetzenThCtrl::RUZVernetzenThCtrl(thread_info_vernetzen *_thInf, int _timer
 {
 	thInf = _thInf;
 	TIMERTICK = _timerTick;
+
+	thInf->HoleLayer(&m_Layer);
 
 	sizerButtons = new wxBoxSizer(wxHORIZONTAL);
 	sizerButtons->Add(new wxButton(this, tc_netz_abbruchID, wxT("Abbruch")), 0, wxSHAPED|wxRIGHT, 5);
@@ -116,6 +125,8 @@ void RUZVernetzenThCtrl::OnAbbruch(wxCommandEvent &event)
 {
 	thInf->BeendenAnfragen();
 	pAnzeige->Refresh();
+	
+	m_Layer->UngeschuetzteLinienLoeschen();
 	return;
 }
 

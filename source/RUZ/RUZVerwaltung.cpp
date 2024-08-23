@@ -74,6 +74,13 @@ void RUZ_Layer::PunkteVernetzen(thread_info_vernetzen *thInf, Liste<Punkt>* t_pk
     Punkt *von, *nach;
     Linie *strich1, *strich2;
     Listenelement<Linie> *LE_strich1, *LE_strich2;
+	
+	for(Linie *laeufer = m_linienLst->GetErstesElement(); laeufer != NULL; laeufer = m_linienLst->GetNaechstesElement())
+    {
+        laeufer->SetzeGeschuetzt(true);
+		thInf->InkrVorhandeneLinie();
+    }
+	
     /*jeden Punkt mit jedem verbinden*/
     Liste<Punkt>* pktSammlung;
     if(t_pktLst->GetListenGroesse() != 0)
@@ -106,8 +113,6 @@ void RUZ_Layer::PunkteVernetzen(thread_info_vernetzen *thInf, Liste<Punkt>* t_pk
             Linie *verbindungsLinie = Verbunden(von, nach);
             if(verbindungsLinie != NULL)//prüfen, ob Punkte bereits verbunden sind
             {
-                verbindungsLinie->SetzeGeschuetzt(true);
-				thInf->InkrVorhandeneLinie();
                 continue;
             }
             Linie::NeueLinie(von, nach);
@@ -1615,4 +1620,16 @@ void RUZ_Layer::ElementlisteAusgeben(void)
         logSchreiben("\n");
     }
     return;
+}
+
+void RUZ_Layer::UngeschuetzteLinienLoeschen(void)
+{
+	for(Linie *laeufer = m_linienLst->GetErstesElement(); laeufer != NULL; laeufer = m_linienLst->GetNaechstesElement())
+    {
+        if(!laeufer->IstGeschuetzt())
+		{
+			delete laeufer;
+		}
+    }
+	return;
 }
