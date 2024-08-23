@@ -3,7 +3,7 @@
     Verwaltet mehrere Teilzeichnungen ("Layer"), erlaubt das Erzeugen von Punkten, Linien, Flächen und speichern als dxf-Datei.
     Copyright (C) 2016-2019  Ansgar Rütten
 
-    Modul VerschnittThreadControl (wxWidgets)
+    Modul VernetzenThreadControl (wxWidgets)
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
 /***************************************************************
- * Name:      RUZVerschnittThCtrl.h
+ * Name:      RUZVernetzenThCtrl.h
  * Purpose:   Defines Application Frame
  * Author:    Ansgar Rütten ()
  * Created:   2018-08-25
@@ -27,8 +27,8 @@
  * License:
  **************************************************************/
 
-#ifndef RUZVERSCHNITT_TH_CTRL_H
-#define RUZVERSCHNITT_TH_CTRL_H
+#ifndef RUZVERNETZEN_TH_CTRL_H
+#define RUZVERNETZEN_TH_CTRL_H
 
 #ifndef WX_PRECOMP
     #include <wx/wx.h>
@@ -40,35 +40,35 @@
 #include <wx/sizer.h>
 #include "RUZ\RUZVerwaltung.h"
 
-enum threadSchnittCtrlID{
-  tc_schnitt_abbruchID = 3000, tc_schnitt_timerID
+enum threadNetzCtrlID{
+  tc_netz_abbruchID = 3000, tc_netz_timerID
 };
 
-class VerschnittThCtrlPanel: public wxPanel
+class VernetzenThCtrlPanel: public wxPanel
 {
 public:
-	VerschnittThCtrlPanel(thread_info_verschnitt*, wxWindow*, wxWindowID, const wxPoint&, const wxSize&);
-	~VerschnittThCtrlPanel();
+	VernetzenThCtrlPanel(thread_info_vernetzen*, wxWindow*, wxWindowID, const wxPoint&, const wxSize&);
+	~VernetzenThCtrlPanel();
 private:
   void OnPaint(wxPaintEvent& event);
   void OnEraseBackground(wxEraseEvent &event);
-  RUZ_Layer *hilfsLayer, *randLayer1, *randLayer2, *Layer1, *Layer2;
+  RUZ_Layer *m_Layer;
 
-  thread_info_verschnitt *thInf;
+  thread_info_vernetzen *thInf;
 };
 
-class RUZVerschnittThCtrl: public wxDialog
+class RUZVernetzenThCtrl: public wxDialog
 {
 public:
-  RUZVerschnittThCtrl(thread_info_verschnitt *_thInf, int _timerTick, wxWindow *parent,
+  RUZVernetzenThCtrl(thread_info_vernetzen *_thInf, int _timerTick, wxWindow *parent,
     wxWindowID id, const wxString &title, const wxPoint &pos=wxDefaultPosition,
     const wxSize &size=wxDefaultSize);
-  ~RUZVerschnittThCtrl();
+  ~RUZVernetzenThCtrl();
 
 private:
-  thread_info_verschnitt *thInf;
+  thread_info_vernetzen *thInf;
   wxBoxSizer *sizerButtons, *sizerText, *sizerHaupt;
-  VerschnittThCtrlPanel *pAnzeige;
+  VernetzenThCtrlPanel *pAnzeige;
 
   /*Eventhandling*/
   void OnTimer(wxTimerEvent &event);
@@ -80,4 +80,4 @@ private:
   int TIMERTICK;
 };
 
-#endif //RUZVERSCHNITT_TH_CTRL_H
+#endif //RUZVERNETZEN_TH_CTRL_H

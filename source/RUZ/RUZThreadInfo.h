@@ -17,7 +17,7 @@ public:
 	bool BeendenAngefragt(void);
 	void BeendenAnfragen(void);
 	bool IstBeendet(void);
-	void BeendungFeststellen(void);
+	void BeendigungFeststellen(void);
 	int HoleStatus(void);
 	void SetzeStatus(int);
 	void logSchreiben(const char* msg, ...);
@@ -62,8 +62,11 @@ private:
 public:
 	thread_info_vernetzen(RUZ_Layer* lay);
 	~thread_info_vernetzen();
+
+	void HoleLayer(RUZ_Layer**);
 	void InkrVorhandeneLinie(void);
 	void InkrNeueLinie(void);
+	void BearbeiteteLinie(unsigned long long int Nr);
 };
 
 #endif //__RUZ_THREADINFO_

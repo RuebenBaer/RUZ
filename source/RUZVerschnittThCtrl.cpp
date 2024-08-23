@@ -102,7 +102,7 @@ RUZVerschnittThCtrl::RUZVerschnittThCtrl(thread_info_verschnitt *_thInf, int _ti
 	TIMERTICK = _timerTick;
 
 	sizerButtons = new wxBoxSizer(wxHORIZONTAL);
-	sizerButtons->Add(new wxButton(this, tc_abbruchID, wxT("Abbruch")), 0, wxSHAPED|wxRIGHT, 5);
+	sizerButtons->Add(new wxButton(this, tc_schnitt_abbruchID, wxT("Abbruch")), 0, wxSHAPED|wxRIGHT, 5);
 
 	sizerText = new wxBoxSizer(wxHORIZONTAL);
 	pAnzeige = new VerschnittThCtrlPanel(thInf, this, wxID_ANY, wxPoint(0, 0), wxSize(1000,500));
@@ -113,13 +113,13 @@ RUZVerschnittThCtrl::RUZVerschnittThCtrl(thread_info_verschnitt *_thInf, int _ti
 	sizerHaupt->Add(sizerText, 5, wxEXPAND|wxALL, 5);
 	sizerHaupt->Add(sizerButtons, 1, wxSHAPED);
 
-	timer.SetOwner(this, tc_timerID);
+	timer.SetOwner(this, tc_schnitt_timerID);
 	timer.Start(TIMERTICK);
 
 	SetSizerAndFit(sizerHaupt);
 
-	Bind(wxEVT_TIMER, &RUZVerschnittThCtrl::OnTimer, this, tc_timerID);
-	Bind(wxEVT_BUTTON, &RUZVerschnittThCtrl::OnAbbruch, this, tc_abbruchID);
+	Bind(wxEVT_TIMER, &RUZVerschnittThCtrl::OnTimer, this, tc_schnitt_timerID);
+	Bind(wxEVT_BUTTON, &RUZVerschnittThCtrl::OnAbbruch, this, tc_schnitt_abbruchID);
 	Bind(wxEVT_PAINT, RUZVerschnittThCtrl::OnPaint, this);
 	Bind(wxEVT_ERASE_BACKGROUND, &RUZVerschnittThCtrl::OnEraseBackground, this);
 }

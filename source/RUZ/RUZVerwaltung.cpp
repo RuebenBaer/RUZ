@@ -69,16 +69,14 @@ void RUZ_Layer::Benennen(const char* name)
     return;
 }
 
-double RUZ_Layer::PunkteVernetzen(thread_info_vernetzen *thInf, Liste<Punkt>* t_pktLst)
+void RUZ_Layer::PunkteVernetzen(thread_info_vernetzen *thInf, Liste<Punkt>* t_pktLst)
 {
-    clock_t zeit;
-    zeit = clock();
     Punkt *von, *nach;
     Linie *strich1, *strich2;
     Listenelement<Linie> *LE_strich1, *LE_strich2;
     /*jeden Punkt mit jedem verbinden*/
     Liste<Punkt>* pktSammlung;
-    if(t_pktLst != NULL)
+    if(t_pktLst->GetListenGroesse() != 0)
     {
         pktSammlung = t_pktLst;
     }else{
@@ -152,9 +150,8 @@ double RUZ_Layer::PunkteVernetzen(thread_info_vernetzen *thInf, Liste<Punkt>* t_
         LE_strich1 = LE_strich1->GetNachfolger();
     }
 
-    zeit = clock() - zeit;
     /*ENDE von kurzen Linien geschnittene Linien loeschen*/
-    return ((double)zeit/CLOCKS_PER_SEC);
+    return;
 }
 
 RUZ_Layer* RUZ_Layer::Kopieren(char* name)
@@ -1134,7 +1131,7 @@ void RUZ_Layer::Verschneiden(RUZ_Layer *andererLayer, thread_info_verschnitt *th
     layer2->LoescheFreiliegendeFlaechen(layer1);
     layer1->LoescheFreiliegendeFlaechen(layer2);
 
-    thInf->BeendungFeststellen();/*Beendet modalen Dialog*/
+    thInf->BeendigungFeststellen();/*Beendet modalen Dialog*/
     return;
 }
 

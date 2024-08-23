@@ -26,7 +26,7 @@ bool thread_info::IstBeendet(void)
 	return bBeendet;
 }
 
-void thread_info::BeendungFeststellen(void)
+void thread_info::BeendigungFeststellen(void)
 {
 	bBeendet = true;
 	return;
@@ -127,6 +127,12 @@ thread_info_vernetzen::~thread_info_vernetzen()
 {
 }
 
+void thread_info_vernetzen::HoleLayer(RUZ_Layer** lay)
+{
+	*lay = m_Layer;
+	return;
+}
+
 void thread_info_vernetzen::InkrVorhandeneLinie(void)
 {
 	m_anzVorhLinien++;
@@ -144,3 +150,4 @@ void thread_info_vernetzen::BearbeiteteLinie(unsigned long long int Nr)
 	m_aktLinieNr = Nr;
 	return;
 }
+/*ENDE thread_info_ververnetzen*/
