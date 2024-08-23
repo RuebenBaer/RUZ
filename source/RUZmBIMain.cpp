@@ -6385,24 +6385,15 @@ void RUZmBIFrame::OnPunkteVernetzen(wxCommandEvent &event)
 			}
 		}
 		m_auswahl->ListeLeeren("");
-		if(pktLst->GetListenGroesse() == 0)
-		{
-			/*Thread Vernetzen*/
-			thread_info_vernetzen thInf(aktLayer);
-			std::thread thVernetzen(&RUZ_Layer::PunkteVernetzen, &thInf, pktLst);
-			thVernetzen.detach();
 
-			RUZVernetzenThCtrl(&thInf, 200, this, wxID_ANY, wxString::Format("Layer vernetzen")).ShowModal();
-			/*ENDE Thread Vernetzen*/
-		}else{
-			/*Thread Vernetzen*/
-			thread_info_vernetzen thInf(aktLayer);
-			std::thread thVernetzen(&RUZ_Layer::PunkteVernetzen, &thInf, pktLst);
-			thVernetzen.detach();
+		/*Thread Vernetzen*/
+		thread_info_vernetzen thInf(aktLayer);
+		std::thread thVernetzen(&RUZ_Layer::PunkteVernetzen, aktLayer, &thInf, pktLst);
+		thVernetzen.detach();
 
-			RUZVernetzenThCtrl(&thInf, 200, this, wxID_ANY, wxString::Format("Layer vernetzen")).ShowModal();
-			/*ENDE Thread Vernetzen*/
-		}
+		RUZVernetzenThCtrl(&thInf, 200, this, wxID_ANY, wxString::Format("Layer vernetzen")).ShowModal();
+		/*ENDE Thread Vernetzen*/
+
 		delete pktLst;
 		Refresh();
 	}else{

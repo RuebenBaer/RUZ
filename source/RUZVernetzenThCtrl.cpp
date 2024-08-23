@@ -13,7 +13,7 @@
 
 #include "RUZVernetzenThCtrl.h"
 
-VernetzenThCtrlPanel::VernetzenThCtrlPanel(thread_info_verschnitt* _thInf, wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size)
+VernetzenThCtrlPanel::VernetzenThCtrlPanel(thread_info_vernetzen* _thInf, wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size)
 	:wxPanel(parent, id, pos, size)
 {
 	thInf = _thInf;
@@ -67,7 +67,7 @@ void VernetzenThCtrlPanel::OnEraseBackground(wxEraseEvent &event)
 	return;
 }
 
-RUZVernetzenThCtrl::RUZVernetzenThCtrl(thread_info_verschnitt *_thInf, int _timerTick, wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &pos, const wxSize &size)
+RUZVernetzenThCtrl::RUZVernetzenThCtrl(thread_info_vernetzen *_thInf, int _timerTick, wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &pos, const wxSize &size)
 : wxDialog(parent, id, title, pos, size)
 {
 	thInf = _thInf;

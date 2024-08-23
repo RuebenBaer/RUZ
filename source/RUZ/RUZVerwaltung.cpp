@@ -149,8 +149,9 @@ void RUZ_Layer::PunkteVernetzen(thread_info_vernetzen *thInf, Liste<Punkt>* t_pk
         }
         LE_strich1 = LE_strich1->GetNachfolger();
     }
-
     /*ENDE von kurzen Linien geschnittene Linien loeschen*/
+	
+    thInf->BeendigungFeststellen();/*Beendet modalen Dialog*/
     return;
 }
 

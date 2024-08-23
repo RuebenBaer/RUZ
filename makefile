@@ -72,6 +72,7 @@ OBJS = \
 	$(OBJDIR)\RUZmBIApp.o \
 	$(OBJDIR)\RUZmBIMain.o \
 	$(OBJDIR)\RUZVerschnittThCtrl.o \
+	$(OBJDIR)\RUZVernetzenThCtrl.o \
 	$(OBJDIR)\resource.res
 OUT = RUZ.exe
 
@@ -129,6 +130,10 @@ $(OBJDIR)\RUZmBIMain.o: source\RUZmBIMain.cpp
 	$(CXX) $(CPPFLAGS) $(DEFS) $(INCLUDES) -c $< -o $@
 
 $(OBJDIR)\RUZVerschnittThCtrl.o: source\RUZVerschnittThCtrl.cpp
+	if not exist $(OBJDIR) mkdir $(OBJDIR)
+	$(CXX) $(CPPFLAGS) $(DEFS) $(INCLUDES) -c $< -o $@
+
+$(OBJDIR)\RUZVernetzenThCtrl.o: source\RUZVernetzenThCtrl.cpp
 	if not exist $(OBJDIR) mkdir $(OBJDIR)
 	$(CXX) $(CPPFLAGS) $(DEFS) $(INCLUDES) -c $< -o $@
 
