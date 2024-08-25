@@ -177,7 +177,7 @@ thread_info_vernetzen::thread_info_vernetzen(RUZ_Layer* lay)
 
 thread_info_vernetzen::~thread_info_vernetzen()
 {
-	m_Layer->UngeschuetzteLinienLoeschen();
+	if(BeendenAngefragt())m_Layer->UngeschuetzteLinienLoeschen();
 }
 
 void thread_info_vernetzen::SetzeStatus(int i)
