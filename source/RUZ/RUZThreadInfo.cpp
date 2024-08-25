@@ -32,17 +32,6 @@ void thread_info::BeendigungFeststellen(void)
 	return;
 }
 
-int thread_info::HoleStatus(void)
-{
-	return iStatus;
-}
-
-void thread_info::SetzeStatus(int i)
-{
-	iStatus = i;
-	return;
-}
-
 void thread_info::logSchreiben(const char* msg, ...)
 {
 		FILE *Logbuch;
@@ -74,6 +63,8 @@ thread_info_verschnitt::~thread_info_verschnitt()
 	delete hilfsLayer;
 	delete randLayer1;
 	delete randLayer2;
+	
+	/*Hier noch Layer1 und Layer2 loeschen - vorher Layer_Auswahl_Dialog aendern (in RUZmiBIFrame immer neu erstellen!)*/
 }
 
 void thread_info_verschnitt::HoleLayer(RUZ_Layer** hl, RUZ_Layer** rl1, RUZ_Layer** rl2, RUZ_Layer** lay1, RUZ_Layer** lay2)
@@ -86,15 +77,41 @@ void thread_info_verschnitt::HoleLayer(RUZ_Layer** hl, RUZ_Layer** rl1, RUZ_Laye
 	return;
 }
 
+void thread_info_verschnitt::SetzeStatus(int i)
+{
+	iStatus = i;
+	if(iStatus == 0){
+		grundMsg = "Layer verschneiden\n\n";
+		grundMsg += "Verschneide ";
+		grundMsg += Layer1->HoleName();
+		grundMsg += ":";
+	}
+	if(iStatus == 1){
+		grundMsg += " erledigt\nSchneide ";
+		grundMsg += Layer1->HoleName();
+		grundMsg += " am Rand ab:";
+	}
+	if(iStatus == 2){
+		grundMsg += " erledigt\n";
+		grundMsg += "Verschneide ";
+		grundMsg += Layer2->HoleName();
+		grundMsg += ":";
+	}
+	if(iStatus == 3){
+		grundMsg += " erledigt\nSchneide ";
+		grundMsg += Layer2->HoleName();
+		grundMsg += " am Rand ab:";
+	}
+	if(iStatus == 4){
+		grundMsg += " erledigt\n";
+	}
+	return;
+}
+
 void thread_info_verschnitt::SetzeGesamtzahl(int wert)
 {
 	iGes = wert;
 	return;
-}
-
-int thread_info_verschnitt::HoleGesamtzahl(void)
-{
-	return iGes;
 }
 
 void thread_info_verschnitt::NulleBearbeitet(void)
@@ -109,9 +126,44 @@ void thread_info_verschnitt::InkrementBearbeitet(void)
 	return;
 }
 
-int thread_info_verschnitt::HoleBearbeitet(void)
+std::string thread_info_verschnitt::HoleMeldung(void)
 {
-	return iBearbeitet;
+	std::string msg = grundMsg;
+	if((iStatus == 0)||(iStatus == 1)){
+		msg += " ... ";
+		msg += std::to_string(iBearbeitet);
+		msg += " / ";
+		msg += std::to_string(iGes);
+		msg += "    Punkte:	";
+		msg += std::to_string(Layer1->HolePunkte()->GetListenGroesse());
+		msg += "\n    Linien:	";
+		msg += std::to_string(Layer1->HoleLinien()->GetListenGroesse());
+		msg += "\n    Flächen:";
+		msg += std::to_string(Layer1->HoleFlaechen()->GetListenGroesse());
+	}
+	if((iStatus == 2)||(iStatus == 3)){
+		msg += " ... ";
+		msg += std::to_string(iBearbeitet);
+		msg += " / ";
+		msg += std::to_string(iGes);
+		msg += "    Punkte:	";
+		msg += std::to_string(Layer2->HolePunkte()->GetListenGroesse());
+		msg += "\n    Linien:	";
+		msg += std::to_string(Layer2->HoleLinien()->GetListenGroesse());
+		msg += "\n    Flächen:";
+		msg += std::to_string(Layer2->HoleFlaechen()->GetListenGroesse());
+	}
+	if(iStatus == 4){
+		msg += "\nLösche freiliegende Flächen!\n    ";
+		msg += Layer1->HoleName();
+		msg += ": ";
+		msg += std::to_string(Layer1->HoleFlaechen()->GetListenGroesse());
+		msg += "\n    ";
+		msg += Layer2->HoleName();
+		msg += ": ";
+		msg += std::to_string(Layer2->HoleFlaechen()->GetListenGroesse());
+	}
+	return msg;
 }
 /*ENDE thread_info_verschnitt*/
 
@@ -125,6 +177,38 @@ thread_info_vernetzen::thread_info_vernetzen(RUZ_Layer* lay)
 
 thread_info_vernetzen::~thread_info_vernetzen()
 {
+	m_Layer->UngeschuetzteLinienLoeschen();
+}
+
+void thread_info_vernetzen::SetzeStatus(int i)
+{
+	iStatus = i;
+	grundMsg = "Punkte vernetzen:\n\n";
+
+	if(iStatus == 0){
+		grundMsg += "Doppelte Punkte löschen...";
+	}
+	if(iStatus == 1){
+		grundMsg += "Doppelte Punkte löschen beendet.\n\n";
+		grundMsg += "Punkteliste bereinigen...";
+	}
+	if(iStatus == 2){
+		grundMsg += "Doppelte Punkte löschen beendet.\n";
+		grundMsg += "Punkteliste bereinigen beendet.\n\n";
+		grundMsg += "Punkte untereinander verbinden:\n    ";
+	}
+	if(iStatus == 3){
+		grundMsg += "Doppelte Punkte löschen beendet.\n";
+		grundMsg += "Punkteliste bereinigen beendet.\n\n";
+		grundMsg += "Linien nach Länge sortieren...";
+	}
+	if(iStatus == 4){
+		grundMsg += "Doppelte Punkte löschen beendet.\n";
+		grundMsg += "Punkteliste bereinigen beendet.\n";
+		grundMsg += "Linien nach Länge sortieren beendet.\n\n";
+		grundMsg += "Linien verschneiden\n    Linie ";
+	}
+	return;
 }
 
 void thread_info_vernetzen::HoleLayer(RUZ_Layer** lay)
@@ -164,5 +248,32 @@ unsigned long long int thread_info_vernetzen::HoleVorhandeneLinien(void)
 unsigned long long int thread_info_vernetzen::HoleNeueLinien(void)
 {
 	return m_anzNeueLinien;
+}
+
+std::string thread_info_vernetzen::HoleMeldung(void)
+{
+	if(iStatus == 0){
+		return grundMsg;
+	}
+	if(iStatus == 1){
+		return grundMsg;
+	}
+	
+	std::string msg = grundMsg;
+	if(iStatus == 2){
+		msg += std::to_string(m_anzVorhLinien);
+		msg += " geschützte Linien\n    ";
+		msg += std::to_string(m_anzNeueLinien);
+		msg += " neue Linien\n";
+	}
+	if(iStatus == 3){
+		return grundMsg;
+	}
+	if(iStatus == 4){
+		msg += std::to_string(m_aktLinieNr);
+		msg += " von ";
+		msg += std::to_string(m_Layer->HoleLinien()->GetListenGroesse());
+	}
+	return msg;
 }
 /*ENDE thread_info_ververnetzen*/

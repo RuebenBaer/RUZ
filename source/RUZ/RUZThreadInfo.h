@@ -5,12 +5,14 @@ class thread_info;
 class thread_info_verschnitt;
 class thread_info_vernetzen;
 #include "RUZVerwaltung.h"
+#include <string>
 
 class thread_info
 {
-private:
+protected:
 	bool bAnfrage_beenden, bBeendet;
 	int iStatus = 0;
+	std::string grundMsg;
 public:
 	thread_info();
 
@@ -18,8 +20,8 @@ public:
 	void BeendenAnfragen(void);
 	bool IstBeendet(void);
 	void BeendigungFeststellen(void);
-	int HoleStatus(void);
-	void SetzeStatus(int);
+	virtual void SetzeStatus(int) = 0;
+	virtual std::string HoleMeldung(void) = 0;
 	void logSchreiben(const char* msg, ...);
 };
 
@@ -40,13 +42,14 @@ private:
 public:
 	thread_info_verschnitt(RUZ_Layer*, RUZ_Layer*);
 	~thread_info_verschnitt();
-
+	
 	void HoleLayer(RUZ_Layer**, RUZ_Layer**, RUZ_Layer**, RUZ_Layer**, RUZ_Layer**);
 	void SetzeGesamtzahl(int wert);
-	int HoleGesamtzahl(void);
 	void NulleBearbeitet(void);
 	void InkrementBearbeitet(void);
-	int HoleBearbeitet(void);
+
+	virtual void SetzeStatus(int);
+	virtual std::string HoleMeldung(void);
 };
 
 class thread_info_vernetzen : public thread_info
@@ -70,6 +73,9 @@ public:
 	unsigned long long int HoleBearbeitet(void);
 	unsigned long long int HoleVorhandeneLinien(void);
 	unsigned long long int HoleNeueLinien(void);
+
+	virtual void SetzeStatus(int);
+	virtual std::string HoleMeldung(void);
 };
 
 #endif //__RUZ_THREADINFO_

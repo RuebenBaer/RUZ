@@ -1090,7 +1090,7 @@ void RUZ_Layer::Verschneiden(RUZ_Layer *andererLayer, thread_info_verschnitt *th
 
     hilfsLayer->LoescheDoppeltePunkte(*genauigkeit);
 
-    thInf->SetzeStatus(1);
+    thInf->SetzeStatus(0);
     layer1->EntlangLinienSchneiden(hilfsLayer->HoleLinien(), thInf);
     if(thInf->BeendenAngefragt())
     {
@@ -1099,7 +1099,7 @@ void RUZ_Layer::Verschneiden(RUZ_Layer *andererLayer, thread_info_verschnitt *th
     }
     layer1->LoescheDoppeltePunkte(*genauigkeit);
 
-    thInf->SetzeStatus(2);
+    thInf->SetzeStatus(1);
     layer1->EntlangLinienSchneiden(randLayer2->HoleLinien(), thInf);
     if(thInf->BeendenAngefragt())
     {
@@ -1108,7 +1108,7 @@ void RUZ_Layer::Verschneiden(RUZ_Layer *andererLayer, thread_info_verschnitt *th
     }
     layer1->LoescheDoppeltePunkte(*genauigkeit);
 
-    thInf->SetzeStatus(3);
+    thInf->SetzeStatus(2);
     layer2->EntlangLinienSchneiden(hilfsLayer->HoleLinien(), thInf);
     if(thInf->BeendenAngefragt())
     {
@@ -1117,7 +1117,7 @@ void RUZ_Layer::Verschneiden(RUZ_Layer *andererLayer, thread_info_verschnitt *th
     }
     layer2->LoescheDoppeltePunkte(*genauigkeit);
 
-    thInf->SetzeStatus(4);
+    thInf->SetzeStatus(3);
     layer2->EntlangLinienSchneiden(randLayer1->HoleLinien(), thInf);
     if(thInf->BeendenAngefragt())
     {
@@ -1126,7 +1126,7 @@ void RUZ_Layer::Verschneiden(RUZ_Layer *andererLayer, thread_info_verschnitt *th
     }
     layer2->LoescheDoppeltePunkte(*genauigkeit);
 
-    thInf->SetzeStatus(5);
+    thInf->SetzeStatus(4);
     if(thInf->IstBeendet())return;
     if(thInf->BeendenAngefragt())
     {

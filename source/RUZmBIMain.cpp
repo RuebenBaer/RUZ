@@ -4338,7 +4338,7 @@ void RUZmBIFrame::OnLayerVerschneiden(wxCommandEvent &event)
 		std::thread thVerschnitt(&RUZ_Layer::Verschneiden, erster_neuer_Layer, zweiter_neuer_Layer, &thInf, &t_genauigkeit);
 		thVerschnitt.detach();
 
-		RUZVerschnittThCtrl(&thInf, 200, this, wxID_ANY, wxString::Format("Layer verschneiden")).ShowModal();
+		RUZThCtrl(&thInf, 200, this, wxID_ANY, wxString::Format("Layer verschneiden")).ShowModal();
 	/*ENDE Thread Verschneiden*/
 	return;
 }
@@ -6391,7 +6391,7 @@ void RUZmBIFrame::OnPunkteVernetzen(wxCommandEvent &event)
 		std::thread thVernetzen(&RUZ_Layer::PunkteVernetzen, aktLayer, &thInf, pktLst);
 		thVernetzen.detach();
 
-		RUZVernetzenThCtrl(&thInf, 200, this, wxID_ANY, wxString::Format("Layer vernetzen")).ShowModal();
+		RUZThCtrl(&thInf, 200, this, wxID_ANY, wxString::Format("Layer vernetzen")).ShowModal();
 		/*ENDE Thread Vernetzen*/
 
 		delete pktLst;
