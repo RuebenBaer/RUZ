@@ -71,6 +71,7 @@ OBJS = \
 	$(OBJDIR)\Vektor\Vektor.o \
 	$(OBJDIR)\RUZmBIApp.o \
 	$(OBJDIR)\RUZmBIMain.o \
+	$(OBJDIR)\RUZLayerDialoge.o \
 	$(OBJDIR)\RUZThCtrl.o \
 	$(OBJDIR)\resource.res
 OUT = RUZ.exe
@@ -125,6 +126,10 @@ $(OBJDIR)\RUZmBIApp.o: source\RUZmBIApp.cpp
 	$(CXX) $(CPPFLAGS) $(DEFS) $(INCLUDES) -c $< -o $@
 
 $(OBJDIR)\RUZmBIMain.o: source\RUZmBIMain.cpp
+	if not exist $(OBJDIR) mkdir $(OBJDIR)
+	$(CXX) $(CPPFLAGS) $(DEFS) $(INCLUDES) -c $< -o $@
+
+$(OBJDIR)\RUZLayerDialoge.o: source\RUZLayerDialoge.cpp
 	if not exist $(OBJDIR) mkdir $(OBJDIR)
 	$(CXX) $(CPPFLAGS) $(DEFS) $(INCLUDES) -c $< -o $@
 
