@@ -105,8 +105,10 @@ void Layer_Verwaltungs_Dialog::OnLayerAuswaehlen(wxCommandEvent& event)
 
 void Layer_Verwaltungs_Dialog::LayerAuswahlFinden(void)
 {
-	for(aruLayerSizer* tempLayerSizer = layerSizerLst->GetErstesElement(); tempLayerSizer != NULL; tempLayerSizer = layerSizerLst->GetNaechstesElement())
+	aruLayerSizer* tempLayerSizer;
+	for(tempLayerSizer = layerSizerLst->GetErstesElement(); tempLayerSizer != NULL; tempLayerSizer = layerSizerLst->GetNaechstesElement())
 	{
+		if(!tempLayerSizer)return;
 		if(tempLayerSizer->GetClientData() == NULL) return;
 		if(tempLayerSizer->GetClientData() == m_mama->HoleAktuellenLayer())
 		{
@@ -140,6 +142,12 @@ void Layer_Verwaltungs_Dialog::OnLayerSichtbarkeitWechseln(wxCommandEvent& event
 
 void Layer_Verwaltungs_Dialog::OnLayerLoeschen(wxCommandEvent& event)
 {
+	if(layerLst->GetListenGroesse() == 1)
+	{
+		wxMessageDialog(this, wxT("Die Zeichnung muss mindestens einen Layer enthalten!"),
+						wxT("Löschen nicht möglich")).ShowModal();
+		return;
+	}
 	aruLayerSizer *tempLayerSizer = static_cast<aruLayerButton*>(event.GetEventObject())->GetClientData();
 
 	m_mama->LayerEntfernen(static_cast<aruLayerButton*>(event.GetEventObject())->GetClientData()->GetClientData());

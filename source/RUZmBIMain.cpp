@@ -457,7 +457,7 @@ void RUZmBIFrame::AnfangMessen(double x, double y)
 
 void RUZmBIFrame::AusdehnungFinden(void)
 {
-	//if(aktLayer == NULL)return;
+	if(aktLayer == NULL)return;
 	wxClientDC cl_dc(this);
 	double abmessungCL_dc_X = cl_dc.GetSize().GetWidth();
 	double abmessungCL_dc_Y = cl_dc.GetSize().GetHeight();
