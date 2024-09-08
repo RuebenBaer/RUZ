@@ -76,6 +76,8 @@ RUZThCtrl::RUZThCtrl(thread_info* _thInf, int _timerTick, wxWindow *parent, wxWi
 	Bind(wxEVT_BUTTON, &RUZThCtrl::OnAbbruch, this, tc_abbruchID);
 	Bind(wxEVT_PAINT, RUZThCtrl::OnPaint, this);
 	Bind(wxEVT_ERASE_BACKGROUND, &RUZThCtrl::OnEraseBackground, this);
+	
+	SetReturnCode(wxID_OK);
 }
 
 RUZThCtrl::~RUZThCtrl()
@@ -98,6 +100,7 @@ void RUZThCtrl::OnAbbruch(wxCommandEvent &event)
 {
 	thInf->BeendenAnfragen();
 	pAnzeige->Refresh();
+	SetReturnCode(wxID_CANCEL);
 	return;
 }
 

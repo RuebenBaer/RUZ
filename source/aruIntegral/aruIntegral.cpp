@@ -52,15 +52,18 @@ aruIntegral::~aruIntegral()
 	if(dIntegral)delete []dIntegral;
 }
 
-void aruIntegral::IntegriereFlaeche(Flaeche* obj)
+void aruIntegral::thIntegriereFlaeche(Flaeche* obj, thread_info_integral *thInf)
 {
-	if(obj->HoleTyp() == RUZ_Dreieck)IntegriereFlaeche(static_cast<Dreieck*>(obj));
-	else IntegriereFlaeche(static_cast<Viereck*>(obj));
+	if(obj->HoleTyp() == RUZ_Dreieck)thIntegriereFlaeche(static_cast<Dreieck*>(obj), thInf);
+	else thIntegriereFlaeche(static_cast<Viereck*>(obj), thInf);
 	return;
 }
 
-void aruIntegral::IntegriereFlaeche(Dreieck *obj)
+void aruIntegral::thIntegriereFlaeche(Dreieck *obj, thread_info_integral *thInf)
 {
+	int x, y;
+	thInf->SetVars(&x, &y, 0, 0, 0, 0);
+	
 	int px[3], py[3];
 	unsigned long long int iStelle;
 
@@ -89,11 +92,23 @@ void aruIntegral::IntegriereFlaeche(Dreieck *obj)
 
 	Vektor vkt;
 	double wert;
+
+	thInf->SetVars(&x, &y, minX, maxX, minY, maxY);
 	
-	for(int x = minX; x < maxX+1; x++)
+	for(x = minX; x < maxX+1; x++)
 	{
-		for(int y = minY; y < maxY+1; y++)
+		if(thInf->BeendenAngefragt())//Abbruch angefragt
 		{
+			thInf->BeendigungFeststellen();
+			return;
+		}
+		for(y = minY; y < maxY+1; y++)
+		{			
+			if(thInf->BeendenAngefragt())//Abbruch angefragt
+			{
+				thInf->BeendigungFeststellen();
+				return;
+			}
 			iStelle = x + y * iBreite;
 			vkt.SetKoordinaten((aProjektion+1)%3, ((float)x + iOffsetBreite)*dAufloesung);
 			vkt.SetKoordinaten((aProjektion+2)%3, ((float)y + iOffsetHoehe)*dAufloesung);
@@ -119,8 +134,11 @@ void aruIntegral::IntegriereFlaeche(Dreieck *obj)
 	return;
 }
 
-void aruIntegral::IntegriereFlaeche(Viereck *obj)
+void aruIntegral::thIntegriereFlaeche(Viereck *obj, thread_info_integral *thInf)
 {
+	int x, y;
+	thInf->SetVars(&x, &y, 0, 0, 0, 0);
+	
 	int px[4], py[4];
 	unsigned long long int iStelle;
 	
@@ -149,11 +167,23 @@ void aruIntegral::IntegriereFlaeche(Viereck *obj)
 
 	Vektor vkt;
 	double wert;
+
+	thInf->SetVars(&x, &y, minX, maxX, minY, maxY);
 	
-	for(int x = minX; x < maxX+1; x++)
+	for(x = minX; x < maxX+1; x++)
 	{
-		for(int y = minY; y < maxY+1; y++)
+		if(thInf->BeendenAngefragt())//Abbruch angefragt
 		{
+			thInf->BeendigungFeststellen();
+			return;
+		}
+		for(y = minY; y < maxY+1; y++)
+		{
+			if(thInf->BeendenAngefragt())//Abbruch angefragt
+			{
+				thInf->BeendigungFeststellen();
+				return;
+			}
 			iStelle = x + y * iBreite;
 			vkt.SetKoordinaten((aProjektion+1)%3, ((float)x + iOffsetBreite)*dAufloesung);
 			vkt.SetKoordinaten((aProjektion+2)%3, ((float)y + iOffsetHoehe)*dAufloesung);

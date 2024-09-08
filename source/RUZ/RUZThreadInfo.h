@@ -78,4 +78,24 @@ public:
 	virtual std::string HoleMeldung(void);
 };
 
+class thread_info_integral : public thread_info
+{
+	/*iStatus:	0=
+				1=
+				2=
+				3=
+				4=*/
+private:
+	int *m_row, *m_col;
+	int m_minX, m_maxX, m_minY, m_maxY;
+public:
+	thread_info_integral();
+	~thread_info_integral();
+	
+	void SetVars(int *row, int *col, int minX, int maxX, int minY, int maxY);
+	
+	virtual void SetzeStatus(int);
+	virtual std::string HoleMeldung(void);
+};
+
 #endif //__RUZ_THREADINFO_

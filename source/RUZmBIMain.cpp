@@ -1601,7 +1601,7 @@ void RUZmBIFrame::GefaelleVerfolgen(Vektor vStart)
 	return;
 }
 
-void RUZmBIFrame::HoehenkarteZeichnen(void)
+void RUZmBIFrame::HoehenkarteZeichnen()
 {
 	if(aktLayer)
 	{
@@ -1628,16 +1628,27 @@ void RUZmBIFrame::HoehenkarteZeichnen(void)
 			if(!dIntegral)
 			{
 				wxMessageDialog(this, wxT("Fehler beim Anlegen des Integrals\n(evtl. zu wenig Speicher?)"), wxT("Abbruch der Berechnung")).ShowModal();
+				delete tempIntegral;
 				return;
 			}
 			Liste<Flaeche>* lstFl = aktLayer->HoleFlaechen();
 
 			SetStatusText(wxT("Starte Integration"), 1);
 			Refresh();
-			for(Flaeche* aktFl = lstFl->GetErstesElement(); aktFl != NULL; aktFl = lstFl->GetNaechstesElement())
+			
+			/*thread Integrieren*/
+			thread_info_integral thInf;
+			std::thread thIntegrieren(&thFlaechenListeIntegrieren, lstFl, &thInf, tempIntegral);
+			thIntegrieren.detach();
+
+			int ret = RUZThCtrl(&thInf, 200, this, wxID_ANY, wxString::Format("Hoehenkarte Zeichnen")).ShowModal();
+			if(ret == wxID_CANCEL)
 			{
-				tempIntegral->IntegriereFlaeche(aktFl);
+				delete tempIntegral;
+				std::cout<<"Hoehenkarte zeichnen abgebrochen\n";
+				return;
 			}
+			/*ENDE thread Integrieren*/
 
 			double maxWert, minWert;
 			unsigned char aktWert;
@@ -1668,7 +1679,11 @@ void RUZmBIFrame::HoehenkarteZeichnen(void)
 			}
 			lwBild.NeueLeinwand(iB, iH, 1/m_flaechenRaster, minX, minY);
 			double dSchrittzahl = (maxWert - minWert)/hoehenSchritt;
-			if(!dSchrittzahl)return;
+			if(!dSchrittzahl)
+			{
+				delete tempIntegral;
+				return;
+			}
 			SetStatusText(wxT("Grenzen ermittelt - bemale Leinwand"), 1);
 			Refresh();
 			for(int i = 0; i < (iB * iH); i++)
@@ -1698,6 +1713,7 @@ void RUZmBIFrame::HoehenkarteZeichnen(void)
 				}
 			}
 			SetStatusText(wxString::Format(wxT("min Z: %f | max Z: %f"), minZ, maxZ),1);
+			delete tempIntegral;
 		}
 	}
 	return;
@@ -1750,7 +1766,8 @@ void RUZmBIFrame::UWertMitGefaelle(void)
 					vSenkrechte.SetKoordinaten(aktProjZ, 1.0);
 					if(vNormale*vSenkrechte < 0.05)continue;//0.05 = ca. cos(87°) - fast senkrechte Flächen überspringen (ergibt an den Rändern unbrauchbar hohe Werte)
 				}
-				tempIntegral->IntegriereFlaeche(aktFl);
+				thread_info_integral thInf;
+				tempIntegral->thIntegriereFlaeche(aktFl, &thInf);
 			}
 
 			double maxWert, minWert;
@@ -4141,7 +4158,15 @@ void RUZmBIFrame::OnKomplettVernetzen(wxCommandEvent &event)
 	{
 		aktLayer->LinienAusStrichen(peEinstellungenDlg->HoleWert(IDlnWandelGenauigkeit), z);
 		SetStatusText(wxT("Punkte vernetzen"));
-		//aktLayer->PunkteVernetzen();
+		
+		/*Thread Vernetzen*/
+		thread_info_vernetzen thInf(aktLayer);
+		std::thread thVernetzen(&RUZ_Layer::thPunkteVernetzen, aktLayer, &thInf, aktLayer->HolePunkte());
+		thVernetzen.detach();
+
+		RUZThCtrl(&thInf, 200, this, wxID_ANY, wxString::Format("Layer vernetzen (komplett)")).ShowModal();
+		/*ENDE Thread Vernetzen*/
+		
 		//SetStatusText(wxString::Format("Vernetzen dauerte %1.5f Sekunden", dauer), 1);
 		aktLayer->DreieckeFinden();
 		aktLayer->ViereckeFinden();
@@ -6389,7 +6414,7 @@ void RUZmBIFrame::OnPunkteVernetzen(wxCommandEvent &event)
 
 		/*Thread Vernetzen*/
 		thread_info_vernetzen thInf(aktLayer);
-		std::thread thVernetzen(&RUZ_Layer::PunkteVernetzen, aktLayer, &thInf, pktLst);
+		std::thread thVernetzen(&RUZ_Layer::thPunkteVernetzen, aktLayer, &thInf, pktLst);
 		thVernetzen.detach();
 
 		RUZThCtrl(&thInf, 200, this, wxID_ANY, wxString::Format("Layer vernetzen")).ShowModal();
@@ -6792,7 +6817,8 @@ void RUZmBIFrame::OnVolumenZwischenLayern(wxCommandEvent &event)
 			Liste<Flaeche>* lstFl = zweiter_Layer->HoleFlaechen();
 			for(Flaeche* aktFl = lstFl->GetErstesElement(); aktFl != NULL; aktFl = lstFl->GetNaechstesElement())
 			{
-				tempIntegral_Neu->IntegriereFlaeche(aktFl);
+				thread_info_integral thInf;
+				tempIntegral_Neu->thIntegriereFlaeche(aktFl, &thInf);
 			}
 
 			SetStatusText(wxT("Starte Integration (Urgelände)"), 1);
@@ -6824,7 +6850,8 @@ void RUZmBIFrame::OnVolumenZwischenLayern(wxCommandEvent &event)
 			lstFl = erster_Layer->HoleFlaechen();
 			for(Flaeche* aktFl = lstFl->GetErstesElement(); aktFl != NULL; aktFl = lstFl->GetNaechstesElement())
 			{
-				tempIntegral_Ur->IntegriereFlaeche(aktFl);
+				thread_info_integral thInf;
+				tempIntegral_Ur->thIntegriereFlaeche(aktFl, &thInf);
 			}
 
 			double maxWert, minWert;
@@ -9689,5 +9716,24 @@ void PrismaSchreiben(std::string &prismenListe, Flaeche* drk, double flaeche, do
 	}
 	prismenListe += tempStr;
 	prismenListe += "\n";
+	return;
+}
+
+void thFlaechenListeIntegrieren(Liste<Flaeche> *lstFl,
+								thread_info_integral *thInf,
+								aruIntegral *tempIntegral)
+{
+	std::cout<<"Anzahl der zu integrierenden Flaechen: "<<lstFl->GetListenGroesse()<<"\n";
+	for(Flaeche* aktFl = lstFl->GetErstesElement(); aktFl != NULL; aktFl = lstFl->GetNaechstesElement())
+	{
+		std::cout<<"Flaeche: "<<aktFl<<"\n";
+		tempIntegral->thIntegriereFlaeche(aktFl, thInf);
+		if(thInf->BeendenAngefragt())
+		{
+			thInf->BeendigungFeststellen();
+			return;
+		}
+	}
+	thInf->BeendigungFeststellen();
 	return;
 }

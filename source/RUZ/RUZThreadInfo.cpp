@@ -80,30 +80,35 @@ void thread_info_verschnitt::HoleLayer(RUZ_Layer** hl, RUZ_Layer** rl1, RUZ_Laye
 void thread_info_verschnitt::SetzeStatus(int i)
 {
 	iStatus = i;
-	if(iStatus == 0){
-		grundMsg = "Layer verschneiden\n\n";
-		grundMsg += "Verschneide ";
-		grundMsg += Layer1->HoleName();
-		grundMsg += ":";
-	}
-	if(iStatus == 1){
-		grundMsg += " erledigt\nSchneide ";
-		grundMsg += Layer1->HoleName();
-		grundMsg += " am Rand ab:";
-	}
-	if(iStatus == 2){
-		grundMsg += " erledigt\n";
-		grundMsg += "Verschneide ";
-		grundMsg += Layer2->HoleName();
-		grundMsg += ":";
-	}
-	if(iStatus == 3){
-		grundMsg += " erledigt\nSchneide ";
-		grundMsg += Layer2->HoleName();
-		grundMsg += " am Rand ab:";
-	}
-	if(iStatus == 4){
-		grundMsg += " erledigt\n";
+	switch(iStatus)
+	{
+		case 0:
+			grundMsg = "Layer verschneiden\n\n";
+			grundMsg += "Verschneide ";
+			grundMsg += Layer1->HoleName();
+			grundMsg += ":";
+			break;
+		case 1:
+			grundMsg += " erledigt\nSchneide ";
+			grundMsg += Layer1->HoleName();
+			grundMsg += " am Rand ab:";
+			break;
+		case 2:
+			grundMsg += " erledigt\n";
+			grundMsg += "Verschneide ";
+			grundMsg += Layer2->HoleName();
+			grundMsg += ":";
+			break;
+		case 3:
+			grundMsg += " erledigt\nSchneide ";
+			grundMsg += Layer2->HoleName();
+			grundMsg += " am Rand ab:";
+			break;
+		case 4:
+			grundMsg += " erledigt\n";
+			break;
+		default:
+			grundMsg += "\n\nFEHLER\n";
 	}
 	return;
 }
@@ -129,39 +134,47 @@ void thread_info_verschnitt::InkrementBearbeitet(void)
 std::string thread_info_verschnitt::HoleMeldung(void)
 {
 	std::string msg = grundMsg;
-	if((iStatus == 0)||(iStatus == 1)){
-		msg += " ... ";
-		msg += std::to_string(iBearbeitet);
-		msg += " / ";
-		msg += std::to_string(iGes);
-		msg += "    Punkte:	";
-		msg += std::to_string(Layer1->HolePunkte()->GetListenGroesse());
-		msg += "\n    Linien:	";
-		msg += std::to_string(Layer1->HoleLinien()->GetListenGroesse());
-		msg += "\n    Flächen:";
-		msg += std::to_string(Layer1->HoleFlaechen()->GetListenGroesse());
-	}
-	if((iStatus == 2)||(iStatus == 3)){
-		msg += " ... ";
-		msg += std::to_string(iBearbeitet);
-		msg += " / ";
-		msg += std::to_string(iGes);
-		msg += "    Punkte:	";
-		msg += std::to_string(Layer2->HolePunkte()->GetListenGroesse());
-		msg += "\n    Linien:	";
-		msg += std::to_string(Layer2->HoleLinien()->GetListenGroesse());
-		msg += "\n    Flächen:";
-		msg += std::to_string(Layer2->HoleFlaechen()->GetListenGroesse());
-	}
-	if(iStatus == 4){
-		msg += "\nLösche freiliegende Flächen!\n    ";
-		msg += Layer1->HoleName();
-		msg += ": ";
-		msg += std::to_string(Layer1->HoleFlaechen()->GetListenGroesse());
-		msg += "\n    ";
-		msg += Layer2->HoleName();
-		msg += ": ";
-		msg += std::to_string(Layer2->HoleFlaechen()->GetListenGroesse());
+	switch(iStatus)
+	{
+		case 0:
+		case 1:
+			msg += " ... ";
+			msg += std::to_string(iBearbeitet);
+			msg += " / ";
+			msg += std::to_string(iGes);
+			msg += "    Punkte:	";
+			msg += std::to_string(Layer1->HolePunkte()->GetListenGroesse());
+			msg += "\n    Linien:	";
+			msg += std::to_string(Layer1->HoleLinien()->GetListenGroesse());
+			msg += "\n    Flächen:";
+			msg += std::to_string(Layer1->HoleFlaechen()->GetListenGroesse());
+			break;
+		case 2:
+		case 3:
+			msg += " ... ";
+			msg += std::to_string(iBearbeitet);
+			msg += " / ";
+			msg += std::to_string(iGes);
+			msg += "    Punkte:	";
+			msg += std::to_string(Layer2->HolePunkte()->GetListenGroesse());
+			msg += "\n    Linien:	";
+			msg += std::to_string(Layer2->HoleLinien()->GetListenGroesse());
+			msg += "\n    Flächen:";
+			msg += std::to_string(Layer2->HoleFlaechen()->GetListenGroesse());
+			break;
+		case 4:
+			msg += "\nLösche freiliegende Flächen!\n    ";
+			msg += Layer1->HoleName();
+			msg += ": ";
+			msg += std::to_string(Layer1->HoleFlaechen()->GetListenGroesse());
+			msg += "\n    ";
+			msg += Layer2->HoleName();
+			msg += ": ";
+			msg += std::to_string(Layer2->HoleFlaechen()->GetListenGroesse());
+			break;
+		default:
+			msg += "\n\nFEHLER\n";
+			break;
 	}
 	return msg;
 }
@@ -185,28 +198,34 @@ void thread_info_vernetzen::SetzeStatus(int i)
 	iStatus = i;
 	grundMsg = "Punkte vernetzen:\n\n";
 
-	if(iStatus == 0){
-		grundMsg += "Doppelte Punkte löschen...";
-	}
-	if(iStatus == 1){
-		grundMsg += "Doppelte Punkte löschen beendet.\n\n";
-		grundMsg += "Punkteliste bereinigen...";
-	}
-	if(iStatus == 2){
-		grundMsg += "Doppelte Punkte löschen beendet.\n";
-		grundMsg += "Punkteliste bereinigen beendet.\n\n";
-		grundMsg += "Punkte untereinander verbinden:\n    ";
-	}
-	if(iStatus == 3){
-		grundMsg += "Doppelte Punkte löschen beendet.\n";
-		grundMsg += "Punkteliste bereinigen beendet.\n\n";
-		grundMsg += "Linien nach Länge sortieren...";
-	}
-	if(iStatus == 4){
-		grundMsg += "Doppelte Punkte löschen beendet.\n";
-		grundMsg += "Punkteliste bereinigen beendet.\n";
-		grundMsg += "Linien nach Länge sortieren beendet.\n\n";
-		grundMsg += "Linien verschneiden\n    Linie ";
+	switch(iStatus)
+	{
+		case 0:
+			grundMsg += "Doppelte Punkte löschen...";
+			break;
+		case 1:
+			grundMsg += "Doppelte Punkte löschen beendet.\n\n";
+			grundMsg += "Punkteliste bereinigen...";
+			break;
+		case 2:
+			grundMsg += "Doppelte Punkte löschen beendet.\n";
+			grundMsg += "Punkteliste bereinigen beendet.\n\n";
+			grundMsg += "Punkte untereinander verbinden:\n    ";
+			break;
+		case 3:
+			grundMsg += "Doppelte Punkte löschen beendet.\n";
+			grundMsg += "Punkteliste bereinigen beendet.\n\n";
+			grundMsg += "Linien nach Länge sortieren...";
+			break;
+		case 4:
+			grundMsg += "Doppelte Punkte löschen beendet.\n";
+			grundMsg += "Punkteliste bereinigen beendet.\n";
+			grundMsg += "Linien nach Länge sortieren beendet.\n\n";
+			grundMsg += "Linien verschneiden\n    Linie ";
+			break;
+		default:
+			grundMsg += "\n\nFEHLER\n";
+			break;
 	}
 	return;
 }
@@ -252,28 +271,85 @@ unsigned long long int thread_info_vernetzen::HoleNeueLinien(void)
 
 std::string thread_info_vernetzen::HoleMeldung(void)
 {
-	if(iStatus == 0){
-		return grundMsg;
-	}
-	if(iStatus == 1){
-		return grundMsg;
-	}
-	
 	std::string msg = grundMsg;
-	if(iStatus == 2){
-		msg += std::to_string(m_anzVorhLinien);
-		msg += " geschützte Linien\n    ";
-		msg += std::to_string(m_anzNeueLinien);
-		msg += " neue Linien\n";
-	}
-	if(iStatus == 3){
-		return grundMsg;
-	}
-	if(iStatus == 4){
-		msg += std::to_string(m_aktLinieNr);
-		msg += " von ";
-		msg += std::to_string(m_Layer->HoleLinien()->GetListenGroesse());
+	switch(iStatus)
+	{
+		case 0:
+		case 1:
+			return grundMsg;
+			break;
+		case 2:
+			msg += std::to_string(m_anzVorhLinien);
+			msg += " geschützte Linien\n    ";
+			msg += std::to_string(m_anzNeueLinien);
+			msg += " neue Linien\n";
+			break;
+		case 3:
+			return grundMsg;
+			break;
+		case 4:
+			msg += std::to_string(m_aktLinieNr);
+			msg += " von ";
+			msg += std::to_string(m_Layer->HoleLinien()->GetListenGroesse());
+			break;
+		default:
+			msg += "\n\nFEHLER\n";
 	}
 	return msg;
 }
 /*ENDE thread_info_ververnetzen*/
+
+/*thread_info_integral*/
+thread_info_integral::thread_info_integral()
+{
+}
+
+thread_info_integral::~thread_info_integral()
+{
+	m_maxX = 0;
+}
+
+void thread_info_integral::SetVars(int *row, int *col, int minX, int maxX, int minY, int maxY)
+{
+	m_minX = minX;
+	m_minY = minY;
+	m_maxX = maxX - m_minX + 1;
+	m_maxY = maxY - m_minY + 1;
+	m_row = row;
+	m_col = col;
+	return;
+}
+
+void thread_info_integral::SetzeStatus(int i)
+{
+	grundMsg = "    ";
+}
+
+std::string thread_info_integral::HoleMeldung(void)
+{
+	std::string msg = grundMsg;
+	if((m_maxX * m_maxY) == 0)
+	{
+		msg += "FEHLER!!";
+		return msg;
+	}
+	int prozent = 100 * (float)((*m_row - m_minX + 1) * m_maxY + (*m_col - m_minY + 1)) / 
+								(float)(m_maxX * m_maxY);
+								
+	int i;
+	msg += "[";
+	for(i = 0; i < prozent; i += 1)
+	{
+		msg += "|";
+	}
+	for(; i < 100; i += 1)
+	{
+		msg += ".";
+	}
+	msg += "] ";
+	msg += std::to_string(prozent);
+	msg += "%\n";
+	
+	return msg;
+}
+/*ENDE thread_info_integral*/

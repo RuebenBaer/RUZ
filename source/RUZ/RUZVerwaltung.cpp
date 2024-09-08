@@ -69,7 +69,7 @@ void RUZ_Layer::Benennen(const char* name)
     return;
 }
 
-void RUZ_Layer::PunkteVernetzen(thread_info_vernetzen *thInf, Liste<Punkt>* t_pktLst)
+void RUZ_Layer::thPunkteVernetzen(thread_info_vernetzen *thInf, Liste<Punkt>* t_pktLst)
 {
     Punkt *von, *nach;
     Linie *strich1, *strich2;

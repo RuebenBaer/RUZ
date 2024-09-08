@@ -4,6 +4,7 @@
 #define ARUINTEGRAL_HPP_INCLUDED
 
 #include "../RUZ/RUZObjekte.h"
+#include "../RUZ/RUZThreadInfo.h"
 
 class aruIntegral
 {
@@ -11,9 +12,9 @@ public:
     aruIntegral(double *Integral, double dStartX, double dStartY, double dEndeX, double dEndeY, double Aufloesung, Achse Projektion);
     ~aruIntegral();
     void IntegralNullen(void);
-    void IntegriereFlaeche(Flaeche* obj);
-    void IntegriereFlaeche(Dreieck* obj);
-    void IntegriereFlaeche(Viereck* obj);
+    void thIntegriereFlaeche(Flaeche* obj, thread_info_integral *thInf);
+    void thIntegriereFlaeche(Dreieck* obj, thread_info_integral *thInf);
+    void thIntegriereFlaeche(Viereck* obj, thread_info_integral *thInf);
 
     int HoleHoehe(void)const;
     int HoleBreite(void)const;
