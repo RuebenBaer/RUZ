@@ -344,7 +344,7 @@ std::string thread_info_integral::HoleMeldung(void)
 	}
 	for(; i < 100; i += 1)
 	{
-		msg += ".";
+		msg += "·";
 	}
 	msg += "] ";
 	msg += std::to_string(prozent);

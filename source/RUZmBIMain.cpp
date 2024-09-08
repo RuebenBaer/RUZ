@@ -1601,7 +1601,7 @@ void RUZmBIFrame::GefaelleVerfolgen(Vektor vStart)
 	return;
 }
 
-void RUZmBIFrame::HoehenkarteZeichnen()
+void RUZmBIFrame::HoehenkarteZeichnen(thread_info_integral *thInf)
 {
 	if(aktLayer)
 	{
@@ -1616,11 +1616,19 @@ void RUZmBIFrame::HoehenkarteZeichnen()
 			catch(char* str)
 			{
 				wxMessageDialog(this, str, wxT("Abbruch der Berechnung")).ShowModal();
+				thInf->BeendigungFeststellen();
+				return;
+			}
+			catch(std::string &errMsg)
+			{
+				wxMessageDialog(this, errMsg, wxT("Abbruch der Berechnung")).ShowModal();
+				thInf->BeendigungFeststellen();
 				return;
 			}
 			if(!tempIntegral)
 			{
 				wxMessageDialog(this, wxT("Fehler beim Anlegen des Integrals\n(evtl. zu wenig Speicher?)"), wxT("Abbruch der Berechnung")).ShowModal();
+				thInf->BeendigungFeststellen();
 				return;
 			}
 			dIntegral = tempIntegral->HoleIntegral();
@@ -1629,24 +1637,30 @@ void RUZmBIFrame::HoehenkarteZeichnen()
 			{
 				wxMessageDialog(this, wxT("Fehler beim Anlegen des Integrals\n(evtl. zu wenig Speicher?)"), wxT("Abbruch der Berechnung")).ShowModal();
 				delete tempIntegral;
+				thInf->BeendigungFeststellen();
 				return;
 			}
 			Liste<Flaeche>* lstFl = aktLayer->HoleFlaechen();
-
+			
 			SetStatusText(wxT("Starte Integration"), 1);
 			Refresh();
 			
 			/*thread Integrieren*/
-			thread_info_integral thInf;
-			std::thread thIntegrieren(&thFlaechenListeIntegrieren, lstFl, &thInf, tempIntegral);
-			thIntegrieren.detach();
-
-			int ret = RUZThCtrl(&thInf, 200, this, wxID_ANY, wxString::Format("Hoehenkarte Zeichnen")).ShowModal();
-			if(ret == wxID_CANCEL)
+			std::cout<<"Anzahl der zu integrierenden Flaechen: "<<lstFl->GetListenGroesse()<<"\n";
+			//lstFl->ListenInfo("Vor Integration");
+			Flaeche *aktFl;
+			// for(Flaeche* aktFl = lstFl->GetErstesElement(); aktFl != NULL; aktFl = lstFl->GetNaechstesElement())
+			for(Listenelement<Flaeche> *aktFlLE = lstFl->GetErstesListenelement(); aktFlLE != NULL; aktFlLE = aktFlLE->GetNachfolger())
 			{
-				delete tempIntegral;
-				std::cout<<"Hoehenkarte zeichnen abgebrochen\n";
-				return;
+				aktFl = aktFlLE->GetElement();
+				std::cout<<"Flaeche: "<<aktFl<<"\n";
+				tempIntegral->thIntegriereFlaeche(aktFl, thInf);
+				if(thInf->BeendenAngefragt())
+				{
+					delete tempIntegral;
+					thInf->BeendigungFeststellen();
+					return;
+				}
 			}
 			/*ENDE thread Integrieren*/
 
@@ -1682,6 +1696,7 @@ void RUZmBIFrame::HoehenkarteZeichnen()
 			if(!dSchrittzahl)
 			{
 				delete tempIntegral;
+				thInf->BeendigungFeststellen();
 				return;
 			}
 			SetStatusText(wxT("Grenzen ermittelt - bemale Leinwand"), 1);
@@ -1716,6 +1731,7 @@ void RUZmBIFrame::HoehenkarteZeichnen()
 			delete tempIntegral;
 		}
 	}
+	thInf->BeendigungFeststellen();
 	return;
 }
 
@@ -3275,7 +3291,11 @@ void RUZmBIFrame::OnAnsichtswechsel(wxCommandEvent &event)
 	aktuelleAnsicht = (ansichtID)event.GetId();
 	if(aktuelleAnsicht == ansicht_ID_hoehenkarte)
 	{
-		HoehenkarteZeichnen();
+		thread_info_integral thInf;
+		std::thread thZeichneHK(RUZmBIFrame::HoehenkarteZeichnen, this, &thInf);
+		thZeichneHK.detach();
+
+		RUZThCtrl(&thInf, 200, this, wxID_ANY, wxString::Format("Hoehenkarte Zeichnen")).ShowModal();
 	}
 	Refresh();
 	return;
@@ -9716,24 +9736,5 @@ void PrismaSchreiben(std::string &prismenListe, Flaeche* drk, double flaeche, do
 	}
 	prismenListe += tempStr;
 	prismenListe += "\n";
-	return;
-}
-
-void thFlaechenListeIntegrieren(Liste<Flaeche> *lstFl,
-								thread_info_integral *thInf,
-								aruIntegral *tempIntegral)
-{
-	std::cout<<"Anzahl der zu integrierenden Flaechen: "<<lstFl->GetListenGroesse()<<"\n";
-	for(Flaeche* aktFl = lstFl->GetErstesElement(); aktFl != NULL; aktFl = lstFl->GetNaechstesElement())
-	{
-		std::cout<<"Flaeche: "<<aktFl<<"\n";
-		tempIntegral->thIntegriereFlaeche(aktFl, thInf);
-		if(thInf->BeendenAngefragt())
-		{
-			thInf->BeendigungFeststellen();
-			return;
-		}
-	}
-	thInf->BeendigungFeststellen();
 	return;
 }

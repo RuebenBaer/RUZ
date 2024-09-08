@@ -239,8 +239,8 @@ template<class T> T* Liste<T>::GetNaechstesElement(void)
         aktuellesElement = aktuellesElement->GetNachfolger();
         return(GetAktuellenInhalt());
     }else{
-        return(GetErstesElement());
-    }
+		return(GetErstesElement());
+	}
     return NULL;
 }
 

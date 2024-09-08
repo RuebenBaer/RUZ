@@ -28,8 +28,12 @@ aruIntegral::aruIntegral(double *Integral, double dStartX, double dStartY, doubl
 	}
 	catch(std::bad_alloc &ba)
 	{
-		std::cerr<<"Bad Allocation: "<<ba.what()<<"\n";
-		throw ba;
+		std::string errMsg = "Bad Allocation (";
+		errMsg += ba.what();
+		errMsg += ") beim Anlegen des Integrals\nErforderliche Groesse: ";
+		errMsg += std::to_string(iHoehe*iBreite);
+		errMsg += " Byte";
+		throw errMsg;
 	}
 	catch(...)
 	{
