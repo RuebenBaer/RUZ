@@ -65,8 +65,7 @@ void aruIntegral::thIntegriereFlaeche(Flaeche* obj, thread_info_integral *thInf)
 
 void aruIntegral::thIntegriereFlaeche(Dreieck *obj, thread_info_integral *thInf)
 {
-	int x, y;
-	thInf->SetVars(&x, &y, 0, 0, 0, 0);
+	thInf->SetzeStatus(0);
 	
 	int px[3], py[3];
 	unsigned long long int iStelle;
@@ -97,17 +96,22 @@ void aruIntegral::thIntegriereFlaeche(Dreieck *obj, thread_info_integral *thInf)
 	Vektor vkt;
 	double wert;
 
-	thInf->SetVars(&x, &y, minX, maxX, minY, maxY);
+	thInf->SetzeX(0);
+	thInf->SetzeY(0);
+	thInf->SetzeGrenzen(minX, maxX, minY, maxY);
+	thInf->SetzeStatus(1);
 	
-	for(x = minX; x < maxX+1; x++)
+	for(int x = minX; x < maxX+1; x++)
 	{
+		thInf->SetzeX(x);
 		if(thInf->BeendenAngefragt())//Abbruch angefragt
 		{
 			thInf->BeendigungFeststellen();
 			return;
 		}
-		for(y = minY; y < maxY+1; y++)
-		{			
+		for(int y = minY; y < maxY+1; y++)
+		{
+			thInf->SetzeY(y);
 			if(thInf->BeendenAngefragt())//Abbruch angefragt
 			{
 				thInf->BeendigungFeststellen();
@@ -135,13 +139,13 @@ void aruIntegral::thIntegriereFlaeche(Dreieck *obj, thread_info_integral *thInf)
 			dIntegral[iStelle] = wert;
 		}
 	}
+	thInf->SetzeStatus(0);
 	return;
 }
 
 void aruIntegral::thIntegriereFlaeche(Viereck *obj, thread_info_integral *thInf)
 {
-	int x, y;
-	thInf->SetVars(&x, &y, 0, 0, 0, 0);
+	thInf->SetzeStatus(0);
 	
 	int px[4], py[4];
 	unsigned long long int iStelle;
@@ -172,17 +176,22 @@ void aruIntegral::thIntegriereFlaeche(Viereck *obj, thread_info_integral *thInf)
 	Vektor vkt;
 	double wert;
 
-	thInf->SetVars(&x, &y, minX, maxX, minY, maxY);
+	thInf->SetzeX(0);
+	thInf->SetzeY(0);
+	thInf->SetzeGrenzen(minX, maxX, minY, maxY);
+	thInf->SetzeStatus(1);
 	
-	for(x = minX; x < maxX+1; x++)
+	for(int x = minX; x < maxX+1; x++)
 	{
+		thInf->SetzeX(x);
 		if(thInf->BeendenAngefragt())//Abbruch angefragt
 		{
 			thInf->BeendigungFeststellen();
 			return;
 		}
-		for(y = minY; y < maxY+1; y++)
+		for(int y = minY; y < maxY+1; y++)
 		{
+			thInf->SetzeY(y);
 			if(thInf->BeendenAngefragt())//Abbruch angefragt
 			{
 				thInf->BeendigungFeststellen();
@@ -210,6 +219,7 @@ void aruIntegral::thIntegriereFlaeche(Viereck *obj, thread_info_integral *thInf)
 			dIntegral[iStelle] = wert;
 		}
 	}
+	thInf->SetzeStatus(0);
 	return;
 }
 

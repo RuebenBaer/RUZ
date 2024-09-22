@@ -86,16 +86,18 @@ class thread_info_integral : public thread_info
 				3=
 				4=*/
 private:
-	int *m_row, *m_col;
 	int m_minX, m_maxX, m_minY, m_maxY;
+	int m_x, m_y;
 public:
 	thread_info_integral();
 	~thread_info_integral();
-	
-	void SetVars(int *row, int *col, int minX, int maxX, int minY, int maxY);
-	
+
 	virtual void SetzeStatus(int);
 	virtual std::string HoleMeldung(void);
+
+	void SetzeGrenzen(int minX, int maxX, int minY, int maxY);
+	void SetzeX(int x);
+	void SetzeY(int y);
 };
 
 #endif //__RUZ_THREADINFO_

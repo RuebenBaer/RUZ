@@ -37,7 +37,7 @@ void ThCtrlPanel::OnPaint(wxPaintEvent& event)
 		dc.DrawText(wxString::Format("Beende Thread\n"), 30, 30);
 		return;
 	}
-
+	
 	wxString msg(thInf->HoleMeldung().c_str(), wxConvUTF8);
 	dc.DrawText(msg, 30, 30);
 	return;

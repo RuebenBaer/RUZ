@@ -309,47 +309,76 @@ thread_info_integral::~thread_info_integral()
 	m_maxX = 0;
 }
 
-void thread_info_integral::SetVars(int *row, int *col, int minX, int maxX, int minY, int maxY)
+void thread_info_integral::SetzeGrenzen(int minX, int maxX, int minY, int maxY)
 {
 	m_minX = minX;
 	m_minY = minY;
 	m_maxX = maxX - m_minX + 1;
 	m_maxY = maxY - m_minY + 1;
-	m_row = row;
-	m_col = col;
+	return;
+}
+void thread_info_integral::SetzeX(int x)
+{
+	m_x = x;
+	return;
+}
+
+void thread_info_integral::SetzeY(int y)
+{
+	m_y = y;
 	return;
 }
 
 void thread_info_integral::SetzeStatus(int i)
 {
-	grundMsg = "    ";
+	iStatus = i;
+	switch(iStatus)
+	{
+		case 0:
+			grundMsg = "    ...";
+			break;
+		case 1:
+			grundMsg = "    ";
+			break;
+		default:
+			grundMsg = " . . .";
+	}
+	return;
 }
 
 std::string thread_info_integral::HoleMeldung(void)
 {
 	std::string msg = grundMsg;
-	if((m_maxX * m_maxY) == 0)
+	int prozent;
+	switch(iStatus)
 	{
-		msg += "FEHLER!!";
-		return msg;
+		case 0:
+			break;
+		case 1:
+			if((m_maxX * m_maxY) == 0)
+			{
+				msg += "FEHLER!!";
+				return msg;
+			}
+			prozent = 100 * (float)((m_x - m_minX + 1) * m_maxY + (m_y - m_minY + 1)) / 
+										(float)(m_maxX * m_maxY);
+			int i;
+			msg += "[";
+			for(i = 0; i < prozent; i += 1)
+			{
+				msg += "|";
+			}
+			for(; i < 100; i += 1)
+			{
+				msg += "·";
+			}
+			msg += "] ";
+			msg += std::to_string(prozent);
+			msg += "%\n";
+			break;
+		default:
+			break;
 	}
-	int prozent = 100 * (float)((*m_row - m_minX + 1) * m_maxY + (*m_col - m_minY + 1)) / 
-								(float)(m_maxX * m_maxY);
-								
-	int i;
-	msg += "[";
-	for(i = 0; i < prozent; i += 1)
-	{
-		msg += "|";
-	}
-	for(; i < 100; i += 1)
-	{
-		msg += "·";
-	}
-	msg += "] ";
-	msg += std::to_string(prozent);
-	msg += "%\n";
-	
 	return msg;
 }
 /*ENDE thread_info_integral*/

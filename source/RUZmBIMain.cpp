@@ -1834,10 +1834,12 @@ void RUZmBIFrame::UWertMitGefaelle(void)
 				}
 			}
 			SetStatusText(wxT("Löcher stopfen erledigt - bemale Leinwand"), 1);
-			
+
 			double lambda = 0.035;
 			double summeR = 0.14;
+			
 			double uWert = 0.0;
+			
 			int anzWerte = 0;
 
 			for(int i = 0; i < (iB * iH); i++)
