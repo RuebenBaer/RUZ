@@ -5,6 +5,7 @@ Layer_Verwaltungs_Dialog::Layer_Verwaltungs_Dialog(RUZmBIFrame* parent, Liste<RU
 {
 	layerSizerLst = new Liste<aruLayerSizer>();
 	m_mama = parent;
+	m_layerLst = layerLst;
 
 	hauptSizer = new wxBoxSizer(wxVERTICAL);
 	layerSizer = new wxBoxSizer(wxVERTICAL);

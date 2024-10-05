@@ -190,7 +190,6 @@ RUZmBIFrame::RUZmBIFrame(wxFrame *frame, const wxString& title, const wxPoint &p
 	FileSaver = new wxFileDialog(this, wxT("Zeichnung speichern"),wxT(""),wxT(""),wxT("DXF-Datei (*.dxf)|*.dxf|RUZ-Datei (*.ruz)|*.ruz"), wxFD_SAVE|wxFD_OVERWRITE_PROMPT);
 	dxfParameterDlg = new DXF_Parameter_Dialog(this);
 	hlParameterDlg = new HL_Parameter_Dialog(this);
-	LayerAuswahl = new Layer_Verwaltungs_Dialog(this, m_layer);
 	peEinstellungenDlg = new Programm_Einstellungen_Dialog(this);
 	KoordinatenMaske = new Koordinaten_Eingabe_Dialog(this, wxT("Koordinaten"));
 	DoubleEingabe = new Double_Eingabe_Dialog(this, wxT("Eingabe"), wxT("Drehwinkel"), wxPoint(KoordinatenMaske->GetPosition().x, KoordinatenMaske->GetPosition().y + 180));
@@ -431,7 +430,6 @@ RUZmBIFrame::~RUZmBIFrame()
 	delete FileSaver;
 	delete dxfParameterDlg;
 	delete hlParameterDlg;
-	delete LayerAuswahl;
 	delete peEinstellungenDlg;
 	delete m_auswahl;
 	delete m_kopierAuswahl;
@@ -721,8 +719,6 @@ void RUZmBIFrame::BefehleZuruecksetzen(void)
 
 void RUZmBIFrame::DoppeltePunkteLoeschen(wxCommandEvent& event)
 {
-	/*evtl. noch Layerauswahldialog???*/
-	/*for(RUZ_Layer* tempLayer = m_layer->GetErstesElement(); tempLayer; tempLayer = m_layer->GetNaechstesElement())*/
 	AuswahlLeeren();
 	if(aktLayer)aktLayer->LoescheDoppeltePunkte(m_anzeigeGenauigkeit + 2);
 	return;
@@ -1501,7 +1497,6 @@ void RUZmBIFrame::FangpunkteFinden(RUZ_Objekt *objEins, RUZ_Objekt *objZwei)
 
 void RUZmBIFrame::FangpunkteLoeschen(wxCommandEvent& event)
 {
-	/*evtl. noch Layerauswahldialog???*/
 	AuswahlLeeren();
 	for(RUZ_Layer* tempLayer = m_layer->GetErstesElement(); tempLayer; tempLayer = m_layer->GetNaechstesElement())
 		tempLayer->LoescheFangpunkte();
@@ -2079,18 +2074,6 @@ void RUZmBIFrame::KreisPunktEingabe(Vektor& t_vkt, bool abschliessen)
 	return;
 }
 
-void RUZmBIFrame::LayerauswahlAktualisieren(void)
-{
-	return;
-	//LayerAuswahl->LayerAuswahlLeeren();
-	for(Listenelement<RUZ_Layer>* layerLELaeufer = m_layer->GetErstesListenelement(); layerLELaeufer != NULL; layerLELaeufer = layerLELaeufer->GetNachfolger())
-	{
-		const char* name = (layerLELaeufer->GetElement())->HoleName();
-		//LayerAuswahl->LayerHinzufuegen(wxString(name), layerLELaeufer->GetElement());
-	}
-	return;
-}
-
 void RUZmBIFrame::LayerEntfernen(RUZ_Layer *layer)
 {
 	if(layer)
@@ -2100,7 +2083,6 @@ void RUZmBIFrame::LayerEntfernen(RUZ_Layer *layer)
 		if(layer == aktLayer)
 		{
 			aktLayer = m_layer->GetErstesElement();
-			LayerauswahlAktualisieren();
 		}
 	}else
 	{
@@ -2131,7 +2113,6 @@ RUZ_Layer* RUZmBIFrame::LayerKopieren(RUZ_Layer* altLayer, char* name)
 	}
 
 	m_layer->Hinzufuegen(neuLayer);
-	LayerauswahlAktualisieren();
 	return neuLayer;
 }
 
@@ -2565,7 +2546,6 @@ bool RUZmBIFrame::LeseAusRUZ(char* dateiName)
 					{
 						m_layer->Hinzufuegen(schreibLayer);
 						SetzeAktuellenLayer(0, schreibLayer);
-						//LayerAuswahl->LayerHinzufuegen(wxString((const char*) zeile), schreibLayer);
 					}
 				}
 			}
@@ -4201,7 +4181,7 @@ void RUZmBIFrame::OnKomplettVernetzen(wxCommandEvent &event)
 
 void RUZmBIFrame::OnLayerAuswahl(wxCommandEvent& event)
 {
-	LayerAuswahl->ShowModal();
+	Layer_Verwaltungs_Dialog(this, m_layer).ShowModal();
 	Refresh();
 	return;
 }
@@ -5730,7 +5710,6 @@ void RUZmBIFrame::OnOpenFile(wxCommandEvent &event)
 			if(aktLayer!=NULL)
 			{
 				m_layer->Hinzufuegen(aktLayer);
-				//LayerAuswahl->LayerHinzufuegen(wxString(aktLayer->HoleName()), aktLayer);
 
 				if(event.GetId() == idMenuDxfImp_ohneLay_Ln_Pkt)
 				{
@@ -5748,7 +5727,6 @@ void RUZmBIFrame::OnOpenFile(wxCommandEvent &event)
 				}
 			}
 		}
-		LayerauswahlAktualisieren();
 		AusdehnungFinden();
 		delete dxfImporteur;
 	}/*ENDE DXF Einlesen*/

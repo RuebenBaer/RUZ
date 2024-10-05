@@ -208,7 +208,6 @@ struct MassstabsBalken
 };
 
 void PrismaSchreiben(std::string &prismenListe, Flaeche* drk, double flaeche, double volumen);
-// void thFlaechenListeIntegrieren(Liste<Flaeche> *lstFl, thread_info_integral *thInf, aruIntegral *tempIntegral);
 
 class RUZmBIFrame: public wxFrame
 {
@@ -266,7 +265,6 @@ class RUZmBIFrame: public wxFrame
         wxFileDialog *FileOpener, *FileSaver;
         DXF_Parameter_Dialog *dxfParameterDlg;
         HL_Parameter_Dialog *hlParameterDlg;
-        Layer_Verwaltungs_Dialog *LayerAuswahl;
         Programm_Einstellungen_Dialog *peEinstellungenDlg;
         Koordinaten_Eingabe_Dialog *KoordinatenMaske;
         Double_Eingabe_Dialog *DoubleEingabe;
@@ -389,7 +387,6 @@ class RUZmBIFrame: public wxFrame
         void BefehleZuruecksetzen(void);
         void MenuEntmarkieren(void);
         bool LayerLoeschen(wxString);
-        void LayerauswahlAktualisieren(void);
         void LinieExtrudieren(Vektor);
         void LinieParallel(Vektor);
         void SkalierungAusfuehren(Vektor);
