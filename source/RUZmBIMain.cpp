@@ -169,20 +169,6 @@ END_EVENT_TABLE()
 RUZmBIFrame::RUZmBIFrame(wxFrame *frame, const wxString& title, const wxPoint &pos, const wxSize &siz, long style)
 	: wxFrame(frame, -1, title, pos, siz, style)
 {
-	/*wxObjekte initialisieren*/
-	FileOpener = new wxFileDialog(this, wxT("Zeichnung öffnen"),wxT(""),wxT(""),wxT("DXF- oder RUZ-Datei (*.dxf;*.ruz)|*.dxf;*.ruz|DXF-Datei (*.dxf)|*.dxf|RUZ-Datei (*.ruz)|*.ruz"), 1);
-	FileSaver = new wxFileDialog(this, wxT("Zeichnung speichern"),wxT(""),wxT(""),wxT("DXF-Datei (*.dxf)|*.dxf|RUZ-Datei (*.ruz)|*.ruz"), wxFD_SAVE|wxFD_OVERWRITE_PROMPT);
-	dxfParameterDlg = new DXF_Parameter_Dialog(this);
-	hlParameterDlg = new HL_Parameter_Dialog(this);
-	LayerAuswahl = new Layer_Verwaltungs_Dialog(this);
-	peEinstellungenDlg = new Programm_Einstellungen_Dialog(this);
-	KoordinatenMaske = new Koordinaten_Eingabe_Dialog(this, wxT("Koordinaten"));
-	DoubleEingabe = new Double_Eingabe_Dialog(this, wxT("Eingabe"), wxT("Drehwinkel"), wxPoint(KoordinatenMaske->GetPosition().x, KoordinatenMaske->GetPosition().y + 180));
-	ObjAnzAuswDlg = new Objekt_Anzeige_Auswahl_Dialog(this);
-	/*ENDE wxObjekte initialisieren*/
-
-	strAktuellerSpeicherpfad = wxEmptyString;
-
 	/*Layer, Auswahl, etc*/
 	m_layer = new Liste<RUZ_Layer>();
 	m_skalierListe = new Liste<RUZ_Layer>();
@@ -196,9 +182,22 @@ RUZmBIFrame::RUZmBIFrame(wxFrame *frame, const wxString& title, const wxPoint &p
 	if(aktLayer!=NULL)
 	{
 		m_layer->Hinzufuegen(aktLayer);
-		LayerAuswahl->LayerHinzufuegen(wxT("STANDARD"), aktLayer);
 	}
 	/*ENDE Layer, Auswahl, etc*/
+
+	/*wxObjekte initialisieren*/
+	FileOpener = new wxFileDialog(this, wxT("Zeichnung öffnen"),wxT(""),wxT(""),wxT("DXF- oder RUZ-Datei (*.dxf;*.ruz)|*.dxf;*.ruz|DXF-Datei (*.dxf)|*.dxf|RUZ-Datei (*.ruz)|*.ruz"), 1);
+	FileSaver = new wxFileDialog(this, wxT("Zeichnung speichern"),wxT(""),wxT(""),wxT("DXF-Datei (*.dxf)|*.dxf|RUZ-Datei (*.ruz)|*.ruz"), wxFD_SAVE|wxFD_OVERWRITE_PROMPT);
+	dxfParameterDlg = new DXF_Parameter_Dialog(this);
+	hlParameterDlg = new HL_Parameter_Dialog(this);
+	LayerAuswahl = new Layer_Verwaltungs_Dialog(this, m_layer);
+	peEinstellungenDlg = new Programm_Einstellungen_Dialog(this);
+	KoordinatenMaske = new Koordinaten_Eingabe_Dialog(this, wxT("Koordinaten"));
+	DoubleEingabe = new Double_Eingabe_Dialog(this, wxT("Eingabe"), wxT("Drehwinkel"), wxPoint(KoordinatenMaske->GetPosition().x, KoordinatenMaske->GetPosition().y + 180));
+	ObjAnzAuswDlg = new Objekt_Anzeige_Auswahl_Dialog(this);
+	/*ENDE wxObjekte initialisieren*/
+
+	strAktuellerSpeicherpfad = wxEmptyString;
 
 	ParamIni();
 
@@ -2082,11 +2081,12 @@ void RUZmBIFrame::KreisPunktEingabe(Vektor& t_vkt, bool abschliessen)
 
 void RUZmBIFrame::LayerauswahlAktualisieren(void)
 {
+	return;
 	//LayerAuswahl->LayerAuswahlLeeren();
 	for(Listenelement<RUZ_Layer>* layerLELaeufer = m_layer->GetErstesListenelement(); layerLELaeufer != NULL; layerLELaeufer = layerLELaeufer->GetNachfolger())
 	{
 		const char* name = (layerLELaeufer->GetElement())->HoleName();
-		LayerAuswahl->LayerHinzufuegen(wxString(name), layerLELaeufer->GetElement());
+		//LayerAuswahl->LayerHinzufuegen(wxString(name), layerLELaeufer->GetElement());
 	}
 	return;
 }
@@ -2565,7 +2565,7 @@ bool RUZmBIFrame::LeseAusRUZ(char* dateiName)
 					{
 						m_layer->Hinzufuegen(schreibLayer);
 						SetzeAktuellenLayer(0, schreibLayer);
-						LayerAuswahl->LayerHinzufuegen(wxString((const char*) zeile), schreibLayer);
+						//LayerAuswahl->LayerHinzufuegen(wxString((const char*) zeile), schreibLayer);
 					}
 				}
 			}
@@ -5730,7 +5730,7 @@ void RUZmBIFrame::OnOpenFile(wxCommandEvent &event)
 			if(aktLayer!=NULL)
 			{
 				m_layer->Hinzufuegen(aktLayer);
-				LayerAuswahl->LayerHinzufuegen(wxString(aktLayer->HoleName()), aktLayer);
+				//LayerAuswahl->LayerHinzufuegen(wxString(aktLayer->HoleName()), aktLayer);
 
 				if(event.GetId() == idMenuDxfImp_ohneLay_Ln_Pkt)
 				{

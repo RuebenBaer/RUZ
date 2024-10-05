@@ -1,14 +1,8 @@
 #include "RUZLayerDialoge.h"
 
 /*Layer_Verwaltungs_Dialog*/
-BEGIN_EVENT_TABLE(Layer_Verwaltungs_Dialog, wxDialog)
-	EVT_BUTTON(idMenuNeuerLayer, Layer_Verwaltungs_Dialog::OnNeuerLayerButton)
-	EVT_SIZE(Layer_Verwaltungs_Dialog::OnSize)
-END_EVENT_TABLE()
-
-Layer_Verwaltungs_Dialog::Layer_Verwaltungs_Dialog(RUZmBIFrame* parent):wxDialog(parent, wxID_ANY, wxT("Layerauswahl"), wxDefaultPosition, wxSize(450, 350))
+Layer_Verwaltungs_Dialog::Layer_Verwaltungs_Dialog(RUZmBIFrame* parent, Liste<RUZ_Layer> *layerLst):wxDialog(parent, wxID_ANY, wxT("Layerauswahl"), wxDefaultPosition, wxSize(450, 350))
 {
-	layerLst = new Liste<RUZ_Layer>();
 	layerSizerLst = new Liste<aruLayerSizer>();
 	m_mama = parent;
 
@@ -31,21 +25,36 @@ Layer_Verwaltungs_Dialog::Layer_Verwaltungs_Dialog(RUZmBIFrame* parent):wxDialog
 	this->SetSizer(hauptSizer);
 
 	SetEscapeId(wxID_CANCEL);
+	
+	LayerHinzufuegen();
+	
+	Bind(wxEVT_BUTTON, &Layer_Verwaltungs_Dialog::OnNeuerLayerButton, this, idMenuNeuerLayer);
+	Bind(wxEVT_SIZE, &Layer_Verwaltungs_Dialog::OnSize, this);
 }
 
 Layer_Verwaltungs_Dialog::~Layer_Verwaltungs_Dialog()
 {
 	LayerAuswahlLeeren();
-	layerLst->ListeLeeren("~Layer_Verwaltungs_Dialog()");
-	delete layerLst;
+	m_layerLst->ListeLeeren("~Layer_Verwaltungs_Dialog()");
+	delete m_layerLst;
 	layerSizerLst->ListeLeeren("~Layer_Verwaltungs_Dialog()");
 	delete layerSizerLst;
 	delete scroller;
 }
 
-void Layer_Verwaltungs_Dialog::LayerHinzufuegen(wxString name, RUZ_Layer* neuerLayer)
+void Layer_Verwaltungs_Dialog::LayerHinzufuegen()
 {
-	if(layerLst->ExklusivHinzufuegen(neuerLayer))
+	for(RUZ_Layer* neuerLayer = m_layerLst->GetErstesElement(); neuerLayer != NULL; neuerLayer = m_layerLst->GetNaechstesElement())
+	{
+		LayerHinzufuegen(neuerLayer->HoleName(), neuerLayer);
+	}
+	Refresh();
+	return;
+}
+
+void Layer_Verwaltungs_Dialog::LayerHinzufuegen(const char* name, RUZ_Layer* neuerLayer)
+{
+	if(neuerLayer != NULL)
 	{
 		aruLayerSizer *neuerLayerSizer = new aruLayerSizer(m_mama, neuerLayer);
 		neuerLayer->SetzeSichtbarkeit(true);
@@ -90,7 +99,6 @@ void Layer_Verwaltungs_Dialog::LayerHinzufuegen(wxString name, RUZ_Layer* neuerL
 
 		LayerAuswahlFinden();
 	}
-	Refresh();
 	return;
 }
 
@@ -142,7 +150,7 @@ void Layer_Verwaltungs_Dialog::OnLayerSichtbarkeitWechseln(wxCommandEvent& event
 
 void Layer_Verwaltungs_Dialog::OnLayerLoeschen(wxCommandEvent& event)
 {
-	if(layerLst->GetListenGroesse() == 1)
+	if(m_layerLst->GetListenGroesse() == 1)
 	{
 		wxMessageDialog(this, wxT("Die Zeichnung muss mindestens einen Layer enthalten!"),
 						wxT("Löschen nicht möglich")).ShowModal();
@@ -151,7 +159,7 @@ void Layer_Verwaltungs_Dialog::OnLayerLoeschen(wxCommandEvent& event)
 	aruLayerSizer *tempLayerSizer = static_cast<aruLayerButton*>(event.GetEventObject())->GetClientData();
 
 	m_mama->LayerEntfernen(static_cast<aruLayerButton*>(event.GetEventObject())->GetClientData()->GetClientData());
-	layerLst->Entfernen(static_cast<aruLayerButton*>(event.GetEventObject())->GetClientData()->GetClientData());
+	m_layerLst->Entfernen(static_cast<aruLayerButton*>(event.GetEventObject())->GetClientData()->GetClientData());
 	layerSizerLst->Entfernen(tempLayerSizer);
 	//LayerSizer samt Inhalt (RUZ_Layer) loeschen
 	tempLayerSizer->Clear(true);
@@ -166,7 +174,7 @@ void Layer_Verwaltungs_Dialog::OnLayerLoeschen(wxCommandEvent& event)
 
 void Layer_Verwaltungs_Dialog::LayerAuswahlLeeren(void)
 {
-	layerLst->ListeLeeren("");
+	m_layerLst->ListeLeeren("");
 	layerSizerLst->ListeLeeren("");
 	layerSizer->Clear(true);
 	layerSizer->Layout();

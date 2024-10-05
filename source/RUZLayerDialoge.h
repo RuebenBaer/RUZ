@@ -46,9 +46,8 @@ class aruLayerSizer;
 class Layer_Verwaltungs_Dialog: public wxDialog
 {
 public:
-    Layer_Verwaltungs_Dialog(RUZmBIFrame* parent);
+    Layer_Verwaltungs_Dialog(RUZmBIFrame* parent, Liste<RUZ_Layer> *layerLst);
     ~Layer_Verwaltungs_Dialog();
-    void LayerHinzufuegen(wxString name, RUZ_Layer* neuerLayer);
     void LayerAuswahlLeeren(void);
 private:
     enum
@@ -58,7 +57,7 @@ private:
     RUZmBIFrame* m_mama;
     wxBoxSizer *hauptSizer, *layerSizer;
     wxScrolledWindow* scroller;
-    Liste<RUZ_Layer> *layerLst;
+    Liste<RUZ_Layer> *m_layerLst;
     Liste<aruLayerSizer> *layerSizerLst;
 
     /*Event handling*/
@@ -69,7 +68,9 @@ private:
     void OnSize(wxSizeEvent& event);
 
     void LayerAuswahlFinden(void);
-    DECLARE_EVENT_TABLE()
+    void LayerHinzufuegen();
+    void LayerHinzufuegen(const char* name, RUZ_Layer* lay);
+    //DECLARE_EVENT_TABLE()
 };
 
 class Layer_Auswahl_Dialog: public wxDialog
