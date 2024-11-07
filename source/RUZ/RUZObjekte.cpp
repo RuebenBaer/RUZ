@@ -2749,8 +2749,8 @@ void Viereck::HoleNormale(Vektor& punktQ, Vektor& vNormale, Achse prjRichtung)
 
 	if(LageAufFlaeche(punktQ, relLage1, relLage2, (Achse)z))
 	{
-		vNormale = (m_p30 + m_p0123 * relLage1.mue); //Kreuzprodukt auf zwei operationen verteilt (const!)
-		vNormale = vNormale.Kreuz(m_p10 + m_p0123 * relLage1.lambda);
+		vNormale = (m_p10 + m_p0123 * relLage1.mue); //Kreuzprodukt auf zwei operationen verteilt (const!)
+		vNormale = vNormale.Kreuz(m_p30 + m_p0123 * relLage1.lambda);
 		vNormale /= vNormale.Laenge();
 		return;
 	}
