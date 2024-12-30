@@ -1286,7 +1286,10 @@ int Linie::Extrudieren(double gefaelle, Vektor richtungsPunkt, Achse prjRichtung
 
 	double lambda = ((p1x-p0x)*(ax-p0x) + (p1y-p0y)*(ay-p0y)) / projLaengeQuadrat;
 
-	Vektor lotFussPunkt = Vektor((p0x+lambda*(p1x-p0x)), (p0y+lambda*(p1y-p0y)), 0.0);
+	Vektor lotFussPunkt;
+	lotFussPunkt.SetKoordinaten(x, (p0x+lambda*(p1x-p0x)));
+	lotFussPunkt.SetKoordinaten(y, (p0y+lambda*(p1y-p0y)));
+	lotFussPunkt.SetKoordinaten(z, 0.0);
 	/*ENDE Lot des Punktes auf die Linie suchen*/
 
 	normGefaelle = sqrt(pow(resGefaelle, 2) - pow(bestGefaelle, 2)) * ((resGefaelle < 0) ? -1.0 : 1.0);
@@ -1298,14 +1301,20 @@ int Linie::Extrudieren(double gefaelle, Vektor richtungsPunkt, Achse prjRichtung
 	p3 = new Punkt((p[0]->HolePosition()+v_extrRichtung), HoleLayer());
 	p2 = new Punkt((p[1]->HolePosition()+v_extrRichtung), HoleLayer());
 
-	Linie *l1, *l2, *l3;
+	Linie *l1, *l2, *l3, *l4;
 	l1 = new Linie(p[1], p2);
-	l2 = new Linie(p2, p3);
-	l3 = new Linie(p3, p[0]);
+	l2 = new Linie(p2, p[0]);
+	l3 = new Linie(p2, p3);
+	l4 = new Linie(p3, p[0]);
 
-	if(l1 && l2 && l3)
+	if(l1 && l2 && l3 && l4)
 	{
-		if(Viereck::NeuesViereck(this, l1, l2, l3))return -1;
+		Dreieck *tempDrk;
+		if(tempDrk = Dreieck::NeuesDreieck(this, l1, l2))
+			if(Dreieck::NeuesDreieck(l2, l3, l4))
+				return -1;
+			else
+				delete tempDrk;
 	}
 	return 3;/*3 ist Code fuer Viereck wurde nicht erzeugt*/
 }
@@ -1348,7 +1357,10 @@ int Linie::Extrudieren(double gefaelle, Vektor richtungsPunkt, double abstand, A
 
 	double lambda = ((p1x-p0x)*(ax-p0x) + (p1y-p0y)*(ay-p0y)) / projLaengeQuadrat;
 
-	Vektor lotFussPunkt = Vektor((p0x+lambda*(p1x-p0x)), (p0y+lambda*(p1y-p0y)), 0.0);
+	Vektor lotFussPunkt;
+	lotFussPunkt.SetKoordinaten(x, (p0x+lambda*(p1x-p0x)));
+	lotFussPunkt.SetKoordinaten(y, (p0y+lambda*(p1y-p0y)));
+	lotFussPunkt.SetKoordinaten(z, 0.0);
 	/*ENDE Lot des Punktes auf die Linie suchen*/
 
 	normGefaelle = sqrt(pow(resGefaelle, 2) - pow(bestGefaelle, 2)) * ((resGefaelle < 0) ? -1.0 : 1.0);
@@ -1362,14 +1374,20 @@ int Linie::Extrudieren(double gefaelle, Vektor richtungsPunkt, double abstand, A
 	p3 = new Punkt((p[0]->HolePosition()+v_extrRichtung), HoleLayer());
 	p2 = new Punkt((p[1]->HolePosition()+v_extrRichtung), HoleLayer());
 
-	Linie *l1, *l2, *l3;
+	Linie *l1, *l2, *l3, *l4;
 	l1 = new Linie(p[1], p2);
-	l2 = new Linie(p2, p3);
-	l3 = new Linie(p3, p[0]);
+	l2 = new Linie(p2, p[0]);
+	l3 = new Linie(p2, p3);
+	l4 = new Linie(p3, p[0]);
 
-	if(l1 && l2 && l3)
+	if(l1 && l2 && l3 && l4)
 	{
-		if(Viereck::NeuesViereck(this, l1, l2, l3))return -1;
+		Dreieck *tempDrk;
+		if(tempDrk = Dreieck::NeuesDreieck(this, l1, l2))
+			if(Dreieck::NeuesDreieck(l2, l3, l4))
+				return -1;
+			else
+				delete tempDrk;
 	}
 	return 3;/*3 ist Code fuer Viereck wurde nicht erzeugt*/
 }
