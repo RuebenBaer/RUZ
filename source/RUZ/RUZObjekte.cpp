@@ -1310,11 +1310,12 @@ int Linie::Extrudieren(double gefaelle, Vektor richtungsPunkt, Achse prjRichtung
 	if(l1 && l2 && l3 && l4)
 	{
 		Dreieck *tempDrk;
-		if(tempDrk = Dreieck::NeuesDreieck(this, l1, l2))
+		if((tempDrk = Dreieck::NeuesDreieck(this, l1, l2))) {
 			if(Dreieck::NeuesDreieck(l2, l3, l4))
 				return -1;
 			else
 				delete tempDrk;
+		}
 	}
 	return 3;/*3 ist Code fuer Viereck wurde nicht erzeugt*/
 }
@@ -1383,11 +1384,12 @@ int Linie::Extrudieren(double gefaelle, Vektor richtungsPunkt, double abstand, A
 	if(l1 && l2 && l3 && l4)
 	{
 		Dreieck *tempDrk;
-		if(tempDrk = Dreieck::NeuesDreieck(this, l1, l2))
+		if((tempDrk = Dreieck::NeuesDreieck(this, l1, l2))) {
 			if(Dreieck::NeuesDreieck(l2, l3, l4))
 				return -1;
 			else
 				delete tempDrk;
+		}
 	}
 	return 3;/*3 ist Code fuer Viereck wurde nicht erzeugt*/
 }
@@ -2349,7 +2351,7 @@ void Dreieck::ImLogAusgeben(void)
 }
 /*ENDE Dreieck*/
 
-/*Funktion ohne Mitgliedschaft*/
+/*Funktionen ohne Mitgliedschaft*/
 bool LinienzugGeschlossen(Punkt **eck1, Punkt **eck2, Punkt **eck3, Linie* l1, Linie* l2, Linie* l3)
 {
 	/*testet, ob der Linienzug geschlossen ist und ordnet die Punkte so an, dass Linie 1 p1 mit p2, Linie 2 p2 mit p3 und Linie 3 p3 mit p1 verbindet*/
@@ -2388,7 +2390,29 @@ bool LinienzugGeschlossen(Punkt **eck1, Punkt **eck2, Punkt **eck3, Linie* l1, L
 	if((*eck2 == l2->HolePunkt(1))&&(*eck3 == l2->HolePunkt(0))) return 1;
 	return 0;
 }
-/*ENDE Funktion ohne Mitgliedschaft*/
+
+void LinienExtrudieren(LinienFlaeche lnFl[],	/* Liste der zu extrudierenden Linien	*/
+						int gr,					/* Groeese der LinienFlaechen-Liste		*/
+						double reGef,			/* gewünschtes resultierendes Gefaelle	*/
+						double h0,				/* Hoehe der neuen Eckpunkte			*/
+						Achse z,				/* Projektionsachse						*/
+						Punkt *riPu)			/* Richtungspunkt - Extrusionsrichtung	*/
+{
+	for (int i = 0; i < gr; i++) {
+		/* normale berechnen */
+	}
+
+	for (int i = 0; i < gr; i++) {
+		LinienFlaeche *nachbar = NULL;
+		Punkt *nachbarPunkt = NULL;
+		/* Nachbarsuchen */
+		for (int k = i + 1; k < gr; k++) {
+			
+		}
+	}
+	return;
+}
+/*ENDE Funktionen ohne Mitgliedschaft*/
 
 /*Viereck*/
 Viereck::Viereck():Flaeche()

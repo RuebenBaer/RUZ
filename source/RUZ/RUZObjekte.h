@@ -58,6 +58,12 @@ struct ObjektPaar
     ObjektPaar(RUZ_Objekt* a, RUZ_Objekt* b):objReferenz(a), objBezugsObj(b){}
 };
 
+struct LinienFlaeche {
+	Linie *ln;						/* Grundlinie 												*/
+	Punkt *p2 = NULL, *p3 = NULL;	/* neue Eckpunkte der Flaeche p0 -> p1 -> p2 -> p3 -> p0	*/
+	Vektor n;						/* Flaechennormale											*/
+};
+
 class RUZ_Hoehenlinie
 {
 public:
@@ -544,5 +550,12 @@ public:
 void logSchreiben(const char* msg, ...);
 /*ENDE Logbuch*/
 bool LinienzugGeschlossen(Punkt**, Punkt**, Punkt**, Linie*, Linie*, Linie*);
+
+void LinienExtrudieren(LinienFlaeche lnFl[],
+						int groesse,
+						double reGef,
+						double zielOrdinate,
+						Achse projAchse,
+						Punkt *richtungsPunkt);
 
 #endif // __RUZObjekte_
