@@ -2391,23 +2391,39 @@ bool LinienzugGeschlossen(Punkt **eck1, Punkt **eck2, Punkt **eck3, Linie* l1, L
 	return 0;
 }
 
-void LinienExtrudieren(LinienFlaeche lnFl[],	/* Liste der zu extrudierenden Linien	*/
-						int gr,					/* Groeese der LinienFlaechen-Liste		*/
-						double reGef,			/* gewünschtes resultierendes Gefaelle	*/
-						double h0,				/* Hoehe der neuen Eckpunkte			*/
-						Achse z,				/* Projektionsachse						*/
-						Punkt *riPu)			/* Richtungspunkt - Extrusionsrichtung	*/
+void LinienExtrudieren(LinienFlaeche lnFl[], int gr, double reGef, double h0, Achse z, Punkt *riPu)
 {
+	/* lnFl:	Liste der zu extrudierenden Linien	*/
+	/* gr:		Groeese der LinienFlaechen-Liste	*/
+	/* reGef:	gewünschtes resultierendes Gefaelle	*/
+	/* h0:		Hoehe der neuen Eckpunkte			*/
+	/* z:		Projektionsachse					*/
+	/* riPu_	Richtungspunkt - Extrusionsrichtung	*/
+
 	for (int i = 0; i < gr; i++) {
 		/* normale berechnen */
 	}
 
 	for (int i = 0; i < gr; i++) {
-		LinienFlaeche *nachbar = NULL;
-		Punkt *nachbarPunkt = NULL;
-		/* Nachbarsuchen */
-		for (int k = i + 1; k < gr; k++) {
-			
+		for (pktNr = 0; pktNr < 2; pktNr++) {
+			Punkt *schnittPkt;
+			/* Nachbarsuchen */
+			for (int k = i + 1; k < gr; k++) {
+				if ((lnFl[k].ln->HolePunkt(0) == lnFl[i].ln->HolePunkt(pktNr)) && (lnFl[k].p_neu[0] != NULL)) {
+					/* Schnittpunkt auf Hoehe h0 finden 
+					
+					*/
+					lnFl[i].p_neu[pktNr] == schnittPkt;
+					lnFl[k].p_neu[0] == schnittPkt;
+				}
+				if ((lnFl[k].ln->HolePunkt(1) == lnFl[i].ln->HolePunkt(pktNr)) && (lnFl[k].p_neu[1] != NULL)) {
+					/* Schnittpunkt auf Hoehe h0 finden 
+					
+					*/
+					lnFl[i].p_neu[pktNr] == schnittPkt;
+					lnFl[k].p_neu[1] == schnittPkt;
+				}
+			}
 		}
 	}
 	return;

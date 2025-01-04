@@ -60,7 +60,7 @@ struct ObjektPaar
 
 struct LinienFlaeche {
 	Linie *ln;						/* Grundlinie 												*/
-	Punkt *p2 = NULL, *p3 = NULL;	/* neue Eckpunkte der Flaeche p0 -> p1 -> p2 -> p3 -> p0	*/
+	Punkt *p_neu[2] = {NULL, NULL};	/* neue Eckpunkte der Flaeche p0 -> p1 -> p2 -> p3 -> p0	*/
 	Vektor n;						/* Flaechennormale											*/
 };
 
