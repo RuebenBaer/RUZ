@@ -556,6 +556,8 @@ void LinienExtrudieren(LinienFlaeche lnFl[],
 						double reGef,
 						double zielOrdinate,
 						Achse projAchse,
-						Punkt *richtungsPunkt);
+						Punkt &richtungsPunkt);
+
+Vektor LinienNormale(Punkt *p1, Punkt *p2, Vektor &richtungsPunkt, double resGefaelle, Achse prjRichtung);
 
 #endif // __RUZObjekte_
