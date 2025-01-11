@@ -1116,7 +1116,12 @@ double Linie::HoleGefaelle(Achse prjRichtung) const
 {
 	double rueckgabe = 0;
 	double laenge = ProjLaenge(prjRichtung);
-	if(laenge)rueckgabe = (p[0]->HolePosition().GetKoordinaten(prjRichtung) - p[1]->HolePosition().GetKoordinaten(prjRichtung)) / laenge;
+	if (laenge) {
+		rueckgabe = (p[0]->HolePosition().GetKoordinaten(prjRichtung) - p[1]->HolePosition().GetKoordinaten(prjRichtung)) / laenge;
+		return(abs(rueckgabe));
+	} else {
+		return NAN;
+	}
 
 	return(abs(rueckgabe));
 }
@@ -2406,7 +2411,8 @@ void LinienExtrudieren(LinienFlaeche lnFl[], int gr, double reGef, double h0, Ac
 	y = (z + 2) % 3;
 
 	for (int i = 0; i < gr; i++) {
-		lnFl[i].n = LinienNormale(lnFl[i].ln->HolePunkt(0), lnFl[i].ln->HolePunkt(1), riPu, reGef, (Achse)z);
+		if (!LinienNormale(lnFl[i].ln, riPu, reGef, (Achse)z))
+			lnFl[i].n = Vektor(NAN, NAN, NAN);
 	}
 
 	double n0x, n0y, n0z;
@@ -2416,25 +2422,29 @@ void LinienExtrudieren(LinienFlaeche lnFl[], int gr, double reGef, double h0, Ac
 	double div;
 
 	for (int i = 0; i < gr; i++) {
+		if (std::isnan(n0x = lnFl[i].n.GetKoordinaten(x))) {
+			continue; /* naechste Linie, weil keine (sinnvolle) Normal vorhanden */
+		} 
+		n0y = lnFl[i].n.GetKoordinaten(y);
+		n0z = lnFl[i].n.GetKoordinaten(z);
 		for (int pktNr = 0; pktNr < 2; pktNr++) {
 			Punkt *schnittPkt;
 			/* Nachbarsuchen */
 			for (int k = i + 1; k < gr; k++) {
+				if (std::isnan(n1x = lnFl[k].n.GetKoordinaten(x))) {
+					continue; /* naechste Linie, weil keine (sinnvolle) Normal vorhanden */
+				}
+				n1y = lnFl[k].n.GetKoordinaten(y);
+				n1z = lnFl[k].n.GetKoordinaten(z);
 				if ((lnFl[k].ln->HolePunkt(0) == lnFl[i].ln->HolePunkt(pktNr)) && (lnFl[k].p_neu[0] != NULL)) {
 					/* Schnittpunkt auf Hoehe h0 finden	*/
-					n0x = lnFl[i].n.GetKoordinaten(x); 
-					n0y = lnFl[i].n.GetKoordinaten(y);
-					n0z = lnFl[i].n.GetKoordinaten(z);
-
-					n1x = lnFl[k].n.GetKoordinaten(x); 
-					n1y = lnFl[k].n.GetKoordinaten(y);
-					n1z = lnFl[k].n.GetKoordinaten(z);
-
 					p0 = lnFl[i].ln->HolePunkt(pktNr)->HolePosition();
 
 					div = (n0x * n1y - n1x * n0y);
 					if (div  == 0) {
 						/* Normalen colinear => Schnittpunkt rechtwinklig zur Linie */
+						std::cout << "Kolineare Normalen => Schnittpunkt rechtwinklig zur Linie\n";
+						schnittOrt = p0 + lnFl[i].extR
 						continue;
 					}
 					qx = (n1y * (p0 * lnFl[i].n - h0 * n0z) - n0y * (p0 * lnFl[k].n - h0 * n1z)) / div;
@@ -2462,56 +2472,39 @@ void LinienExtrudieren(LinienFlaeche lnFl[], int gr, double reGef, double h0, Ac
 	return;
 }
 
-Vektor LinienNormale(Punkt *p0, Punkt *p1, Vektor &richtungsPunkt, double resGefaelle, Achse prjRichtung)
+bool LinienNormale(Linie &ln, Vektor &richtungsPunkt, double resGefaelle, Achse prjRichtung)
 {
 	double bestGefaelle, normGefaelle;
+	Vektor v_extrRichtung;
+	int z = prjRichtung;
 	
-	int x, y, z;
-	z = prjRichtung;
-	x = (z+1)%3;
-	y = (z+2)%3;
-
 	/*Lot des Punktes auf die Linie suchen*/
-	double p0x, p0y, p0z, p1x, p1y, p1z, ax, ay;
-	p0x = p0->HolePosition().GetKoordinaten(x);
-	p0y = p0->HolePosition().GetKoordinaten(y);
-	p0z = p0->HolePosition().GetKoordinaten(z);
-	p1x = p1->HolePosition().GetKoordinaten(x);
-	p1y = p1->HolePosition().GetKoordinaten(y);
-	p1z = p1->HolePosition().GetKoordinaten(z);
-	ax = richtungsPunkt.GetKoordinaten(x);
-	ay = richtungsPunkt.GetKoordinaten(y);
-
-	double projLaengeQuadrat = pow(p1x-p0x, 2) + pow(p1y-p0y, 2);
-	if(projLaengeQuadrat)
-	{
-		bestGefaelle = abs((p0z - p1z) / sqrt(projLaengeQuadrat));
-		if(bestGefaelle>abs(resGefaelle))
-			return Vektor(NAN, NAN, NAN); /* 1 als Code fuer bestehendes Gefaelle groesse als resultierendes Gefaelle */
-	}else
-	{
-		return 0;
-	}
-
-	double lambda = ((p1x-p0x)*(ax-p0x) + (p1y-p0y)*(ay-p0y)) / projLaengeQuadrat;
-
-	Vektor lotFussPunkt;
-	lotFussPunkt.SetKoordinaten(x, (p0x+lambda*(p1x-p0x)));
-	lotFussPunkt.SetKoordinaten(y, (p0y+lambda*(p1y-p0y)));
-	lotFussPunkt.SetKoordinaten(z, 0.0);
+	Vektor lotFussPunkt(richtungsPunkt);
+	if (!ln.LotFussPunkt(lotFussPunkt, prjRichtung, true))
+		return false;
 	/*ENDE Lot des Punktes auf die Linie suchen*/
-
-	normGefaelle = sqrt(pow(resGefaelle, 2) - pow(bestGefaelle, 2)) * ((resGefaelle < 0) ? -1.0 : 1.0);
 	
-	Vektor v_extrRichtung = richtungsPunkt - lotFussPunkt;
+	bestGefaelle = ln.HoleGefaelle(prjRichtung);
+	if (std::isnan(bestGefaelle))
+		return false;
+	double a = pow(resGefaelle, 2);
+	double b = pow(bestGefaelle, 2);
+	if (a > b)
+		return false;
+	normGefaelle = sqrt(a - b) * ((resGefaelle < 0) ? -1.0 : 1.0);
+	
+	v_extrRichtung = richtungsPunkt - lotFussPunkt;
 	double delta_z = v_extrRichtung.ProjLaenge(prjRichtung) * normGefaelle;
 	v_extrRichtung.SetKoordinaten(z, delta_z);
-	
+		
 	Vektor normale = v_extrRichtung.Kreuz(p1->HolePosition() - p0->HolePosition());
 	if (normale.GetKoordinaten(z) < 0)
 		normale *= -1;
 	
-	return normale;
+	ln.n = normale;
+	ln.extR = v_extrRichtung;
+	
+	return true;
 }
 /*ENDE Funktionen ohne Mitgliedschaft*/
 

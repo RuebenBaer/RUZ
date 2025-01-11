@@ -61,7 +61,7 @@ struct ObjektPaar
 struct LinienFlaeche {
 	Linie *ln;						/* Grundlinie 												*/
 	Punkt *p_neu[2] = {NULL, NULL};	/* neue Eckpunkte der Flaeche p0 -> p1 -> p2 -> p3 -> p0	*/
-	Vektor n;						/* Flaechennormale											*/
+	Vektor n, extR;					/* Flaechennormale, Extrusionsrichtung					*/
 };
 
 class RUZ_Hoehenlinie
@@ -558,6 +558,6 @@ void LinienExtrudieren(LinienFlaeche lnFl[],
 						Achse projAchse,
 						Punkt &richtungsPunkt);
 
-Vektor LinienNormale(Punkt *p1, Punkt *p2, Vektor &richtungsPunkt, double resGefaelle, Achse prjRichtung);
+int LinienNormale(Linie &ln, Vektor &richtungsPunkt, double resGefaelle, Achse prjRichtung);
 
 #endif // __RUZObjekte_
