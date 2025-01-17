@@ -539,8 +539,13 @@ Linie::Linie(Punkt* p1, Punkt* p2):RUZ_Objekt()
 
 Linie* Linie::NeueLinie(Punkt* p0, Punkt* p1)
 {
-	if(p0->HoleLayer() != p1->HoleLayer())return NULL;
-	if(p0->HoleLayer() == NULL)return NULL;
+	if (p0->HoleLayer() != p1->HoleLayer())return NULL;
+	if (p0->HoleLayer() == NULL)return NULL;
+	
+	if ( /* p0 und p1 sind verbunden */ ) {
+		/* return eben diese Linie */
+	}
+	
 	return new Linie(p0, p1);
 }
 
@@ -2410,7 +2415,7 @@ void LinienExtrudieren(LinienFlaeche lnFl[], int gr, double reGef, double h0, Ac
 	x = (z + 1) % 3;
 	y = (z + 2) % 3;
 
-	for (int i = 0; i < gr; i++) {
+	for (int i = 0; i < gr; i++) { /* Normale zu allen Linienflaechen suchen */
 		if (!LinienNormale(lnFl[i].ln, riPu, reGef, (Achse)z))
 			lnFl[i].n = Vektor(NAN, NAN, NAN);
 	}
@@ -2436,39 +2441,60 @@ void LinienExtrudieren(LinienFlaeche lnFl[], int gr, double reGef, double h0, Ac
 				}
 				n1y = lnFl[k].n.GetKoordinaten(y);
 				n1z = lnFl[k].n.GetKoordinaten(z);
-				if ((lnFl[k].ln->HolePunkt(0) == lnFl[i].ln->HolePunkt(pktNr)) && (lnFl[k].p_neu[0] != NULL)) {
-					/* Schnittpunkt auf Hoehe h0 finden	*/
-					p0 = lnFl[i].ln->HolePunkt(pktNr)->HolePosition();
+				for (int pkt2Nr = 0; pkt2Nr < 2; pkt2Nr++) {
+					if ((lnFl[k].ln->HolePunkt(pkt2Nr) == lnFl[i].ln->HolePunkt(pktNr)) && (lnFl[k].p_neu[pkt2Nr] != NULL)) {
+						/* Schnittpunkt auf Hoehe h0 finden	*/
+						p0 = lnFl[i].ln->HolePunkt(pktNr)->HolePosition();
 
-					div = (n0x * n1y - n1x * n0y);
-					if (div  == 0) {
-						/* Normalen colinear => Schnittpunkt rechtwinklig zur Linie */
-						std::cout << "Kolineare Normalen => Schnittpunkt rechtwinklig zur Linie\n";
-						schnittOrt = p0 + lnFl[i].extR
-						continue;
+						div = (n0x * n1y - n1x * n0y);
+						if (div  == 0) {
+							/* Normalen colinear => Schnittpunkt rechtwinklig zur Linie */
+							std::cout << "Kolineare Normalen => Schnittpunkt rechtwinklig zur Linie\n";
+							schnittOrt = p0 + lnFl[i].extR;
+						} else {
+							qx = (n1y * (p0 * lnFl[i].n - h0 * n0z) - n0y * (p0 * lnFl[k].n - h0 * n1z)) / div;
+							qy = (n0x * (p0 * lnFl[i].n - h0 * n1z) - n1x * (p0 * lnFl[k].n - h0 * n0z)) / div;
+							
+							schnittOrt.SetKoordinaten(x, qx);
+							schnittOrt.SetKoordinaten(y, qy);
+							schnittOrt.SetKoordinaten(z, h0);
+						}
+						schnittPkt = new Punkt(schnittOrt, lnFl[i].ln->HoleLayer());
+						if (!schnittPkt) {
+							std::cerr << "LinienExtrudieren: schnittPkt nicht instanziert\n";
+							continue;
+						}
+
+						lnFl[i].p_neu[pktNr] = schnittPkt;
+						lnFl[k].p_neu[pkt2Nr] = schnittPkt;
 					}
-					qx = (n1y * (p0 * lnFl[i].n - h0 * n0z) - n0y * (p0 * lnFl[k].n - h0 * n1z)) / div;
-					qy = (n0x * (p0 * lnFl[i].n - h0 * n1z) - n1x * (p0 * lnFl[k].n - h0 * n0z)) / div;
-					
-					schnittOrt.SetKoordinaten(x, qx);
-					schnittOrt.SetKoordinaten(y, qy);
-					schnittOrt.SetKoordinaten(z, h0);
-					schnittPkt = new Punkt(schnittOrt, lnFl[i].ln->HoleLayer());
-					if (!schnittPkt) {
-						std::cerr << "LinienExtrudieren: schnittPkt nicht instanziert\n";
-						continue;
-					}
-
-					lnFl[i].p_neu[pktNr] = schnittPkt;
-					lnFl[k].p_neu[0] = schnittPkt;
-				}
-				if ((lnFl[k].ln->HolePunkt(1) == lnFl[i].ln->HolePunkt(pktNr)) && (lnFl[k].p_neu[1] != NULL)) {
-					/* Schnittpunkt auf Hoehe h0 finden	*/
-
 				}
 			}
 		}
 	}
+	
+	Punkt *pkt0, *pkt1;
+	Linie *ln1, *ln2, *ln3, *ln4;
+	for (int i = 0; i < gr; i++) {
+		pkt0 = lnFl[i].ln->HolePunkt(0);
+		pkt1 = lnFl[i].ln->HolePunkt(1);
+		
+		if (lnFl[i].p_neu[0] != NULL) {
+			ln1 = Linie::NeueLinie(pkt0, lnFl[i].p_neu[0]);
+			ln2 = Linie::NeueLinie(pkt1, lnFl[i].p_neu[0]);
+			Dreieck::NeuesDreieck(lnFl[i], ln1, ln2);
+			if (lnFl[i].p_neu[1] != NULL) {
+				ln3 = Linie::NeueLinie(lnFl[i].p_neu[1], lnFl[i].p_neu[0]);
+				ln4 = Linie::NeueLinie(pkt1, lnFl[i].p_neu[1]);
+				Dreieck::NeuesDreieck(ln2, ln3, ln4);				
+			}
+		} else if (lnFl[i].p_neu[1] != NULL) {
+			ln1 = Linie::NeueLinie(pkt0, lnFl[i].p_neu[1]);
+			ln2 = Linie::NeueLinie(pkt1, lnFl[i].p_neu[1]);
+			Dreieck::NeuesDreieck(lnFl[i], ln1, ln2);
+		}
+	}
+	
 	return;
 }
 

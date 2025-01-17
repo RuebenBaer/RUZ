@@ -59,9 +59,9 @@ struct ObjektPaar
 };
 
 struct LinienFlaeche {
-	Linie *ln;						/* Grundlinie 												*/
-	Punkt *p_neu[2] = {NULL, NULL};	/* neue Eckpunkte der Flaeche p0 -> p1 -> p2 -> p3 -> p0	*/
-	Vektor n, extR;					/* Flaechennormale, Extrusionsrichtung					*/
+	Linie *ln;						/* Grundlinie 													*/
+	Punkt *p_neu[2] = {NULL, NULL};	/* neue Eckpunkte der Flaeche p0 -> p_neu[0]; p1 -> p_neu[1]	*/
+	Vektor n, extR;					/* Flaechennormale, Extrusionsrichtung							*/
 };
 
 class RUZ_Hoehenlinie
