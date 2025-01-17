@@ -447,6 +447,18 @@ void Punkt::AenderungAnLayerMitteilen(void)
 	return;
 }
 
+Linie* Punkt::Verbunden(Punkt* pkt)
+{
+	Linie *ln;
+
+	for (ln = adjLinie->GetErstesElement(); ln != NULL; ln = adjLinie->GetNaechstesElement()) {
+		if (ln->HolePunkt(0) == pkt || ln->HolePunkt(1) == pkt)
+			return ln;
+	}
+	
+	return NULL;
+}
+
 void Punkt::ImLogAusgeben(void)
 {
 	logSchreiben("%p:\n\t%.3f / %.3f / %.3f\n\n", this, pOrt.x(), pOrt.y(), pOrt.z());
@@ -542,8 +554,9 @@ Linie* Linie::NeueLinie(Punkt* p0, Punkt* p1)
 	if (p0->HoleLayer() != p1->HoleLayer())return NULL;
 	if (p0->HoleLayer() == NULL)return NULL;
 	
-	if ( /* p0 und p1 sind verbunden */ ) {
-		/* return eben diese Linie */
+	Linie* ln;
+	if ((ln = p0->Verbunden(p1)) != NULL) {
+		return ln;
 	}
 	
 	return new Linie(p0, p1);
@@ -2414,9 +2427,9 @@ void LinienExtrudieren(LinienFlaeche lnFl[], int gr, double reGef, double h0, Ac
 	z = zet % 3;
 	x = (z + 1) % 3;
 	y = (z + 2) % 3;
-
+	
 	for (int i = 0; i < gr; i++) { /* Normale zu allen Linienflaechen suchen */
-		if (!LinienNormale(lnFl[i].ln, riPu, reGef, (Achse)z))
+		if (!LinienNormale(lnFl[i], riPu, reGef, (Achse)z))		
 			lnFl[i].n = Vektor(NAN, NAN, NAN);
 	}
 
@@ -2482,7 +2495,7 @@ void LinienExtrudieren(LinienFlaeche lnFl[], int gr, double reGef, double h0, Ac
 		if (lnFl[i].p_neu[0] != NULL) {
 			ln1 = Linie::NeueLinie(pkt0, lnFl[i].p_neu[0]);
 			ln2 = Linie::NeueLinie(pkt1, lnFl[i].p_neu[0]);
-			Dreieck::NeuesDreieck(lnFl[i], ln1, ln2);
+			Dreieck::NeuesDreieck(lnFl[i].ln, ln1, ln2);
 			if (lnFl[i].p_neu[1] != NULL) {
 				ln3 = Linie::NeueLinie(lnFl[i].p_neu[1], lnFl[i].p_neu[0]);
 				ln4 = Linie::NeueLinie(pkt1, lnFl[i].p_neu[1]);
@@ -2491,26 +2504,28 @@ void LinienExtrudieren(LinienFlaeche lnFl[], int gr, double reGef, double h0, Ac
 		} else if (lnFl[i].p_neu[1] != NULL) {
 			ln1 = Linie::NeueLinie(pkt0, lnFl[i].p_neu[1]);
 			ln2 = Linie::NeueLinie(pkt1, lnFl[i].p_neu[1]);
-			Dreieck::NeuesDreieck(lnFl[i], ln1, ln2);
+			Dreieck::NeuesDreieck(lnFl[i].ln, ln1, ln2);
 		}
 	}
 	
 	return;
 }
 
-bool LinienNormale(Linie &ln, Vektor &richtungsPunkt, double resGefaelle, Achse prjRichtung)
+bool LinienNormale(LinienFlaeche &lnFl, Vektor &richtungsPunkt, double resGefaelle, Achse prjRichtung)
 {
 	double bestGefaelle, normGefaelle;
 	Vektor v_extrRichtung;
 	int z = prjRichtung;
 	
+	Linie *ln = lnFl.ln;
+	
 	/*Lot des Punktes auf die Linie suchen*/
 	Vektor lotFussPunkt(richtungsPunkt);
-	if (!ln.LotFussPunkt(lotFussPunkt, prjRichtung, true))
+	if (!ln->LotFussPunkt(lotFussPunkt, prjRichtung, true))
 		return false;
 	/*ENDE Lot des Punktes auf die Linie suchen*/
 	
-	bestGefaelle = ln.HoleGefaelle(prjRichtung);
+	bestGefaelle = ln->HoleGefaelle(prjRichtung);
 	if (std::isnan(bestGefaelle))
 		return false;
 	double a = pow(resGefaelle, 2);
@@ -2523,12 +2538,12 @@ bool LinienNormale(Linie &ln, Vektor &richtungsPunkt, double resGefaelle, Achse 
 	double delta_z = v_extrRichtung.ProjLaenge(prjRichtung) * normGefaelle;
 	v_extrRichtung.SetKoordinaten(z, delta_z);
 		
-	Vektor normale = v_extrRichtung.Kreuz(p1->HolePosition() - p0->HolePosition());
+	Vektor normale = v_extrRichtung.Kreuz(ln->HolePunkt(1)->HolePosition() - ln->HolePunkt(0)->HolePosition());
 	if (normale.GetKoordinaten(z) < 0)
 		normale *= -1;
 	
-	ln.n = normale;
-	ln.extR = v_extrRichtung;
+	lnFl.n = normale;
+	lnFl.extR = v_extrRichtung;
 	
 	return true;
 }

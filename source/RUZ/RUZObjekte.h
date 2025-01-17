@@ -152,6 +152,8 @@ public:
     Punkt(const Vektor&, RUZ_Layer*);
     Punkt(double, double, double, RUZ_Layer*);
     Punkt(double*, RUZ_Layer*);
+	
+	Linie* Verbunden(Punkt* pkt);
 
     virtual ~Punkt();
     virtual RUZ_Layer* HoleLayer(void) const;
@@ -551,13 +553,7 @@ void logSchreiben(const char* msg, ...);
 /*ENDE Logbuch*/
 bool LinienzugGeschlossen(Punkt**, Punkt**, Punkt**, Linie*, Linie*, Linie*);
 
-void LinienExtrudieren(LinienFlaeche lnFl[],
-						int groesse,
-						double reGef,
-						double zielOrdinate,
-						Achse projAchse,
-						Punkt &richtungsPunkt);
-
-int LinienNormale(Linie &ln, Vektor &richtungsPunkt, double resGefaelle, Achse prjRichtung);
+void LinienExtrudieren(LinienFlaeche lnFl[], int groesse, double reGef, double zielOrdinate, Achse projAchse, Punkt &richtungsPunkt);
+bool LinienNormale(LinienFlaeche &lnFl, Vektor &richtungsPunkt, double resGefaelle, Achse prjRichtung);
 
 #endif // __RUZObjekte_
