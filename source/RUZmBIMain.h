@@ -231,7 +231,7 @@ class RUZmBIFrame: public wxFrame
             idMenuKantenWandeln, idMenuVernetzen, idMenuDreieckeFinden, idMenuViereckeFinden, idMenuViereckTeilen, idMenuKomplettVernetzen, idMenuDoppeltePunkteLoeschen,
             idMenuObjektLoeschen, idMenuStricheLoeschen, idMenuObjektVerschieben, idMenuPunktVersetzen, idMenuObjektDrehen, idMenuObjektKopieren, idMenuObjektKopierenNachLayer,
             idMenuHLZeigen, idMenuHLEinstellen, idMenuGefaelleZeigen, idMenuGefaelleRasterZeigen, idMenuSonnenstand, idMenuHintergrundMalen,
-            idMenuPunktZeichnen, idMenuLinieZeichnen, idMenuLinieExtrudieren, idMenuLinieParallel,
+            idMenuPunktZeichnen, idMenuLinieZeichnen, idMenuLinieExtrudieren, idMenuLinieExtrudierenHoehe, idMenuLinieParallel,
             idMenuDreieckZeichnen, idMenuViereckZeichnen, idMenuKreisZeichnen,
             idMenuLayerVerschneiden, idMenuLayerInSichVerschneiden, idMenuFlaechenVerschneiden, idMenuLayerRandabschneiden, idMenuPunktVereinigen,
             idVolumenZwischenLayern_Kons, idVolumenZwischenLayern_Integral, idMenuSchnittPunktLinie, idMenuSchnittPunktFlaeche, idMenuFangpunkteFinden, idMenuFangpunkteLoeschen,
@@ -248,7 +248,7 @@ class RUZmBIFrame: public wxFrame
             bef_ID_kreisRadiusAendern, bef_ID_fangpunkteFinden,
             bef_ID_viereckTeilen, bef_ID_flaechenVerschneiden,
             bef_ID_hoehenMarkeZeichnen, bef_ID_StreckeMessen, bef_ID_versetzen, bef_ID_punktEinfuegen,
-            bef_ID_linieExtrudieren, bef_ID_linieParallel, bef_ID_punkteVereinigen, bef_ID_SchnittPunktLinie, bef_ID_SchnittPunktFlaeche,
+            bef_ID_linieExtrudieren, bef_ID_linieExtrudierenHoehe, bef_ID_linieParallel, bef_ID_punkteVereinigen, bef_ID_SchnittPunktLinie, bef_ID_SchnittPunktFlaeche,
             bef_ID_punkteSkalieren, bef_ID_layerSkalieren, bef_ID_hintergrundSkalieren, bef_ID_allesSkalieren,
         };
 
@@ -288,6 +288,7 @@ class RUZmBIFrame: public wxFrame
             *menuLinieZeichnen,
             *menuKreisZeichnen,
             *menuLinieExtrudieren,
+			*menuLinieExtrudierenHoehe,
             *menuLinieParallel,
             *menuDreieckZeichnen,
             *menuViereckZeichnen,
@@ -391,6 +392,7 @@ class RUZmBIFrame: public wxFrame
         bool LayerLoeschen(wxString);
         void LayerauswahlAktualisieren(void);
         void LinieExtrudieren(Vektor);
+        void LinieExtrudierenHoehe(Vektor);
         void LinieParallel(Vektor);
         void SkalierungAusfuehren(Vektor);
         void LayerSkalieren(Vektor);

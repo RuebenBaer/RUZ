@@ -556,6 +556,7 @@ Linie* Linie::NeueLinie(Punkt* p0, Punkt* p1)
 	
 	Linie* ln;
 	if ((ln = p0->Verbunden(p1)) != NULL) {
+		std::cout << "Linien waren schon verbunden\n";
 		return ln;
 	}
 	

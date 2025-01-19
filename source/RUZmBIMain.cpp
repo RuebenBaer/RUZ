@@ -94,6 +94,7 @@ BEGIN_EVENT_TABLE(RUZmBIFrame, wxFrame)
 	EVT_MENU(idMenuPunktZeichnen, RUZmBIFrame::OnBearbeitungsBefehl)
 	EVT_MENU(idMenuLinieZeichnen, RUZmBIFrame::OnBearbeitungsBefehl)
 	EVT_MENU(idMenuLinieExtrudieren, RUZmBIFrame::OnBearbeitungsBefehl)
+	EVT_MENU(idMenuLinieExtrudierenHoehe, RUZmBIFrame::OnBearbeitungsBefehl)
 	EVT_MENU(idMenuLinieParallel, RUZmBIFrame::OnBearbeitungsBefehl)
 	EVT_MENU(idMenuKreisZeichnen, RUZmBIFrame::OnBearbeitungsBefehl)
 	EVT_MENU(idMenuDreieckZeichnen, RUZmBIFrame::OnBearbeitungsBefehl)
@@ -306,6 +307,8 @@ RUZmBIFrame::RUZmBIFrame(wxFrame *frame, const wxString& title, const wxPoint &p
 	/*Menu: Netz*/
 
 	/*Menu: Ändern*/
+	/*ALT-B*/menuLinieExtrudierenHoehe = new wxMenuItem(editMenu, idMenuLinieExtrudierenHoehe, wxT("&Böschung aus Linienzug erzeugen\tALT-E"),
+										  wxT("Erzeugt Böschung mit vorgegebenem Gefälle auf vorgegebene Höhe aus gewählten Linien auf aktiven Layer"), wxITEM_CHECK);
 	/*ALT-D*/menuDrehen = new wxMenuItem(editMenu, idMenuObjektDrehen, wxT("&Drehen\tALT-D"), wxT("Dreht gewählte Objekte"), wxITEM_CHECK);
 	/*ALT-E*/menuLinieExtrudieren = new wxMenuItem(editMenu, idMenuLinieExtrudieren, wxT("&Fläche aus Linie erzeugen\tALT-E"),
 										  wxT("Erzeugt Fläche mit vorgegebenem Gefälle aus gewählten Linien auf aktiven Layer"), wxITEM_CHECK);
@@ -333,6 +336,7 @@ RUZmBIFrame::RUZmBIFrame(wxFrame *frame, const wxString& title, const wxPoint &p
 	editMenu->AppendSeparator();
 	editMenu->Append(menuLinieParallel);
 	editMenu->Append(menuLinieExtrudieren);
+	editMenu->Append(menuLinieExtrudierenHoehe);
 	editMenu->AppendSeparator();
 	editMenu->Append(menuFangpunkteFinden);
 	/*ENDE Menu: Ändern*/
@@ -3100,6 +3104,11 @@ void RUZmBIFrame::LinieExtrudieren(Vektor nachPos)
 	return;
 }
 
+void RUZmBIFrame::LinieExtrudierenHoehe(Vektor nachPos)
+{
+	std::cout << "Hier entsteht eine neue Funktion\tvoid RUZmBIFrame::LinieExtrudierenHoehe(Vektor nachPos)\n";
+}
+
 void RUZmBIFrame::LinieParallel(Vektor nachPos)
 {
 	double t_abstand;
@@ -3528,9 +3537,26 @@ void RUZmBIFrame::OnBearbeitungsBefehl(wxCommandEvent &event)
 		}
 		menuLinieExtrudieren->Check(true);
 		aktBefehl = bef_ID_linieExtrudieren;
+		m_markierModus = true;
 		if(aktLayer != NULL)
 		{
 			SetStatusText(wxT("Linie extrudieren auf Layer") + wxString(aktLayer->HoleName()), 2);
+		}
+		m_auswahl->ListeLeeren("");
+		break;
+	
+	case idMenuLinieExtrudierenHoehe:
+		if(letzterBefehl == bef_ID_linieExtrudierenHoehe)
+		{
+			BefehleZuruecksetzen();
+			break;
+		}
+		menuLinieExtrudierenHoehe->Check(true);
+		aktBefehl = bef_ID_linieExtrudierenHoehe;
+		m_markierModus = true;
+		if(aktLayer != NULL)
+		{
+			SetStatusText(wxT("Linien zu Böschung extrudieren") + wxString(aktLayer->HoleName()), 2);
 		}
 		m_auswahl->ListeLeeren("");
 		break;
@@ -4048,6 +4074,11 @@ void RUZmBIFrame::OnKeyDown(wxKeyEvent& event)
 				vPosition.SetKoordinaten(aktProjX, (double)MarkierMousePosition.x / m_skalierung + dc_Offset[0]);
 				vPosition.SetKoordinaten(aktProjY, (double)MarkierMousePosition.y / m_skalierung + dc_Offset[1]);
 				LinieParallel(vPosition);
+			}
+		} else if (aktBefehl == bef_ID_linieExtrudieren || aktBefehl == bef_ID_linieExtrudierenHoehe) {
+			if(m_markierModus)
+			{
+				m_markierModus = false;
 			}
 		}else if(aktBefehl == bef_ID_SchnittPunktFlaeche)
 		{
@@ -4910,7 +4941,7 @@ void RUZmBIFrame::OnMouseLeftClick(wxMouseEvent& event)
 	case bef_ID_linieParallel:
 		if(m_markierModus)
 		{
-			if((markiertesObjekt!=NULL)&&(markiertesObjekt->HoleTyp() == RUZ_Linie))
+			if((markiertesObjekt!=NULL) && (markiertesObjekt->HoleTyp() == RUZ_Linie))
 			{
 				m_auswahl->Entzufuegen(markiertesObjekt);
 			}
@@ -4918,7 +4949,7 @@ void RUZmBIFrame::OnMouseLeftClick(wxMouseEvent& event)
 		else
 		{
 			m_markierungsRechteck = false;
-			if(m_auswahl->GetListenGroesse() != 0)
+			if(m_auswahl->GetListenGroesse())
 			{
 				LinieParallel(vPosition);
 			}
@@ -4927,14 +4958,30 @@ void RUZmBIFrame::OnMouseLeftClick(wxMouseEvent& event)
 
 	case bef_ID_linieExtrudieren:
 		m_markierungsRechteck = false;
-		if((markiertesObjekt!=NULL)&&(markiertesObjekt->HoleTyp() == RUZ_Linie))
-		{
-			m_auswahl->Entzufuegen(markiertesObjekt);
-		}else
-		{
+		if (m_markierModus) {
+			if((markiertesObjekt!=NULL) && (markiertesObjekt->HoleTyp() == RUZ_Linie))
+			{
+				m_auswahl->Entzufuegen(markiertesObjekt);
+			}
+		} else {
 			if(m_auswahl->GetListenGroesse() != 0)
 			{
 				LinieExtrudieren(vPosition);
+			}
+		}
+		break;
+	
+	case bef_ID_linieExtrudierenHoehe:
+		m_markierungsRechteck = false;
+		if (m_markierModus) {
+			if((markiertesObjekt!=NULL) && (markiertesObjekt->HoleTyp() == RUZ_Linie))
+			{
+				m_auswahl->Entzufuegen(markiertesObjekt);
+			}
+		} else {
+			if(m_auswahl->GetListenGroesse())
+			{
+				LinieExtrudierenHoehe(vPosition);
 			}
 		}
 		break;
@@ -5474,68 +5521,59 @@ void RUZmBIFrame::OnMouseRightClick(wxMouseEvent& event)
 
 void RUZmBIFrame::OnMouseRDClick(wxMouseEvent& event)
 {
-	if(aktBefehl == bef_ID_loeschen)
-	{
-		AuswahlLoeschen();
-		SetStatusText(wxT("Objekte gelöscht"), 2);
-	}else
-	if(aktBefehl == bef_ID_verschieben)
-	{
-		Vschb_Auswahl_Bestaetigung();
-	}else
-	if((aktBefehl == bef_ID_kopieren)||(aktBefehl == bef_ID_kopierenNachLayer))
-	{
-		Kop_Auswahl_Bestaetigung();
-	}else
-	if(aktBefehl == bef_ID_drehen)
-	{
-		if(m_markierModus)
-		{
-			DrehungBestaetigung();
-			SetStatusText(wxT("Festpunkt der Drehung setzen"), 2);
-		}
-	}else
-	if(aktBefehl == bef_ID_punkteSkalieren)
-	{
-		if(m_markierModus)
-		{
-			AuswahlAufPunkteReduzieren();
-			m_markierModus = false;
-			KoordinatenMaske->Show();
-			SetStatusText(wxT("Festpunkt der Skalierung wählen"), 2);
-		}
-		else
-		{
-			m_markierModus = true;
-			KoordinatenMaske->Show(false);
-			SetStatusText(wxT("Objekte zum Skalieren auswählen"), 2);
-		}
-	}else
-	if(aktBefehl == bef_ID_viereckTeilen)
-	{
-		ViereckeAuswahlTeilen();
-	}else
-	if(aktBefehl == bef_ID_flaechenVerschneiden)
-	{
-		VerschneideAuswahlFlaechen();
-	}else
-	if(aktBefehl == bef_ID_SchnittPunktFlaeche)
-	{
-		SchnittpunktFlaecheAbschliessen();
-	}else
-	if(aktBefehl == bef_ID_SchnittPunktLinie)
-	{
-		SchnittpunktLinieAbschliessen();
-	}else
-	if(aktBefehl == bef_ID_fangpunkteFinden)
-	{
-		FangpunkteFinden(m_auswahl);
-		m_auswahl->ListeLeeren("");
-	}else
-	if(aktBefehl == bef_ID_linieParallel)
-	{
-		if(m_markierModus)m_markierModus = false;
-		else m_markierModus = true;
+	switch (aktBefehl) {
+		case bef_ID_loeschen:
+			AuswahlLoeschen();
+			SetStatusText(wxT("Objekte gelöscht"), 2);
+			break;
+		case bef_ID_verschieben:
+			Vschb_Auswahl_Bestaetigung();
+			break;
+		case bef_ID_kopieren:
+		case bef_ID_kopierenNachLayer:
+			Kop_Auswahl_Bestaetigung();
+			break;
+		case bef_ID_drehen:
+			if (m_markierModus) {
+				DrehungBestaetigung();
+				SetStatusText(wxT("Festpunkt der Drehung setzen"), 2);
+			}
+			break;
+		case bef_ID_punkteSkalieren:
+			if (m_markierModus) {
+				AuswahlAufPunkteReduzieren();
+				m_markierModus = false;
+				KoordinatenMaske->Show();
+				SetStatusText(wxT("Festpunkt der Skalierung wählen"), 2);
+			} else {
+				m_markierModus = true;
+				KoordinatenMaske->Show(false);
+				SetStatusText(wxT("Objekte zum Skalieren auswählen"), 2);
+			}
+			break;
+		case bef_ID_viereckTeilen:
+			ViereckeAuswahlTeilen();
+			break;
+		case bef_ID_flaechenVerschneiden:
+			VerschneideAuswahlFlaechen();
+			break;
+		case bef_ID_SchnittPunktFlaeche:
+			SchnittpunktFlaecheAbschliessen();
+			break;
+		case bef_ID_SchnittPunktLinie:
+			SchnittpunktLinieAbschliessen();
+			break;
+		case bef_ID_fangpunkteFinden:
+			FangpunkteFinden(m_auswahl);
+			m_auswahl->ListeLeeren("");
+			break;
+		case bef_ID_linieParallel:
+		case bef_ID_linieExtrudieren:
+		case bef_ID_linieExtrudierenHoehe:
+			m_markierModus == true ? m_markierModus = false : m_markierModus = true;
+			break;
+		default:
+			break;
 	}
 	//BefehleZuruecksetzen();
 	Refresh();
