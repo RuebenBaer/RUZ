@@ -553,7 +553,7 @@ void logSchreiben(const char* msg, ...);
 /*ENDE Logbuch*/
 bool LinienzugGeschlossen(Punkt**, Punkt**, Punkt**, Linie*, Linie*, Linie*);
 
-void LinienExtrudieren(LinienFlaeche lnFl[], int groesse, double reGef, double zielOrdinate, Achse projAchse, Punkt &richtungsPunkt);
+void LinienExtrudieren(LinienFlaeche lnFl[], int groesse, double reGef, double zielOrdinate, Achse projAchse, Vektor &richtungsPunkt);
 bool LinienNormale(LinienFlaeche &lnFl, Vektor &richtungsPunkt, double resGefaelle, Achse prjRichtung);
 
 #endif // __RUZObjekte_

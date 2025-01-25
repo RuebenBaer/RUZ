@@ -409,6 +409,8 @@ class RUZmBIFrame: public wxFrame
         void HoehenkarteZeichnen(thread_info_integral *thInf);
 		void LayerMalen(wxDC &dc, RUZ_Layer* tempLayer);
 		
+		int EingabeMaske(wxString aufforderungstext, wxString titel, wxString standardwert, double &rueckgabe);
+		
 		void UWertMitGefaelle(void);
 
         /*RUZ*/

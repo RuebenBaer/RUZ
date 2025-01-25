@@ -2424,6 +2424,8 @@ void LinienExtrudieren(LinienFlaeche lnFl[], int gr, double reGef, double h0, Ac
 	/* z:		Projektionsachse					*/
 	/* riPu_	Richtungspunkt - Extrusionsrichtung	*/
 	
+	std::cout << "Anfang LinienExtrudieren\n";
+	
 	int x, y, z;
 	z = zet % 3;
 	x = (z + 1) % 3;
@@ -2433,6 +2435,8 @@ void LinienExtrudieren(LinienFlaeche lnFl[], int gr, double reGef, double h0, Ac
 		if (!LinienNormale(lnFl[i], riPu, reGef, (Achse)z))		
 			lnFl[i].n = Vektor(NAN, NAN, NAN);
 	}
+	
+	std::cout << "Normalen gesucht\n";
 
 	double n0x, n0y, n0z;
 	double n1x, n1y, n1z;

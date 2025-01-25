@@ -2963,8 +2963,8 @@ void RUZmBIFrame::LinieExtrudieren(Vektor nachPos)
 {
 	double gefaelle = 0.0;
 	double value, t_abstand;
-	bool t_abstandVerwenden = false;
-	bool t_gefaelleVerwenden = false;
+	bool t_abstandVerwenden;
+	bool t_gefaelleVerwenden;
 
 	for(RUZ_Objekt* obj = m_auswahl->GetErstesElement(); obj; obj = m_auswahl->GetNaechstesElement())//Alle Nicht-Linien aus der Auswahl entfernen
 	{
@@ -2976,59 +2976,17 @@ void RUZmBIFrame::LinieExtrudieren(Vektor nachPos)
 		if(m_auswahl->GetErstesElement()->HoleTyp() == RUZ_Linie)
 		{
 			gefaelle = static_cast<Linie*>(m_auswahl->GetErstesElement())->HoleGefaelle(z);
-			bool exitSchleife = false;
-			while(!exitSchleife) //Gefaelle eingeben
-			{
-				wxTextEntryDialog abfrage(this, wxT("Bitte geben Sie das gewünschte resultierende Gefälle an\nLeer, um das Gefälle der Linie beizubehalten"),
-										  wxT("Resultierendes Gefälle"), wxString::Format(wxT("%0.6f"), gefaelle));
-				if(abfrage.ShowModal() == wxID_ABORT)return;
-				wxString number = abfrage.GetValue();
-				/*komma gegen punkt tauschen*/
-				wxString punkt = wxT(".");
-				wxString komma = wxT(",");
-				number.Replace(komma, punkt);
-				if(!number.ToDouble(&value))
-				{
-					if(strcmp(number, "")!=0)
-					{
-						if(wxMessageDialog(this, wxT("Bitte geben Sie eine Zahl ein"), wxT("Eingabe fehlerhaft")).ShowModal() == wxID_ABORT)break;
-					}else{
-						value = gefaelle;
-						t_gefaelleVerwenden = true;
-						exitSchleife = true;
-					}
-				}
-				exitSchleife = true;
+			int erfolg = EingabeMaske(wxT("Bitte geben Sie das gewünschte resultierende Gefälle an\nLeer, um das Gefälle der Linie beizubehalten"),
+										wxT("Resultierendes Gefälle"), wxString::Format(wxT("%0.6f"), gefaelle), value);
+			erfolg == wxID_IGNORE ? t_gefaelleVerwenden = true : t_gefaelleVerwenden = false;
+			if (erfolg == wxID_ABORT) {
+				return;
 			}
-			exitSchleife = false;
-			while(!exitSchleife) //Abstand eingeben
-			{
-				wxTextEntryDialog abfrage(this, wxT("Bitte geben Sie einen Abstand ein\nLeer, um den Gewählten Punkt zu verwenden"),
-										  wxT("Extrusionabstand"), wxT(""));
-				if(abfrage.ShowModal() == wxID_ABORT)
-				{
-					t_abstandVerwenden = false;
-					exitSchleife = true;
-					break;
-				}
-				wxString number = abfrage.GetValue();
-				/*komma gegen punkt tauschen*/
-				wxString punkt = wxT(".");
-				wxString komma = wxT(",");
-				number.Replace(komma, punkt);
-				if(!number.ToDouble(&t_abstand))
-				{
-					if(strcmp(number, "")!=0)
-					{
-						if(wxMessageDialog(this, wxT("Bitte geben Sie eine Zahl ein"), wxT("Eingabe fehlerhaft")).ShowModal() == wxID_ABORT)break;
-					}else{
-						t_abstandVerwenden = false;
-						exitSchleife = true;
-						break;
-					}
-				}
-				t_abstandVerwenden = true;
-				exitSchleife = true;
+			erfolg = EingabeMaske(wxT("Bitte geben Sie einen Abstand ein\nLeer, um den Gewählten Punkt zu verwenden"),
+									wxT("Extrusionabstand"), wxT(""), t_abstand);
+			erfolg == wxID_IGNORE ? t_abstandVerwenden = false : t_abstandVerwenden = true;
+			if (erfolg == wxID_ABORT) {
+				return;
 			}
 		}
 		else
@@ -3106,7 +3064,61 @@ void RUZmBIFrame::LinieExtrudieren(Vektor nachPos)
 
 void RUZmBIFrame::LinieExtrudierenHoehe(Vektor nachPos)
 {
-	std::cout << "Hier entsteht eine neue Funktion\tvoid RUZmBIFrame::LinieExtrudierenHoehe(Vektor nachPos)\n";
+	struct LinienFlaeche *lnFl;
+	int gr;
+	double gefaelle = 0.0, hoehe = 0.0;
+	for (RUZ_Objekt* obj = m_auswahl->GetErstesElement(); obj != NULL; obj = m_auswahl->GetNaechstesElement()) {
+		if (obj->HoleTyp() != RUZ_Linie) {
+			m_auswahl->Entfernen(obj);
+		}
+	}
+	if ((gr = m_auswahl->GetListenGroesse()) == 0) {
+		return;
+	}
+	lnFl = new LinienFlaeche[gr];
+	if (lnFl == NULL) {
+		return;
+	}
+	int i = 0;
+	for (RUZ_Objekt* ln = m_auswahl->GetErstesElement(); ln != NULL; ln = m_auswahl->GetNaechstesElement()) {
+		lnFl[i].ln = static_cast<Linie*>(ln);
+		i++;
+	}
+	int erfolg = EingabeMaske(wxT("Bitte das gewünschte Gefälle der Böschung eingeben"), wxT("Gefälleeingabe"), wxT(""), gefaelle);
+	if (erfolg != wxID_OK) return;
+	erfolg = EingabeMaske(wxT("Bitte die Höhe der Böschungssohle eingeben"), wxT("Zielhöhe"), wxT(""), hoehe);
+	if (erfolg != wxID_OK) return;
+	LinienExtrudieren(lnFl, gr, gefaelle, hoehe, aktProjZ, nachPos);
+	Refresh();
+}
+
+int RUZmBIFrame::EingabeMaske(wxString text, wxString titel, wxString standardwert, double &rueckgabe)
+{
+	bool exitSchleife = false;
+	while(!exitSchleife) //Wert eingeben
+	{
+		wxTextEntryDialog abfrage(this, text, titel, standardwert);
+		if (abfrage.ShowModal() != wxID_OK) {
+			return wxID_ABORT;
+		}
+		wxString number = abfrage.GetValue();
+		/*komma gegen punkt tauschen*/
+		wxString punkt = wxT(".");
+		wxString komma = wxT(",");
+		number.Replace(komma, punkt);
+		if (!number.ToDouble(&rueckgabe)) {
+			if (strcmp(number, "")!=0) {
+				if (wxMessageDialog(this, wxT("Bitte geben Sie eine Zahl ein"), wxT("Eingabe fehlerhaft")).ShowModal() != wxID_OK) {
+					return wxID_ABORT;
+				}
+				continue;
+			} else {
+				return wxID_IGNORE;
+			}
+		}
+		exitSchleife = true;
+	}
+	return wxID_OK;
 }
 
 void RUZmBIFrame::LinieParallel(Vektor nachPos)
@@ -3123,31 +3135,8 @@ void RUZmBIFrame::LinieParallel(Vektor nachPos)
 	{
 		if(m_auswahl->GetErstesElement()->HoleTyp() == RUZ_Linie)
 		{
-			bool exitSchleife = false;
-			while(!exitSchleife) //Abstand eingeben
-			{
-				wxTextEntryDialog abfrage(this, wxT("Bitte geben Sie einen Abstand ein\nLeer, um den Gewählten Punkt zu verwenden"),
-										  wxT("Extrusionabstand"), wxT(""));
-				if(abfrage.ShowModal() == wxID_ABORT)return;
-				wxString number = abfrage.GetValue();
-				/*komma gegen punkt tauschen*/
-				wxString punkt = wxT(".");
-				wxString komma = wxT(",");
-				number.Replace(komma, punkt);
-				if(!number.ToDouble(&t_abstand))
-				{
-					if(strcmp(number, "")!=0)
-					{
-						if(wxMessageDialog(this, wxT("Bitte geben Sie eine Zahl ein"), wxT("Eingabe fehlerhaft")).ShowModal() == wxID_ABORT)return;
-					}else{
-						t_abstandVerwenden = false;
-						exitSchleife = true;
-						continue;
-					}
-				}
-				t_abstandVerwenden = true;
-				exitSchleife = true;
-			}
+			int erfolg = EingabeMaske(wxT("Bitte geben Sie einen Abstand ein\nLeer, um den Gewählten Punkt zu verwenden"), wxT("Extrusionabstand"), wxT(""), t_abstand);
+			erfolg == wxID_IGNORE ? t_abstandVerwenden = false : t_abstandVerwenden = true;
 		}
 		else
 		{
@@ -3246,6 +3235,7 @@ void RUZmBIFrame::MenuEntmarkieren(void)
 	menuLinieZeichnen->Check(false);
 	menuKreisZeichnen->Check(false);
 	menuLinieExtrudieren->Check(false);
+	menuLinieExtrudierenHoehe->Check(false);
 	menuLinieParallel->Check(false);
 	menuDreieckZeichnen->Check(false);
 	menuViereckZeichnen->Check(false);
@@ -5597,15 +5587,14 @@ void RUZmBIFrame::OnMouseWheel(wxMouseEvent& event)
 	}
 	if(anzeigeSkalieren)
 	{
-	   if(KoordinatenMaske->IsShown() && !m_markierModus)
-		{
+		if(KoordinatenMaske->IsShown() && !m_markierModus) {
 			KoordinatenMaske->SetzeKoordinaten(z, KoordinatenMaske->HoleKoordinaten(aktProjZ) + verschub);
 		}
-		if((aktBefehl == bef_ID_verschieben)||(aktBefehl == bef_ID_kopieren)||(aktBefehl == bef_ID_kopierenNachLayer))
-		{
-			for(RUZ_Objekt* obj = m_auswahl->GetErstesElement(); obj != NULL; obj = m_auswahl->GetNaechstesElement())
-			{
-				obj->Verschieben(Vektor(0, 0, verschub));
+		if ((aktBefehl == bef_ID_verschieben)||(aktBefehl == bef_ID_kopieren)||(aktBefehl == bef_ID_kopierenNachLayer)) {
+			Vektor vkt = Vektor (0, 0, 0);
+			vkt.SetKoordinaten(aktProjZ, verschub);
+			for (RUZ_Objekt* obj = m_auswahl->GetErstesElement(); obj != NULL; obj = m_auswahl->GetNaechstesElement()) {
+				obj->Verschieben(vkt);
 			}
 		}
 	}else
