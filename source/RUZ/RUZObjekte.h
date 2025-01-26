@@ -23,7 +23,10 @@
 
 #include "..\Vektor\Vektor.h"
 #include "..\Liste\Verkettete_Liste.h"
-//#include <windows.h>//cross-plattform dadurch kaputt
+
+#ifndef __OHNE_WIN_
+	#include <windows.h>//cross-plattform dadurch kaputt
+#endif
 
 class Linie;
 class Flaeche;

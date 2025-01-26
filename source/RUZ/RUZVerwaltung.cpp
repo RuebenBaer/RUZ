@@ -1576,14 +1576,16 @@ void RUZ_Layer::GefaelleRasterLoeschen(void)
 
 void RUZ_Layer::logSchreiben(const char* msg, ...)
 {
+	#ifndef __OHNE_WIN_
     FILE *Logbuch;
     const char *pfad = "log/Debug.log";
     Logbuch = fopen(pfad, "a");
-    /*va_list args;
+    va_list args;
     va_start (args, msg);
     vfprintf (Logbuch, msg, args);
-    va_end (args);*/
+    va_end (args);
     fclose(Logbuch);
+	#endif
     return;
 }
 

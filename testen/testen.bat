@@ -1,1 +1,1 @@
-g++ -g -o out.exe "..\source\RUZ\RUZObjekte.cpp" "..\source\RUZ\RUZVerwaltung.cpp" "..\source\RUZ\RUZThreadInfo.cpp" "..\source\Vektor\Vektor.cpp" "..\source\Liste\Verkettete_Liste.cpp"  main.cpp
+g++ -g  -D__OHNE_WIN_ -o out.exe "..\source\RUZ\RUZObjekte.cpp" "..\source\RUZ\RUZVerwaltung.cpp" "..\source\RUZ\RUZThreadInfo.cpp" "..\source\Vektor\Vektor.cpp" "..\source\Liste\Verkettete_Liste.cpp"  main.cpp

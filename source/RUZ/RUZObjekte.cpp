@@ -167,6 +167,7 @@ int RUZ_Objekt::QuadratischeGleichung(double a, double b, double c, double& lsg1
 
 void RUZ_Objekt::logSchreiben(const char* msg, ...)
 {
+	#ifndef __OHNE_WIN_
 	FILE *Logbuch;
 	const char *pfad = "log/Debug.log";
 	Logbuch = fopen(pfad, "a");
@@ -175,6 +176,7 @@ void RUZ_Objekt::logSchreiben(const char* msg, ...)
 	vfprintf (Logbuch, msg, args);
 	va_end (args);
 	fclose(Logbuch);
+	#endif
 	return;
 }
 /*ENDE RUZ_Objekt*/
