@@ -23,7 +23,7 @@
 
 #include "..\Vektor\Vektor.h"
 #include "..\Liste\Verkettete_Liste.h"
-#include <windows.h>//cross-plattform dadurch kaputt
+//#include <windows.h>//cross-plattform dadurch kaputt
 
 class Linie;
 class Flaeche;

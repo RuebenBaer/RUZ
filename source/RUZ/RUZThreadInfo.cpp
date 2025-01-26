@@ -34,14 +34,14 @@ void thread_info::BeendigungFeststellen(void)
 
 void thread_info::logSchreiben(const char* msg, ...)
 {
-		FILE *Logbuch;
+		/*FILE *Logbuch;
 		const char *pfad = "log/Debug.log";
 		Logbuch = fopen(pfad, "a");
 		va_list args;
 		va_start (args, msg);
 		vfprintf (Logbuch, msg, args);
 		va_end (args);
-		fclose(Logbuch);
+		fclose(Logbuch);*/
 		return;
 }
 /*ENDE thread_info*/

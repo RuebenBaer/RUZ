@@ -2460,7 +2460,7 @@ void LinienExtrudieren(LinienFlaeche lnFl[], int gr, double reGef, double h0, Ac
 				n1y = lnFl[k].n.GetKoordinaten(y);
 				n1z = lnFl[k].n.GetKoordinaten(z);
 				for (int pkt2Nr = 0; pkt2Nr < 2; pkt2Nr++) {
-					if ((lnFl[k].ln->HolePunkt(pkt2Nr) == lnFl[i].ln->HolePunkt(pktNr)) && (lnFl[k].p_neu[pkt2Nr] != NULL)) {
+					if ((lnFl[k].ln->HolePunkt(pkt2Nr) == lnFl[i].ln->HolePunkt(pktNr)) && (lnFl[k].p_neu[pkt2Nr] == NULL)) {
 						/* Schnittpunkt auf Hoehe h0 finden	*/
 						p0 = lnFl[i].ln->HolePunkt(pktNr)->HolePosition();
 
@@ -2535,7 +2535,7 @@ bool LinienNormale(LinienFlaeche &lnFl, Vektor &richtungsPunkt, double resGefael
 		return false;
 	double a = pow(resGefaelle, 2);
 	double b = pow(bestGefaelle, 2);
-	if (a > b)
+	if (a < b)
 		return false;
 	normGefaelle = sqrt(a - b) * ((resGefaelle < 0) ? -1.0 : 1.0);
 	
