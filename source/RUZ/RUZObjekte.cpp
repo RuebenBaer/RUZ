@@ -2473,7 +2473,7 @@ void LinienExtrudieren(LinienFlaeche lnFl[], int gr, double reGef, double h0, Ac
 							schnittOrt = p0 + lnFl[i].extR;
 						} else {
 							qx = (n1y * (p0 * lnFl[i].n - h0 * n0z) - n0y * (p0 * lnFl[k].n - h0 * n1z)) / div;
-							qy = (n0x * (p0 * lnFl[i].n - h0 * n1z) - n1x * (p0 * lnFl[k].n - h0 * n0z)) / div;
+							qy = (-n1x * (p0 * lnFl[i].n - h0 * n0z) + n0x * (p0 * lnFl[k].n - h0 * n1z)) / div;
 							
 							schnittOrt.SetKoordinaten(x, qx);
 							schnittOrt.SetKoordinaten(y, qy);
@@ -2514,7 +2514,6 @@ void LinienExtrudieren(LinienFlaeche lnFl[], int gr, double reGef, double h0, Ac
 			Dreieck::NeuesDreieck(lnFl[i].ln, ln1, ln2);
 		}
 	}
-	
 	return;
 }
 

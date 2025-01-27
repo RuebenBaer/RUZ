@@ -3089,6 +3089,10 @@ void RUZmBIFrame::LinieExtrudierenHoehe(Vektor nachPos)
 	erfolg = EingabeMaske(wxT("Bitte die Höhe der Böschungssohle eingeben"), wxT("Zielhöhe"), wxT(""), hoehe);
 	if (erfolg != wxID_OK) return;
 	LinienExtrudieren(lnFl, gr, gefaelle, hoehe, aktProjZ, nachPos);
+	
+	delete []lnFl;
+	m_auswahl->ListeLeeren("Boeschung");
+	
 	Refresh();
 }
 
