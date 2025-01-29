@@ -19,7 +19,11 @@ int main(int argc, char **argv)
 	
 	LinienExtrudieren(lnFl, 2, 1.0, 1.0, z, vkt);
 	
-	printf("Anzahl Flaechen: %d", lay.HoleFlaechen()->GetListenGroesse());
+	printf("Anzahl Flaechen: %d\n", lay.HoleFlaechen()->GetListenGroesse());
+	
+	for (int i = 0; i < 2; i++) {
+		printf("Normale %d: %g | %g | %g\n", i, lnFl[i].n.x(), lnFl[i].n.y(), lnFl[i].n.z());
+	}
 	
 	delete ln1;
 	delete ln2;

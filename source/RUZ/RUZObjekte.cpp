@@ -2445,6 +2445,7 @@ void LinienExtrudieren(LinienFlaeche lnFl[], int gr, double reGef, double h0, Ac
 	double qx, qy;
 	Vektor p0, schnittOrt;
 	double div;
+	Punkt *schnittPkt;
 
 	for (int i = 0; i < gr; i++) {
 		if (std::isnan(n0x = lnFl[i].n.GetKoordinaten(x))) {
@@ -2452,8 +2453,20 @@ void LinienExtrudieren(LinienFlaeche lnFl[], int gr, double reGef, double h0, Ac
 		} 
 		n0y = lnFl[i].n.GetKoordinaten(y);
 		n0z = lnFl[i].n.GetKoordinaten(z);
+				
 		for (int pktNr = 0; pktNr < 2; pktNr++) {
-			Punkt *schnittPkt;
+			if (lnFl[i].p_neu[pktNr] != NULL) {
+				continue; /* neuer Eckpunkt ist schon vorhanden */
+			}
+			p0 = lnFl[i].ln->HolePunkt(pktNr)->HolePosition();
+			schnittOrt = p0 + lnFl[i].extR;
+			schnittPkt = new Punkt(schnittOrt, lnFl[i].ln->HoleLayer()); /* Standardschnittpunkt, rechtwinklig zur Linie */
+			if (!schnittPkt) {
+				std::cerr << "LinienExtrudieren: schnittPkt nicht instanziert\n";
+				continue;
+			}
+			lnFl[i].p_neu[pktNr] = schnittPkt;
+
 			/* Nachbarsuchen */
 			for (int k = i + 1; k < gr; k++) {
 				if (std::isnan(n1x = lnFl[k].n.GetKoordinaten(x))) {
@@ -2464,13 +2477,11 @@ void LinienExtrudieren(LinienFlaeche lnFl[], int gr, double reGef, double h0, Ac
 				for (int pkt2Nr = 0; pkt2Nr < 2; pkt2Nr++) {
 					if ((lnFl[k].ln->HolePunkt(pkt2Nr) == lnFl[i].ln->HolePunkt(pktNr)) && (lnFl[k].p_neu[pkt2Nr] == NULL)) {
 						/* Schnittpunkt auf Hoehe h0 finden	*/
-						p0 = lnFl[i].ln->HolePunkt(pktNr)->HolePosition();
 
 						div = (n0x * n1y - n1x * n0y);
 						if (div  == 0) {
 							/* Normalen colinear => Schnittpunkt rechtwinklig zur Linie */
 							std::cout << "Kolineare Normalen => Schnittpunkt rechtwinklig zur Linie\n";
-							schnittOrt = p0 + lnFl[i].extR;
 						} else {
 							qx = (n1y * (p0 * lnFl[i].n - h0 * n0z) - n0y * (p0 * lnFl[k].n - h0 * n1z)) / div;
 							qy = (-n1x * (p0 * lnFl[i].n - h0 * n0z) + n0x * (p0 * lnFl[k].n - h0 * n1z)) / div;
@@ -2478,15 +2489,9 @@ void LinienExtrudieren(LinienFlaeche lnFl[], int gr, double reGef, double h0, Ac
 							schnittOrt.SetKoordinaten(x, qx);
 							schnittOrt.SetKoordinaten(y, qy);
 							schnittOrt.SetKoordinaten(z, h0);
+							schnittPkt->Positionieren(schnittOrt);
+							lnFl[k].p_neu[pkt2Nr] = schnittPkt;
 						}
-						schnittPkt = new Punkt(schnittOrt, lnFl[i].ln->HoleLayer());
-						if (!schnittPkt) {
-							std::cerr << "LinienExtrudieren: schnittPkt nicht instanziert\n";
-							continue;
-						}
-
-						lnFl[i].p_neu[pktNr] = schnittPkt;
-						lnFl[k].p_neu[pkt2Nr] = schnittPkt;
 					}
 				}
 			}
