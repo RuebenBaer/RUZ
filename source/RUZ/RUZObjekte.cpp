@@ -2444,7 +2444,7 @@ void LinienExtrudieren(LinienFlaeche lnFl[], int gr, double reGef, double h0, Ac
 	double n1x, n1y, n1z;
 	double qx, qy;
 	Vektor p0, schnittOrt;
-	double div;
+	double div, extRz;
 	Punkt *schnittPkt;
 
 	for (int i = 0; i < gr; i++) {
@@ -2458,8 +2458,11 @@ void LinienExtrudieren(LinienFlaeche lnFl[], int gr, double reGef, double h0, Ac
 			if (lnFl[i].p_neu[pktNr] != NULL) {
 				continue; /* neuer Eckpunkt ist schon vorhanden */
 			}
+			if (!(extRz = lnFl[i].extR.GetKoordinaten(z))) {
+				continue;
+			}
 			p0 = lnFl[i].ln->HolePunkt(pktNr)->HolePosition();
-			schnittOrt = p0 + lnFl[i].extR;
+			schnittOrt = p0 + lnFl[i].extR * ((h0 - p0.GetKoordinaten(z)) / extRz);
 			schnittPkt = new Punkt(schnittOrt, lnFl[i].ln->HoleLayer()); /* Standardschnittpunkt, rechtwinklig zur Linie */
 			if (!schnittPkt) {
 				std::cerr << "LinienExtrudieren: schnittPkt nicht instanziert\n";
