@@ -3168,11 +3168,15 @@ void Viereck::DoHoehenlinienFinden(void)
 
 	if((abs(t_L0 - t_L2) / ((t_L0 + t_L2)*2)) < (abs(t_L1 - t_L3) / ((t_L1 + t_L3)*2)))/*möglichst gleichlange Seiten finden*/
 	{
-		seite[0] = Linie::NeueLinie(p[0], p[1]);
-		seite[1] = Linie::NeueLinie(p[3], p[2]);
+		seite[0] = p[0]->Verbunden(p[1]);
+		seite[1] = p[3]->Verbunden(p[2]);
 	}else{
-		seite[0] = Linie::NeueLinie(p[0], p[3]);
-		seite[1] = Linie::NeueLinie(p[1], p[2]);
+		seite[0] = p[0]->Verbunden(p[3]);
+		seite[1] = p[1]->Verbunden(p[2]);
+	}
+	if (seite[0] == NULL || seite[1] == NULL) {
+		std::cout<<"DoHoehenlinienFinden -> keine Seiten gefunden\n";
+		return;
 	}
 
 	double mittlereLaenge = (seite[0]->Laenge() + seite[1]->Laenge()) / 2.0;
@@ -3209,8 +3213,6 @@ void Viereck::DoHoehenlinienFinden(void)
 	{
 		delete hilfsPunkt[i];/*Punkt löscht Linie!*/
 	}
-	delete seite[0];
-	delete seite[1];
 
 	return;
 }
