@@ -104,19 +104,41 @@ void RUZ_Layer::thPunkteVernetzen(thread_info_vernetzen *thInf, Liste<Punkt>* t_
 			return;
 		}
     }
-	thInf->SetzeStatus(2);
-    for(von = pktSammlung->GetErstesElement(); von != NULL; von = pktSammlung->GetNachfolger(von))
+	
+	/* Verbundene Punkte finden*/
+	Liste<ObjektPaar> punktePaare;
+	for(von = pktSammlung->GetErstesElement(); von != NULL; von = pktSammlung->GetNachfolger(von))
     {
         for(nach = pktSammlung->GetNachfolger(von); nach != NULL; nach = pktSammlung->GetNachfolger(nach))
         {
-            if(SindDiagonalEndpunkte(von, nach))continue;
+            if (SindDiagonalEndpunkte(von, nach)) {
+				punktePaare.Hinzufuegen(new ObjektPaar(von, nach));
+				continue;
+			}
             Linie *verbindungsLinie = Verbunden(von, nach);
             if(verbindungsLinie != NULL)//prüfen, ob Punkte bereits verbunden sind
             {
+				punktePaare.Hinzufuegen(new ObjektPaar(von, nach));
                 continue;
             }
-            Linie::NeueLinie(von, nach);
-			thInf->InkrNeueLinie();
+		}
+	}
+	
+	thInf->SetzeStatus(2);
+	bool verbunden;
+    for (von = pktSammlung->GetErstesElement(); von != NULL; von = pktSammlung->GetNachfolger(von)) {
+        for (nach = pktSammlung->GetNachfolger(von); nach != NULL; nach = pktSammlung->GetNachfolger(nach)) {
+			verbunden = false;
+            for (ObjektPaar *OP = punktePaare.GetErstesElement(); OP != NULL; OP = punktePaare.GetNaechstesElement()) {
+				if ((OP->objReferenz == von && OP->objBezugsObj == nach) || (OP->objReferenz == nach && OP->objBezugsObj == von)) {
+					verbunden = true;
+					break;
+				}
+			}
+			if (verbunden != true) {
+				Linie::NeueLinie(von, nach, false);
+				thInf->InkrNeueLinie();
+			}
 			if(thInf->BeendenAngefragt())//Abbruch angefragt
 			{
 				thInf->BeendigungFeststellen();
@@ -124,6 +146,8 @@ void RUZ_Layer::thPunkteVernetzen(thread_info_vernetzen *thInf, Liste<Punkt>* t_
 			}
         }
     }
+	punktePaare.ListeLoeschen("");
+	
 	thInf->SetzeStatus(3);
     LinienNachLaengeSortieren();
     /*von kurzen Linien geschnittene Linien loeschen*/
@@ -602,9 +626,13 @@ void RUZ_Layer::Wert(Punkt* obj, double wert)
     return;
 }
 
-void RUZ_Layer::Hinzufuegen(Linie* obj)
+void RUZ_Layer::Hinzufuegen(Linie* obj, bool exklusiv)
 {
-    m_linienLst->ExklusivHinzufuegen(obj);
+    if (exklusiv) {
+		m_linienLst->ExklusivHinzufuegen(obj);
+		return;
+	}
+	m_linienLst->Hinzufuegen(obj);
     return;
 }
 

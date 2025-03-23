@@ -72,7 +72,7 @@ public:
     void ViereckeFinden(void);
 
     void Hinzufuegen(Punkt* obj);
-    void Hinzufuegen(Linie* obj);
+    void Hinzufuegen(Linie* obj, bool exklusiv = true);
     void Hinzufuegen(Flaeche* obj);
     void Hinzufuegen(Strich* obj);
     void Hinzufuegen(Bogen* obj);

@@ -257,9 +257,13 @@ bool Punkt::operator==(const Punkt& pkt) const
 	return(pOrt==pkt.HolePosition());
 }
 
-void Punkt::Hinzufuegen(Linie* Ln)
+void Punkt::Hinzufuegen(Linie* Ln, bool exklusiv)
 {
-	adjLinie->ExklusivHinzufuegen(Ln);
+	if (exklusiv) {
+		adjLinie->ExklusivHinzufuegen(Ln);
+		return;
+	}
+	adjLinie->Hinzufuegen(Ln);
 	return;
 }
 
@@ -536,33 +540,36 @@ bool Linie::operator==(const Linie& vergleichsLinie)
 	return false;
 }
 
-Linie::Linie(Punkt* p1, Punkt* p2):RUZ_Objekt()
+Linie::Linie(Punkt* p1, Punkt* p2, bool exklusiv):RUZ_Objekt()
 {
 	p[0] = p1;
 	p[1] = p2;
-	p[0]->Hinzufuegen(this);
-	p[1]->Hinzufuegen(this);
+	p[0]->Hinzufuegen(this, exklusiv);
+	p[1]->Hinzufuegen(this, exklusiv);
 	teilLinie[0] = teilLinie[1] = NULL;
 	geschuetzt = 0;
 	kantenTyp = unklassifiziert;
 	adjFlaeche = new Liste<Flaeche>;
 	flaechenZaehler = 0;
-	HoleLayer()->Hinzufuegen(this);
+	HoleLayer()->Hinzufuegen(this, exklusiv);
 	farbe[0] = farbe[1] = farbe[2] = -1;
 }
 
-Linie* Linie::NeueLinie(Punkt* p0, Punkt* p1)
+Linie* Linie::NeueLinie(Punkt* p0, Punkt* p1, bool pruefeVerbunden)
 {
 	if (p0->HoleLayer() != p1->HoleLayer())return NULL;
 	if (p0->HoleLayer() == NULL)return NULL;
 	
-	Linie* ln;
-	if ((ln = p0->Verbunden(p1)) != NULL) {
-		std::cout << "Linien waren schon verbunden\n";
-		return ln;
+	if (pruefeVerbunden) {
+		std::cout << "pruefe ob verbunden\n";
+		Linie* ln;
+		if ((ln = p0->Verbunden(p1)) != NULL) {
+			std::cout << "Linien waren schon verbunden\n";
+			return ln;
+		}
 	}
 	
-	return new Linie(p0, p1);
+	return new Linie(p0, p1, pruefeVerbunden);
 }
 
 Linie::~Linie()

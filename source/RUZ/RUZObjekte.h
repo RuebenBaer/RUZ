@@ -175,7 +175,7 @@ public:
     char* HoleName(void){return m_name;};
     void SetzeName(const char* n);
     /*Zugehörige Linien*/
-    void Hinzufuegen(Linie*);
+    void Hinzufuegen(Linie* Ln, bool exklusiv = true);
     void Entfernen(Linie*);
     Liste<Linie>* HoleLinien(void) const;
 
@@ -200,10 +200,10 @@ private:
     KantenKlasse kantenTyp;
     int farbe[3];
 
-    Linie(Punkt*, Punkt*);
+    Linie(Punkt* p0, Punkt* p1, bool exklusiv = true);
 
 public:
-    static Linie* NeueLinie(Punkt*, Punkt*);
+    static Linie* NeueLinie(Punkt* p0, Punkt* p1, bool pruefeVerunden = true);
     Linie();
     Linie(const Linie&);
     Linie& operator=(const Linie&);
