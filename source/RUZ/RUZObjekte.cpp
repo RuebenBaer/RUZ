@@ -699,107 +699,43 @@ bool Linie::schneidet(double t_cx, double t_cy, double t_dx, double t_dy, Achse 
 
 bool Linie::schneidet(Linie* Ln, Achse prjRichtung)
 {
-	double ax, ay, bx, by, cx, cy, dx, dy, deltax, deltay, m1x, m1y, m2x, m2y, lambda, mue, det;
-	int x, y;
-	x = (prjRichtung+1)%3;
-	y = (prjRichtung+2)%3;
-
-	ax = (double)p[0]->HolePosition().GetKoordinaten(x);
-	ay = (double)p[0]->HolePosition().GetKoordinaten(y);
-	bx = (double)p[1]->HolePosition().GetKoordinaten(x);
-	by = (double)p[1]->HolePosition().GetKoordinaten(y);
-	cx = (double)Ln->HolePunkt(0)->HolePosition().GetKoordinaten(x);
-	cy = (double)Ln->HolePunkt(0)->HolePosition().GetKoordinaten(y);
-	dx = (double)Ln->HolePunkt(1)->HolePosition().GetKoordinaten(x);
-	dy = (double)Ln->HolePunkt(1)->HolePosition().GetKoordinaten(y);
-
-	m1x = bx - ax;
-	m1y = by - ay;
-	m2x = dx - cx;
-	m2y = dy - cy;
-
-	deltax = cx - ax;
-	deltay = cy - ay;
-
-	det = -m1x * m2y + m1y * m2x;
-	if(det == 0)
-	{
-		if((deltax * m1y - m1x * deltay) != 0)
-		{
-			return 0;
-		}else{
-			if((p[0] != Ln->HolePunkt(0)) && (p[1] != Ln->HolePunkt(0)))
-			{
-				if((bx - ax) !=0)
-				{
-					lambda = (cx - ax) / (bx - ax);
-				}else{
-					lambda = (cy - ay) / (by - ay);
-				}
-				if((lambda < 1) && (lambda > 0))
-				{
-					return 1;
-				}
-			}
-
-			if((p[0] != Ln->HolePunkt(1)) && (p[1] != Ln->HolePunkt(1)))
-			{
-				if((bx - ax) !=0)
-				{
-					lambda = (dx - ax) / (bx - ax);
-				}else{
-					lambda = (dy - ay) / (by - ay);
-				}
-				if((lambda < 1) && (lambda > 0))
-				{
-					return 1;
-				}
-			}
-
-			if((p[0] != Ln->HolePunkt(0)) && (p[0] != Ln->HolePunkt(1)))
-			{
-				if((dx - cx) !=0)
-				{
-					lambda = (ax - cx) / (dx - cx);
-				}else{
-					lambda = (ay - cy) / (dy - cy);
-				}
-				if((lambda < 1) && (lambda > 0))
-				{
-					return 1;
-				}
-			}
-
-			if((p[1] != Ln->HolePunkt(0)) && (p[1] != Ln->HolePunkt(1)))
-			{
-				if((dx - cx) !=0)
-				{
-					lambda = (bx - cx) / (dx - cx);
-				}else{
-					lambda = (by - cy) / (dy - cy);
-				}
-				if((lambda < 1) && (lambda > 0))
-				{
-					return 1;
-				}
-			}
-			return 0;
-		}
-	}
-
 	if(p[0] == Ln->HolePunkt(0))return 0;
 	if(p[0] == Ln->HolePunkt(1))return 0;
 	if(p[1] == Ln->HolePunkt(0))return 0;
 	if(p[1] == Ln->HolePunkt(1))return 0;
-
-	lambda = (-m2y * deltax + m2x * deltay) / det;
-	mue = (-m1y * deltax + m1x * deltay) / det;
-
-	if((lambda > 0) && (lambda < 1) && (mue > 0) && (mue < 1))
-	{
-		return 1;
-	}
-	return 0;
+	double x0, y0, x1, y1, xq, yq, kreuz1, kreuz2;
+	
+	x0 = p[0]->HolePosition().GetKoordinaten(prjRichtung + 1);
+	y0 = p[0]->HolePosition().GetKoordinaten(prjRichtung + 2);
+	x1 = p[1]->HolePosition().GetKoordinaten(prjRichtung + 1);
+	y1 = p[1]->HolePosition().GetKoordinaten(prjRichtung + 2);
+	xq = Ln->HolePunkt(0)->HolePosition().GetKoordinaten(prjRichtung + 1);
+	yq = Ln->HolePunkt(0)->HolePosition().GetKoordinaten(prjRichtung + 2);
+	kreuz1 = (x1-x0) * (yq-y0) - (y1-y0) * (xq-x0);
+	
+	xq = Ln->HolePunkt(1)->HolePosition().GetKoordinaten(prjRichtung + 1);
+	yq = Ln->HolePunkt(1)->HolePosition().GetKoordinaten(prjRichtung + 2);
+	kreuz2 = (x1-x0) * (yq-y0) - (y1-y0) * (xq-x0);
+	
+	if(!(kreuz1 * kreuz2 < 0))
+		return 0;
+	
+	x0 = Ln->HolePunkt(0)->HolePosition().GetKoordinaten(prjRichtung + 1);
+	y0 = Ln->HolePunkt(0)->HolePosition().GetKoordinaten(prjRichtung + 2);
+	x1 = Ln->HolePunkt(1)->HolePosition().GetKoordinaten(prjRichtung + 1);
+	y1 = Ln->HolePunkt(1)->HolePosition().GetKoordinaten(prjRichtung + 2);
+	xq = p[0]->HolePosition().GetKoordinaten(prjRichtung + 1);
+	yq = p[0]->HolePosition().GetKoordinaten(prjRichtung + 2);
+	kreuz1 = (x1-x0) * (yq-y0) - (y1-y0) * (xq-x0);
+	
+	xq = p[1]->HolePosition().GetKoordinaten(prjRichtung + 1);
+	yq = p[1]->HolePosition().GetKoordinaten(prjRichtung + 2);
+	kreuz2 = (x1-x0) * (yq-y0) - (y1-y0) * (xq-x0);
+	
+	if(!(kreuz1 * kreuz2 < 0))
+		return 0;
+	
+	return 1;
 }
 
 bool Linie::schneidet(Linie* Ln, Vektor &vkt, Achse prjRichtung, bool virtuell)
