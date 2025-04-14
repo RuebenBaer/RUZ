@@ -153,6 +153,8 @@ void RUZ_Layer::thPunkteVernetzen(thread_info_vernetzen *thInf, Liste<Punkt>* t_
     /*von kurzen Linien geschnittene Linien loeschen*/
 	thInf->SetzeStatus(4);
 	unsigned long long int aktLinieNr = 0;
+	bool geschnitten;
+	clock_t jetzt;
     for(LE_strich1 = m_linienLst->GetErstesListenelement(); LE_strich1 != NULL;)
     {
 		thInf->BearbeiteteLinie(aktLinieNr++);
@@ -160,14 +162,18 @@ void RUZ_Layer::thPunkteVernetzen(thread_info_vernetzen *thInf, Liste<Punkt>* t_
         for(LE_strich2 = LE_strich1->GetNachfolger(); LE_strich2 != NULL;)
         {
             strich2 = LE_strich2->GetElement();
-            if(strich1->schneidet(strich2, z))
-            {
+			jetzt = clock();
+			geschnitten = strich1->schneidet(strich2, z);
+			thInf->SchnittZeit(clock() - jetzt);
+            if (geschnitten) {
+				jetzt = clock();
                 Listenelement<Linie> *temp;
                 temp = LE_strich2;
                 LE_strich2 = LE_strich2->GetNachfolger();
                 m_linienLst->Entfernen(temp);
                 delete strich2;
-            }else{
+				thInf->LoeschZeit(clock() - jetzt);
+            } else {
                 LE_strich2 = LE_strich2->GetNachfolger();
             }
 			if(thInf->BeendenAngefragt())//Abbruch angefragt

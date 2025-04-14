@@ -6,6 +6,7 @@ class thread_info_verschnitt;
 class thread_info_vernetzen;
 #include "RUZVerwaltung.h"
 #include <string>
+#include <time.h>
 
 class thread_info
 {
@@ -62,6 +63,7 @@ class thread_info_vernetzen : public thread_info
 private:
 	RUZ_Layer* m_Layer;
 	unsigned long long int m_anzVorhLinien, m_anzNeueLinien, m_aktLinieNr;
+	clock_t m_schnittZeit, m_loeschZeit;
 public:
 	thread_info_vernetzen(RUZ_Layer* lay);
 	~thread_info_vernetzen();
@@ -70,6 +72,8 @@ public:
 	void InkrVorhandeneLinie(void);
 	void InkrNeueLinie(void);
 	void BearbeiteteLinie(unsigned long long int Nr);
+	void SchnittZeit(clock_t sz);
+	void LoeschZeit(clock_t lz);
 	unsigned long long int HoleBearbeitet(void);
 	unsigned long long int HoleVorhandeneLinien(void);
 	unsigned long long int HoleNeueLinien(void);

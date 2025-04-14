@@ -188,6 +188,8 @@ thread_info_vernetzen::thread_info_vernetzen(RUZ_Layer* lay)
 	m_Layer = lay;
 	m_anzVorhLinien = 0;
 	m_anzNeueLinien = 0;
+	m_schnittZeit = 0;
+	m_loeschZeit = 0;
 }
 
 thread_info_vernetzen::~thread_info_vernetzen()
@@ -256,6 +258,18 @@ void thread_info_vernetzen::BearbeiteteLinie(unsigned long long int Nr)
 	return;
 }
 
+void thread_info_vernetzen::SchnittZeit(clock_t sz)
+{
+	m_schnittZeit += sz;
+	return;
+}
+
+void thread_info_vernetzen::LoeschZeit(clock_t lz)
+{
+	m_loeschZeit += lz;
+	return;
+}
+
 unsigned long long int thread_info_vernetzen::HoleBearbeitet(void)
 {
 	return m_aktLinieNr;
@@ -293,6 +307,11 @@ std::string thread_info_vernetzen::HoleMeldung(void)
 			msg += std::to_string(m_aktLinieNr);
 			msg += " von ";
 			msg += std::to_string(m_Layer->HoleLinien()->GetListenGroesse());
+			msg += "\n\nschneiden:\t";
+			msg += std::to_string(m_schnittZeit / CLOCKS_PER_SEC);
+			msg += " s\t|\tlöschen:\t";
+			msg += std::to_string(m_loeschZeit / CLOCKS_PER_SEC);
+			msg += " s";
 			break;
 		default:
 			msg += "\n\nFEHLER\n";
