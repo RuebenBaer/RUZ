@@ -1,4 +1,5 @@
 CXX = g++
+CC = clang
 CPPFLAGS =  \
 	-Wall \
 	-pipe \
@@ -68,6 +69,7 @@ OBJS = \
 	$(OBJDIR)\RUZ\RUZObjekte.o \
 	$(OBJDIR)\RUZ\RUZVerwaltung.o \
 	$(OBJDIR)\RUZ\RUZThreadInfo.o \
+	$(OBJDIR)\RUZ\LinienGeist.o \
 	$(OBJDIR)\Vektor\Vektor.o \
 	$(OBJDIR)\RUZmBIApp.o \
 	$(OBJDIR)\RUZmBIMain.o \
@@ -116,6 +118,10 @@ $(OBJDIR)\RUZ\RUZVerwaltung.o: source\RUZ\RUZVerwaltung.cpp
 $(OBJDIR)\RUZ\RUZThreadInfo.o: source\RUZ\RUZThreadInfo.cpp
 	if not exist $(OBJDIR)\RUZ mkdir $(OBJDIR)\RUZ
 	$(CXX) $(CPPFLAGS) $(DEFS) $(INCLUDES) -c $< -o $@
+
+$(OBJDIR)\RUZ\LinienGeist.o: source\RUZ\LinienGeist.c
+	if not exist $(OBJDIR)\RUZ mkdir $(OBJDIR)\RUZ
+	$(CC) -c $< -o $@
 
 $(OBJDIR)\Vektor\Vektor.o: source\Vektor\Vektor.cpp
 	if not exist $(OBJDIR)\Vektor mkdir $(OBJDIR)\Vektor
