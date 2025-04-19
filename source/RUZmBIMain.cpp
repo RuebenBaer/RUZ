@@ -7247,6 +7247,9 @@ void RUZmBIFrame::ProjektionsrichtungFestlegen(int neueXRichtung)
 	aktProjX = (Achse)(neueXRichtung%3);
 	aktProjY = (Achse)((aktProjX + 1)%3);
 	aktProjZ = (Achse)((aktProjX + 2)%3);
+	for (RUZ_Layer *lay = m_layer->GetErstesElement(); lay != NULL; lay = m_layer->GetNaechstesElement()) {
+		lay->SetzeProjektion(aktProjZ);
+	}
 	return;
 }
 

@@ -71,6 +71,7 @@ public:
 	void HoleLayer(RUZ_Layer**);
 	void InkrVorhandeneLinie(void);
 	void InkrNeueLinie(void);
+	void DekrNeueLinie(void);
 	void BearbeiteteLinie(unsigned long long int Nr);
 	void SchnittZeit(clock_t sz);
 	void LoeschZeit(clock_t lz);

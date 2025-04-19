@@ -209,23 +209,38 @@ void thread_info_vernetzen::SetzeStatus(int i)
 			break;
 		case 1:
 			grundMsg += "Doppelte Punkte löschen beendet.\n\n";
-			grundMsg += "Punkteliste bereinigen...";
+			grundMsg += "Layerfremde Punkte entfernen...";
 			break;
 		case 2:
 			grundMsg += "Doppelte Punkte löschen beendet.\n";
-			grundMsg += "Punkteliste bereinigen beendet.\n\n";
+			grundMsg += "Layerfremde Punkte entfernen beendet.\n\n";
 			grundMsg += "Punkte untereinander verbinden:\n    ";
 			break;
 		case 3:
 			grundMsg += "Doppelte Punkte löschen beendet.\n";
-			grundMsg += "Punkteliste bereinigen beendet.\n\n";
-			grundMsg += "Linien nach Länge sortieren...";
-			break;
+			grundMsg += "Layerfremde Punkte entfernen beendet.\n\n";
+			grundMsg += "Vorhandene Linien mit neuen Linien verschneiden\n    vorhandene Linie Nr. ";
+			
 		case 4:
 			grundMsg += "Doppelte Punkte löschen beendet.\n";
-			grundMsg += "Punkteliste bereinigen beendet.\n";
+			grundMsg += "Layerfremde Punkte entfernen beendet.\n";
+			grundMsg += "Vorhandene Linien mit neuen verschnitten\n\n";
+			grundMsg += "Linien nach Länge sortieren...";
+			break;
+		case 5:
+			grundMsg += "Doppelte Punkte löschen beendet.\n";
+			grundMsg += "Layerfremde Punkte entfernen beendet.\n";
+			grundMsg += "Vorhandene Linien mit neuen verschnitten\n";
 			grundMsg += "Linien nach Länge sortieren beendet.\n\n";
 			grundMsg += "Linien verschneiden\n    Linie ";
+			break;
+		case 6:
+			grundMsg += "Doppelte Punkte löschen beendet.\n";
+			grundMsg += "Layerfremde Punkte entfernen beendet.\n";
+			grundMsg += "Vorhandene Linien mit neuen verschnitten\n";
+			grundMsg += "Linien nach Länge sortieren beendet.\n";
+			grundMsg += "Linien verschneiden abgeschlossen\n\n";
+			grundMsg += "Erstelle neue Linie Nr. ";
 			break;
 		default:
 			grundMsg += "\n\nFEHLER\n";
@@ -249,6 +264,12 @@ void thread_info_vernetzen::InkrVorhandeneLinie(void)
 void thread_info_vernetzen::InkrNeueLinie(void)
 {
 	m_anzNeueLinien++;
+	return;
+}
+
+void thread_info_vernetzen::DekrNeueLinie(void)
+{
+	m_anzNeueLinien--;
 	return;
 }
 
@@ -301,17 +322,21 @@ std::string thread_info_vernetzen::HoleMeldung(void)
 			msg += " neue Linien\n";
 			break;
 		case 3:
+			msg += std::to_string(m_aktLinieNr);
+			msg += "\n            neue Linien: ";
+			msg += std::to_string(m_anzNeueLinien);
+		case 4:
 			return grundMsg;
 			break;
-		case 4:
+		case 5:
 			msg += std::to_string(m_aktLinieNr);
 			msg += " von ";
-			msg += std::to_string(m_Layer->HoleLinien()->GetListenGroesse());
-			msg += "\n\nschneiden:\t";
-			msg += std::to_string(m_schnittZeit / CLOCKS_PER_SEC);
-			msg += " s\t|\tlöschen:\t";
-			msg += std::to_string(m_loeschZeit / CLOCKS_PER_SEC);
-			msg += " s";
+			msg += std::to_string(m_anzNeueLinien);
+			break;
+		case 6:
+			msg += std::to_string(m_aktLinieNr);
+			msg += " von ";
+			msg += std::to_string(m_anzNeueLinien);
 			break;
 		default:
 			msg += "\n\nFEHLER\n";

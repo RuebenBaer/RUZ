@@ -71,14 +71,24 @@ void RUZ_Layer::Benennen(const char* name)
 
 void RUZ_Layer::thPunkteVernetzen(thread_info_vernetzen *thInf, Liste<Punkt>* t_pktLst)
 {
-    Punkt *von, *nach;
-    Linie *strich1, *strich2;
-    Listenelement<Linie> *LE_strich1, *LE_strich2;
+    Liste<LinienGeist> geschuetzteLinien, neueLinienGeister;
+	LinienGeist *tempLg;
 	
+	Punkt *von, *nach;
 	for(Linie *laeufer = m_linienLst->GetErstesElement(); laeufer != NULL; laeufer = m_linienLst->GetNaechstesElement())
     {
-        laeufer->SetzeGeschuetzt(true);
-		thInf->InkrVorhandeneLinie();
+		tempLg = new LinienGeist;
+		if (tempLg != NULL) {
+			von = laeufer->HolePunkt(0);
+			nach = laeufer->HolePunkt(1);
+			LG_setzeWerte(tempLg, (void*)von, (void*)nach,
+							von->HolePosition().GetKoordinaten((m_projektionsRichtung + 1)%3),
+							von->HolePosition().GetKoordinaten((m_projektionsRichtung + 2)%3),
+							nach->HolePosition().GetKoordinaten((m_projektionsRichtung + 1)%3),
+							nach->HolePosition().GetKoordinaten((m_projektionsRichtung + 2)%3));
+			geschuetzteLinien.Hinzufuegen(tempLg);
+			thInf->InkrVorhandeneLinie();
+		}
     }
 	
     /*jeden Punkt mit jedem verbinden*/
@@ -136,8 +146,16 @@ void RUZ_Layer::thPunkteVernetzen(thread_info_vernetzen *thInf, Liste<Punkt>* t_
 				}
 			}
 			if (verbunden != true) {
-				Linie::NeueLinie(von, nach, false);
-				thInf->InkrNeueLinie();
+				tempLg = new LinienGeist;
+				if (tempLg != NULL) {
+					LG_setzeWerte(tempLg, (void*)von, (void*)nach,
+								von->HolePosition().GetKoordinaten((m_projektionsRichtung + 1)%3),
+								von->HolePosition().GetKoordinaten((m_projektionsRichtung + 2)%3),
+								nach->HolePosition().GetKoordinaten((m_projektionsRichtung + 1)%3),
+								nach->HolePosition().GetKoordinaten((m_projektionsRichtung + 2)%3));
+					neueLinienGeister.Hinzufuegen(tempLg);
+					thInf->InkrNeueLinie();
+				}
 			}
 			if(thInf->BeendenAngefragt())//Abbruch angefragt
 			{
@@ -147,44 +165,72 @@ void RUZ_Layer::thPunkteVernetzen(thread_info_vernetzen *thInf, Liste<Punkt>* t_
         }
     }
 	punktePaare.ListeLoeschen("");
-	
+
 	thInf->SetzeStatus(3);
-    LinienNachLaengeSortieren();
-    /*von kurzen Linien geschnittene Linien loeschen*/
-	thInf->SetzeStatus(4);
 	unsigned long long int aktLinieNr = 0;
+	Listenelement<LinienGeist> *tempLELg;
+	for (LinienGeist *geschLg = geschuetzteLinien.GetErstesElement(); geschLg != NULL; geschLg = geschuetzteLinien.GetNaechstesElement()) {
+		thInf->BearbeiteteLinie(aktLinieNr++);
+		for (Listenelement<LinienGeist> *LEneuerLg = neueLinienGeister.GetErstesListenelement(); LEneuerLg != NULL;) {
+			tempLg = LEneuerLg->GetElement();
+			if (SchneidenSich(geschLg, tempLg)) {
+				tempLELg = LEneuerLg;
+				LEneuerLg = LEneuerLg->GetNachfolger();
+				neueLinienGeister.Entfernen(tempLELg);
+				delete tempLg;
+				tempLg = NULL;
+				thInf->DekrNeueLinie();
+			} else {
+				LEneuerLg = LEneuerLg->GetNachfolger();
+			}
+		}
+	}
+	
+	thInf->SetzeStatus(4);
+    LinienNachLaengeSortieren(&neueLinienGeister);
+    /*von kurzen Linien geschnittene Linien loeschen*/
+	thInf->SetzeStatus(5);
+	aktLinieNr = 0;
 	bool geschnitten;
-	clock_t jetzt;
-    for(LE_strich1 = m_linienLst->GetErstesListenelement(); LE_strich1 != NULL;)
+	LinienGeist *lg0, *lg1;
+    for(Listenelement<LinienGeist> *LElg0 = neueLinienGeister.GetErstesListenelement(); LElg0 != NULL;)
     {
 		thInf->BearbeiteteLinie(aktLinieNr++);
-        strich1 = LE_strich1->GetElement();
-        for(LE_strich2 = LE_strich1->GetNachfolger(); LE_strich2 != NULL;)
+        lg0 = LElg0->GetElement();
+        for(Listenelement<LinienGeist> *LElg1 = LElg0->GetNachfolger(); LElg1 != NULL;)
         {
-            strich2 = LE_strich2->GetElement();
-			jetzt = clock();
-			geschnitten = strich1->schneidet(strich2, z);
-			thInf->SchnittZeit(clock() - jetzt);
+            lg1 = LElg1->GetElement();
+			geschnitten = SchneidenSich(lg0, lg1);
             if (geschnitten) {
-				jetzt = clock();
-                Listenelement<Linie> *temp;
-                temp = LE_strich2;
-                LE_strich2 = LE_strich2->GetNachfolger();
-                m_linienLst->Entfernen(temp);
-                delete strich2;
-				thInf->LoeschZeit(clock() - jetzt);
+                tempLELg = LElg1;
+                LElg1 = LElg1->GetNachfolger();
+                neueLinienGeister.Entfernen(tempLELg);
+                delete lg1;
+				thInf->DekrNeueLinie();
             } else {
-                LE_strich2 = LE_strich2->GetNachfolger();
-            }
+				LElg1 = LElg1->GetNachfolger();
+			}
 			if(thInf->BeendenAngefragt())//Abbruch angefragt
 			{
 				thInf->BeendigungFeststellen();
 				return;
 			}
         }
-        LE_strich1 = LE_strich1->GetNachfolger();
+        LElg0 = LElg0->GetNachfolger();
     }
     /*ENDE von kurzen Linien geschnittene Linien loeschen*/
+	
+	/* verbliebene LinienGeister zum Leben erwecken */
+	thInf->SetzeStatus(6);
+	aktLinieNr = 0;
+	for (LinienGeist *lg = neueLinienGeister.GetErstesElement(); lg != NULL; lg = neueLinienGeister.GetNaechstesElement()) {
+		thInf->BearbeiteteLinie(aktLinieNr++);
+		Linie *tempLn = Linie::NeueLinie((Punkt*)lg->p0, (Punkt*)lg->p1);
+		if (tempLn == NULL) {
+			std::cout << "Erstellen der Linie " << aktLinieNr << " fehlgeschlagen\n";
+		}
+	}
+	/*ENDE verbliebene LinienGeister zum Leben erwecken */
 	
     thInf->BeendigungFeststellen();/*Beendet modalen Dialog*/
     return;
@@ -311,22 +357,16 @@ RUZ_Layer* RUZ_Layer::Kopieren(char* name)
     return neuLayer;
 }
 
-void RUZ_Layer::LinienNachLaengeSortieren()
+void RUZ_Layer::LinienNachLaengeSortieren(Liste<LinienGeist> *lgLst)
 {
-    Listenelement<Linie> *laeufer = m_linienLst->GetErstesListenelement();
+    Listenelement<LinienGeist> *laeufer = lgLst->GetErstesListenelement();
 
     while(laeufer != NULL)
     {
-        if(laeufer->GetElement()->IstGeschuetzt())
-        {
-			laeufer->Wert(-1/(laeufer->GetElement()->ProjLaenge(z)));
-            //laeufer->Wert(-1.0);
-        }else{
-            laeufer->Wert(laeufer->GetElement()->ProjLaenge(z));
-        }
+		laeufer->Wert(laeufer->GetElement()->laenge);
         laeufer = laeufer->GetNachfolger();
     };
-    m_linienLst->ListeNachWertSortieren();
+    lgLst->ListeNachWertSortieren();
     return;
 }
 

@@ -561,7 +561,6 @@ Linie* Linie::NeueLinie(Punkt* p0, Punkt* p1, bool pruefeVerbunden)
 	if (p0->HoleLayer() == NULL)return NULL;
 	
 	if (pruefeVerbunden) {
-		std::cout << "pruefe ob verbunden\n";
 		Linie* ln;
 		if ((ln = p0->Verbunden(p1)) != NULL) {
 			std::cout << "Linien waren schon verbunden\n";

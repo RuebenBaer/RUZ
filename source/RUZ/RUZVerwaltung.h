@@ -29,6 +29,9 @@ class RUZ_Layer;
 #include <thread>
 #include <string>
 
+extern "C" {
+	#include "LinienGeist.h"
+}
 
 class RUZ_Layer
 {
@@ -66,7 +69,7 @@ public:
     void thPunkteVernetzen(thread_info_vernetzen *thInfo, Liste<Punkt>* t_pktLst = NULL);
     RUZ_Layer* Kopieren(char* name);
 
-    void LinienNachLaengeSortieren(void);
+    void LinienNachLaengeSortieren(Liste<LinienGeist> *lgLst);
 
     void DreieckeFinden(void);
     void ViereckeFinden(void);
