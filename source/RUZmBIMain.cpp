@@ -454,7 +454,7 @@ void RUZmBIFrame::AnfangMessen(double x, double y)
 	messAnfang.x = x;
 	messAnfang.y = y;
 
-	SetStatusText(wxString::Format("Messpunkt: %.3f, %.3f", messAnfang.x, messAnfang.y), 1);
+	SetStatusText(wxString::Format("Messpunkt: %.3f, %.3f", messAnfang.x, -messAnfang.y), 1);
 	Messen = &RUZmBIFrame::EndeMessen;
 	return;
 }
