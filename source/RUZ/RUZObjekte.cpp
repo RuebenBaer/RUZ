@@ -3107,14 +3107,27 @@ void Viereck::DoHoehenlinienFinden(void)
 	t_L1 = l[1]->Laenge();
 	t_L2 = l[2]->Laenge();
 	t_L3 = l[3]->Laenge();
+	
+	Vektor p1a, p1e, p2a, p2e;
 
 	if((abs(t_L0 - t_L2) / ((t_L0 + t_L2)*2)) < (abs(t_L1 - t_L3) / ((t_L1 + t_L3)*2)))/*möglichst gleichlange Seiten finden*/
 	{
 		seite[0] = p[0]->Verbunden(p[1]);
 		seite[1] = p[3]->Verbunden(p[2]);
+		
+		p1a = p[0]->HolePosition();
+		p1e = p[1]->HolePosition();
+		p2a = p[3]->HolePosition();
+		p2e = p[2]->HolePosition();
+		
 	}else{
 		seite[0] = p[0]->Verbunden(p[3]);
 		seite[1] = p[1]->Verbunden(p[2]);
+		
+		p1a = p[0]->HolePosition();
+		p1e = p[3]->HolePosition();
+		p2a = p[1]->HolePosition();
+		p2e = p[2]->HolePosition();
 	}
 	if (seite[0] == NULL || seite[1] == NULL) {
 		std::cout<<"DoHoehenlinienFinden -> keine Seiten gefunden\n";
@@ -3137,16 +3150,16 @@ void Viereck::DoHoehenlinienFinden(void)
 
 	for(int i = 0; i < anzahlFelder; i++)
 	{
-		tempOrt = seite[0]->PunktBeiLambda((double)i / anzahlFelder);
+		tempOrt = p1a + (p1e - p1a) * ((double)(i) / anzahlFelder);
 		hilfsPunkt[0]->Positionieren(tempOrt);
 
-		tempOrt = seite[0]->PunktBeiLambda((double)(i+1) / anzahlFelder);
+		tempOrt = p1a + (p1e - p1a) * ((double)(i+1) / anzahlFelder);
 		hilfsPunkt[1]->Positionieren(tempOrt);
 
-		tempOrt = seite[1]->PunktBeiLambda((double)(i+1) / anzahlFelder);
+		tempOrt = p2a + (p2e - p2a) * ((double)(i+1) / anzahlFelder);
 		hilfsPunkt[2]->Positionieren(tempOrt);
 
-		tempOrt = seite[1]->PunktBeiLambda((double)i / anzahlFelder);
+		tempOrt = p2a + (p2e - p2a) * ((double)i / anzahlFelder);
 		hilfsPunkt[3]->Positionieren(tempOrt);
 		EinzelfeldHoehenlinien(hilfsLinie[0], hilfsLinie[1], hilfsLinie[2], hilfsLinie[3]);
 	}
