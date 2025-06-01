@@ -91,6 +91,19 @@ void Strich::Skalieren(const Vektor& festOrt, double fktX, double fktY, double f
 	m_EndeY = (m_EndeY - festOrt.y())*fktY + festOrt.y();
 	return;
 }
+
+void Strich::Verschieben(const Vektor vkt)
+{
+	int x, y;
+	x =  (m_layer->HoleProjektion() + 1) % 3;
+	y =  (m_layer->HoleProjektion() + 2) % 3;
+	m_AnfangX += vkt.GetKoordinaten(x);
+	m_AnfangY += vkt.GetKoordinaten(y);
+	m_EndeX += vkt.GetKoordinaten(x);
+	m_EndeY += vkt.GetKoordinaten(y);
+	return;
+}
+
 /*ENDE Strich*/
 
 /*Bogen*/
@@ -122,6 +135,16 @@ void Bogen::Skalieren(const Vektor& festOrt, double fktX, double fktY, double fk
 	m_MitteX = (m_MitteX - festOrt.x())*fktX + festOrt.x();
 	m_MitteY = (m_MitteY - festOrt.y())*fktY + festOrt.y();
 	Strich::Skalieren(festOrt, fktX, fktY, fktZ);
+	return;
+}
+
+void Bogen::Verschieben(const Vektor vkt)
+{
+	int x, y;
+	x =  (m_layer->HoleProjektion() + 1) % 3;
+	y =  (m_layer->HoleProjektion() + 2) % 3;
+	m_MitteX += vkt.GetKoordinaten(x);
+	m_MitteY += vkt.GetKoordinaten(y);
 	return;
 }
 /*ENDE Bogen*/
