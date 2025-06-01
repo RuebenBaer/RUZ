@@ -3239,6 +3239,10 @@ void RUZmBIFrame::logSchreiben(const char* msg, ...)
 	FILE *Logbuch;
 	const char *pfad = "log/Debug.log";
 	Logbuch = fopen(pfad, "a");
+	if (!Logbuch) {
+		std::cout << "Logbuch konnte nicht geöffnet werden\n";
+		return;
+	}
 	va_list args;
 	va_start (args, msg);
 	vfprintf (Logbuch, msg, args);
