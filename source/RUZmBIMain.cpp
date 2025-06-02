@@ -4126,6 +4126,7 @@ void RUZmBIFrame::OnKeyDown(wxKeyEvent& event)
 				} else {
 					BefehleZuruecksetzen();
 				}
+				break;
 
 			default:
 				BefehleZuruecksetzen();
