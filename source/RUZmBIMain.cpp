@@ -5416,8 +5416,8 @@ void RUZmBIFrame::OnMouseMove(wxMouseEvent& event)
 	NeueMousePosition = event.GetLogicalPosition(dc);
 
 	double dX = NeueMousePosition.x / m_skalierung + dc_Offset[0];
-	double dY = -(NeueMousePosition.y / m_skalierung + dc_Offset[1]);
-	SetStatusText(wxString::Format("Cursor (x/y): %.3f/%.3f", dX, dY), 3);
+	double dY = NeueMousePosition.y / m_skalierung + dc_Offset[1];
+	SetStatusText(wxString::Format("Cursor (x/y): %.3f/%.3f", dX, -dY), 3);
 
 	if(event.Dragging() && event.MiddleIsDown())
 	{
@@ -5462,58 +5462,54 @@ void RUZmBIFrame::OnMouseMove(wxMouseEvent& event)
 	}else{
 		if(aktBefehl == bef_ID_verschieben)
 		{
-			Vschb_Verschieben(Vektor(((NeueMousePosition.x)/m_skalierung) + dc_Offset[0], ((NeueMousePosition.y)/m_skalierung) + dc_Offset[1], 0));
+			Vschb_Verschieben(Vektor(dX, dY, 0));
 		}
 		if((aktBefehl == bef_ID_kopieren)||(aktBefehl == bef_ID_kopierenNachLayer))
 		{
-			Kop_Verschieben(Vektor(((NeueMousePosition.x)/m_skalierung) + dc_Offset[0], ((NeueMousePosition.y)/m_skalierung) + dc_Offset[1], 0));
+			Kop_Verschieben(Vektor(dX, dY, 0));
 		}
 	}
 
 	MarkierMousePosition = NeueMousePosition;
 	if(aktLayer != NULL)
 	{
-		if(aktBefehl == bef_ID_drehen)
-		{
+		if (aktBefehl == bef_ID_drehen) {
 			(this->*DrehungMouseMove)(event);
 		}
-		if(aktBefehl == bef_ID_SchnittPunktFlaeche && !m_markierModus2)
-		{
-			if(m_schP_OrgPkt && m_schP_Dr && m_schP_Obj && m_schP_Richtung_2)
-			{
+		if (aktBefehl == bef_ID_SchnittPunktFlaeche && !m_markierModus2) {
+			if (m_schP_OrgPkt && m_schP_Dr && m_schP_Obj && m_schP_Richtung_2) {
 				int objTyp = m_schP_Obj->HoleTyp();
-				if(objTyp == RUZ_Dreieck || objTyp == RUZ_Viereck)
-				{
-					m_schP_Richtung_2->Positionieren(Vektor((NeueMousePosition.x / m_skalierung) + dc_Offset[0],
-														(NeueMousePosition.y / m_skalierung) + dc_Offset[1], 0));
+				if (objTyp == RUZ_Dreieck || objTyp == RUZ_Viereck) {
+					m_schP_Richtung_2->Positionieren(Vektor(dX, dY, 0));
 					Vektor t_r2 = m_schP_Richtung_2->HolePosition();
 
-					if(m_normale.GetKoordinaten(2) != 0.0)
-					{
+					if (m_normale.GetKoordinaten(2) != 0.0) {
 						double t_z = (m_Abstand - m_normale.GetKoordinaten(0) * t_r2.GetKoordinaten(0)
 									  - m_normale.GetKoordinaten(1) * t_r2.GetKoordinaten(1)) / m_normale.GetKoordinaten(2);
 						t_r2.SetKoordinaten(2, t_z);
 						m_schP_Richtung_2->Positionieren(t_r2);
-						if((static_cast<Flaeche*>(m_schP_Obj))->DurchstossPunkt(m_schP_Ln, m_vktSchnittPkt1, m_vktSchnittPkt2, true))
-						{
+						if ((static_cast<Flaeche*>(m_schP_Obj))->DurchstossPunkt(m_schP_Ln, m_vktSchnittPkt1, m_vktSchnittPkt2, true)) {
 							m_schP_OrgPkt->Positionieren(m_vktSchnittPkt1);
 						}
 					}
 				}
 			}
 		}
+		if (aktBefehl == bef_ID_hintergrundVerschieben) {
+			hg_tempOffset[0] = dX;
+			hg_tempOffset[1] = dY;
+		}
 		if(m_aktKreis)
 		{
-			Vektor t_vkt = Vektor(((NeueMousePosition.x) / m_skalierung) + dc_Offset[0],
-									 ((NeueMousePosition.y) / m_skalierung) + dc_Offset[1], 0.0);
+			Vektor t_vkt = Vektor(dX, dY, 0.0);
 			SetStatusText(wxString::Format("Kreis aktiv - Mouse bei %.3f - %.3f", t_vkt.x(), t_vkt.y()), 1);
 			KreisPunktEingabe(t_vkt, false);
 		}
 		if(m_aktPunkt)
 		{
 			Vektor t_vkt;
-			t_vkt.SetKoordinaten(aktProjX, NeueMousePosition.x / m_skalierung + dc_Offset[0]);
-			t_vkt.SetKoordinaten(aktProjY, NeueMousePosition.y / m_skalierung + dc_Offset[1]);
+			t_vkt.SetKoordinaten(aktProjX, dX);
+			t_vkt.SetKoordinaten(aktProjY, dY);
 			if(KoordinatenMaske->IsShown())
 			{
 				t_vkt.SetKoordinaten(aktProjZ, KoordinatenMaske->HoleKoordinaten(aktProjZ));
@@ -5560,8 +5556,7 @@ void RUZmBIFrame::OnMouseMove(wxMouseEvent& event)
 		{
 			if(gefaelleAnzeigen && (markiertesObjekt != NULL))
 			{
-				Vektor t_vkt((NeueMousePosition.x / m_skalierung) + dc_Offset[0],
-							 (NeueMousePosition.y / m_skalierung) + dc_Offset[1], 0);
+				Vektor t_vkt(dX, dY, 0);
 				if(markiertesObjekt->HoleTyp() == RUZ_Dreieck || markiertesObjekt->HoleTyp() == RUZ_Viereck)
 				{
 					if(!(static_cast<Flaeche*>(markiertesObjekt))->Gefaelle(t_vkt, m_aktGefaelle, aktProjZ))
