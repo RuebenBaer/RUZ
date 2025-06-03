@@ -1195,7 +1195,8 @@ void RUZmBIFrame::FangeDrehwinkel(aruDblEvent& event)
 		(this->*DrehungBefehlsketteVor)();
 		(this->*DrehungBefehlsketteVor)();
 		break;
-	default:;
+	default:
+		break;
 	}
 	Refresh();
 	return;
@@ -1905,12 +1906,12 @@ void RUZmBIFrame::hgVerschieben_2(Vektor vkt)
 		return;
 	Liste<Strich>* strLst = m_hintergrundLayer->HoleStriche();
 	for(Strich* aktSt = strLst->GetErstesElement(); aktSt != NULL; aktSt = strLst->GetNaechstesElement()) {
-		aktSt->Verschieben(*vVerschubStart);
+		aktSt->Verschieben(vkt - *vVerschubStart);
 	}
 	
 	Liste<Bogen>* bgnLst = m_hintergrundLayer->HoleBoegen();
 	for(Bogen* aktBgn = bgnLst->GetErstesElement(); aktBgn != NULL; aktBgn = bgnLst->GetNaechstesElement()) {
-		aktBgn->Verschieben(*vVerschubStart);
+		aktBgn->Verschieben(vkt - *vVerschubStart);
 	}
 	delete vVerschubStart;
 	vVerschubStart = NULL;
@@ -5496,8 +5497,10 @@ void RUZmBIFrame::OnMouseMove(wxMouseEvent& event)
 			}
 		}
 		if (aktBefehl == bef_ID_hintergrundVerschieben) {
-			hg_tempOffset[0] = dX;
-			hg_tempOffset[1] = dY;
+			if (vVerschubStart) {
+				hg_tempOffset[0] = dX - vVerschubStart->GetKoordinaten(aktProjX);
+				hg_tempOffset[1] = dY - vVerschubStart->GetKoordinaten(aktProjY);
+			}
 		}
 		if(m_aktKreis)
 		{
