@@ -258,12 +258,16 @@ class RUZmBIFrame: public wxFrame
         }aktuelleAnsicht;
 
     private:
-        Achse aktProjX, aktProjY, aktProjZ; /*aktuelle Projektionsrichtung in orthogonaler Projektion*/
+        Achse aktProjX, aktProjY, aktProjZ; /* aktuelle Projektionsrichtung in orthogonaler Projektion */
 		void ProjektionsrichtungFestlegen(int neueXRichtung);
 
         void ParamIni(void);
+		
+		/* Hintergrundbild */
+		wxImage hgBild;
+		/* ENDE Hintergrundbild */
 
-        /*wxObjekte*/
+        /* wxObjekte */
         wxFileDialog *FileOpener, *FileSaver;
         DXF_Parameter_Dialog *dxfParameterDlg;
         HL_Parameter_Dialog *hlParameterDlg;
@@ -272,13 +276,13 @@ class RUZmBIFrame: public wxFrame
         Koordinaten_Eingabe_Dialog *KoordinatenMaske;
         Double_Eingabe_Dialog *DoubleEingabe;
         Objekt_Anzeige_Auswahl_Dialog *ObjAnzAuswDlg;
-        /*ENDE wxObjekte*/
+        /* ENDE wxObjekte */
 
         wxString strAktuellerSpeicherpfad;
 
-        /*wxMenus wxCheck*/
+        /* wxMenus wxCheck */
         wxMenuItem
-            /*Gruppe 0*/
+            /* Gruppe 0 */
             *menuLoeschen,
             *menuVerschieben,
             *menuKopieren,
@@ -302,19 +306,19 @@ class RUZmBIFrame: public wxFrame
             *menuSchnittPunktFlaeche,
             *menuSchnittPunktLinie,
             *menuFangpunkteFinden,
-            /*ENDE Gruppe 0*/
+            /* ENDE Gruppe 0 */
             *menuHLZeigen,
             *menuGefaelleZeigen,
             *menuGefaelleRasterZeigen,
             *menuHintergrundMalen;
-        /*ENDE wxMenus*/
+        /* ENDE wxMenus */
 
-        /*Farben*/
+        /* Farben */
         wxColour col_Pkt_Ln, col_HoehenMarke, col_Hoehenlinie,
                 col_markiert_Obj, col_ausgewaehlt_Obj, col_HintergrundLayer,
                 col_ZeichenHintergrund, col_AuswahlRechteck, col_Strich,
                 col_Flaeche_darueber, col_Flaeche_darunter, col_Gefaelle, col_Fangpunkt;
-        /*ENDE Farben*/
+        /* ENDE Farben */
 
         /*Eventhandling*/
         void OnClose(wxCloseEvent& event);

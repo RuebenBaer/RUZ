@@ -1897,6 +1897,7 @@ void RUZmBIFrame::hgVerschieben_1(Vektor vkt)
 	hg_tempOffset[0] = 0;
 	hg_tempOffset[1] = 0;
 	hgVerschieben = &RUZmBIFrame::hgVerschieben_2;
+	SetStatusText(wxT("Hintergrund verschieben: Endpunkt der Verschiebung wählen"), 2);
 	return;
 }
 
@@ -1916,6 +1917,9 @@ void RUZmBIFrame::hgVerschieben_2(Vektor vkt)
 	delete vVerschubStart;
 	vVerschubStart = NULL;
 	hgVerschieben = &RUZmBIFrame::hgVerschieben_1;
+	hg_tempOffset[0] = 0;
+	hg_tempOffset[1] = 0;
+	SetStatusText(wxT("Hintergrund verschieben: Startpunkt der Verschiebung wählen"), 2);
 	return;
 }
 
@@ -3502,7 +3506,7 @@ void RUZmBIFrame::OnBearbeitungsBefehl(wxCommandEvent &event)
 			break;
 		}
 		aktBefehl = bef_ID_hintergrundVerschieben;
-		SetStatusText(wxT("Startpunkt der Verschiebung wählen"), 2);
+		SetStatusText(wxT("Hintergrund verschieben: Startpunkt der Verschiebung wählen"), 2);
 		KoordinatenMaske->Show();
 		/* Befehle einrichten */
 		hgVerschieben =  &RUZmBIFrame::hgVerschieben_1;
