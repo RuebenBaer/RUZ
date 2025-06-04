@@ -145,6 +145,7 @@ void Bogen::Verschieben(const Vektor vkt)
 	y =  (m_layer->HoleProjektion() + 2) % 3;
 	m_MitteX += vkt.GetKoordinaten(x);
 	m_MitteY += vkt.GetKoordinaten(y);
+	Strich::Verschieben(vkt);
 	return;
 }
 /*ENDE Bogen*/
