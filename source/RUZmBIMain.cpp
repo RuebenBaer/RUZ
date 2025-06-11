@@ -417,6 +417,8 @@ RUZmBIFrame::RUZmBIFrame(wxFrame *frame, const wxString& title, const wxPoint &p
 	mbar->Append(physicsMenu, "(Bau)physik");
 
 	SetMenuBar(mbar);
+	
+	HgBild_Init(HgBild, 0, 0, 0, 0);
 
 	/*Log starten*/
 	logSchreiben("Logbuch gestartet\n");
@@ -5927,6 +5929,14 @@ void RUZmBIFrame::OnPaint(wxPaintEvent &event)
 	dc.SetBrush(wxBrush(col_ZeichenHintergrund));
 	dc.SetPen(wxPen(col_ZeichenHintergrund, 1));
 	dc.DrawRectangle(rect);
+	
+	wxImage HintergrundBild = HgBild_HoleHintergrund(HgBild);
+	if (HgBild.m_original.IsOk()) {
+		SetStatusText(wxT("Hintergrund i. O."), 1);
+		dc.DrawBitmap(wxBitmap(HgBild.m_original, dc), 500, 500);
+	} else {
+		SetStatusText(wxT("KEIN Hintergrund"), 1);
+	}
 
 	if(lwBild.ucLeinwand)//Wenn die Leinwand Daten enthaelt, zeichnen!
 	{

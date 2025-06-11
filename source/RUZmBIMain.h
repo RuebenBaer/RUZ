@@ -60,6 +60,7 @@
 #include "RUZLayerDialoge.h"
 #include "RUZThCtrl.h"
 #include "Vektor\Vektor.h"
+#include "RUZHgBild.h"
 
 using namespace std;
 
@@ -549,6 +550,8 @@ class RUZmBIFrame: public wxFrame
 		void (RUZmBIFrame::*hgVerschieben)(Vektor);
 			void hgVerschieben_1(Vektor);
 			void hgVerschieben_2(Vektor);
+		
+		RUZHgBild HgBild;
 		/* ENDE Hintergrund */
 
         /*Gefaelle verfolgen*/
