@@ -38,6 +38,13 @@ void HgBild_Init(RUZHgBild &Hg, double rot, double skal, double x, double y)
 	return;
 }
 
+void HgBild_DeInit(RUZHgBild &Hg)
+{
+	Hg.m_anzeige.Destroy();
+	Hg.m_original.Destroy();
+	return;
+}
+
 void HgBild_Rotieren(RUZHgBild &Hg, double dRot)
 {
 	return;

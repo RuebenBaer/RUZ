@@ -15,6 +15,7 @@ struct RUZHgBild{
 };
 
 void HgBild_Init(RUZHgBild &Hg, double rot, double skal, double x, double y);
+void HgBild_DeInit(RUZHgBild &Hg);
 void HgBild_Rotieren(RUZHgBild &Hg, double dRot);
 void HgBild_Verschieben(RUZHgBild &Hg, double dx, double dy);
 void HgBild_Skalieren(RUZHgBild &Hg, double skal);
