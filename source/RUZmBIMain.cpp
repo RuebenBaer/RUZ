@@ -54,6 +54,8 @@ BEGIN_EVENT_TABLE(RUZmBIFrame, wxFrame)
 	EVT_MENU(idMenuDxfImp_ohneLay_Pkt, RUZmBIFrame::OnOpenFile)
 	EVT_MENU(idMenuHintergrundEinlesen, RUZmBIFrame::OnHintergrundEinlesen)
 	EVT_MENU(idMenuHintergrundLoeschen, RUZmBIFrame::OnHintergrundLoeschen)
+	EVT_MENU(idMenuHintergrundBildEinlesen, RUZmBIFrame::OnHintergrundBildEinlesen)
+	EVT_MENU(idMenuHintergrundBildLoeschen, RUZmBIFrame::OnHintergrundBildLoeschen)
 	EVT_MENU(idMenuFileSave, RUZmBIFrame::OnSaveFile)
 	EVT_MENU(idMenuQuickSave, RUZmBIFrame::OnSaveFile)
 	EVT_MENU(idMenuExportPrismen, RUZmBIFrame::OnSaveFile)
@@ -254,6 +256,9 @@ RUZmBIFrame::RUZmBIFrame(wxFrame *frame, const wxString& title, const wxPoint &p
 	backgroundMenu->Append(idMenuHintergrundSkalieren, wxT("Hintergrund skalieren"), wxT("Skaliert den Hintergrund"));
 	backgroundMenu->Append(idMenuHintergrundLoeschen, wxT("Hintergrund löschen"), wxT("Löscht den Inhalt des Hintergrundlayers"));
 	backgroundMenu->AppendSeparator();
+	backgroundMenu->Append(idMenuHintergrundBildEinlesen, wxT("Hintergrund&bild öffnen\tF7"), wxT("Öffnen eines Bildes als Hintergrund"));
+	backgroundMenu->Append(idMenuHintergrundBildLoeschen, wxT("Hintergrundbild löschen"), wxT("Löscht das Hintergrundbild"));
+	backgroundMenu->AppendSeparator();
 	menuHintergrundMalen = new wxMenuItem(backgroundMenu, idMenuHintergrundMalen, wxT("Hintergrund anzeigen"), wxT("Zeigt den Hintergrund an"), wxITEM_CHECK);
 	backgroundMenu->Append(menuHintergrundMalen);
 	menuHintergrundMalen->Check(m_hintergrundMalen);
@@ -417,8 +422,6 @@ RUZmBIFrame::RUZmBIFrame(wxFrame *frame, const wxString& title, const wxPoint &p
 	mbar->Append(physicsMenu, "(Bau)physik");
 
 	SetMenuBar(mbar);
-	
-	HgBild_Init(HgBild, 0, 0, 0, 0);
 
 	/*Log starten*/
 	logSchreiben("Logbuch gestartet\n");
@@ -3933,6 +3936,19 @@ void RUZmBIFrame::OnHintergrundLoeschen(wxCommandEvent &event)
 	return;
 }
 
+
+void RUZmBIFrame::OnHintergrundBildEinlesen(wxCommandEvent &event)
+{
+	HgBild_Init(HgBild, 0, 0, 0, 0);
+	return;
+}
+
+void RUZmBIFrame::OnHintergrundBildLoeschen(wxCommandEvent &event)
+{
+	HgBild_DeInit(HgBild);
+	return;
+}
+
 void RUZmBIFrame::OnHLEinstellen(wxCommandEvent &event)
 {
 	hlParameterDlg->ShowModal();
@@ -5932,10 +5948,10 @@ void RUZmBIFrame::OnPaint(wxPaintEvent &event)
 	
 	wxImage HintergrundBild = HgBild_HoleHintergrund(HgBild);
 	if (HgBild.m_original.IsOk()) {
-		SetStatusText(wxT("Hintergrund i. O."), 1);
-		dc.DrawBitmap(wxBitmap(HgBild.m_original, dc), 500, 500);
-	} else {
-		SetStatusText(wxT("KEIN Hintergrund"), 1);
+		dc.DrawBitmap(wxBitmap(HgBild.m_original.Scale(HgBild.m_original.GetWidth() * m_skalierung,
+														HgBild.m_original.GetHeight() * m_skalierung), dc), 
+														(HgBild.posX - dc_Offset[0]) * m_skalierung,
+														(HgBild.posY - dc_Offset[1]) * m_skalierung);
 	}
 
 	if(lwBild.ucLeinwand)//Wenn die Leinwand Daten enthaelt, zeichnen!
