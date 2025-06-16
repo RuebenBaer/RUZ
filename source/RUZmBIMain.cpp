@@ -5980,13 +5980,13 @@ void RUZmBIFrame::OnPaint(wxPaintEvent &event)
 				if(iB!=0 && iH!=0)
 				{
 					imBild = imBild.Resize(wxSize(iB, iH), wxPoint(-(oleX)*lwBild.dSkalierung, -(oleY)*lwBild.dSkalierung), 128, 0,76);
-					iB = (ureX-oleX)*m_skalierung;
-					iH = (ureY-oleY)*m_skalierung;
+					iB = (iB)*(m_skalierung / lwBild.dSkalierung);
+					iH = (iH)*(m_skalierung / lwBild.dSkalierung);
 					if(iB!=0 && iH!=0)
 					{
 						imBild.Rescale(iB, iH);
 						dc.DrawBitmap(wxBitmap(imBild, dc), (lwBild.dOffsetX + oleX - dc_Offset[0])*m_skalierung,
-							(lwBild.dOffsetY + oleY - dc_Offset[1])*m_skalierung);
+							(lwBild.dOffsetY - dc_Offset[1])*m_skalierung + oleX*m_skalierung); // Problematische Zeile !!!
 					}
 				}
 			}
