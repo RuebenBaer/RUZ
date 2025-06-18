@@ -5966,11 +5966,11 @@ void RUZmBIFrame::OnPaint(wxPaintEvent &event)
 
 			ureX = (lwBild.iBreite / lwBild.dSkalierung);
 			if(ureX > dc_Offset[0]+ CL_dc.GetSize().GetWidth() / m_skalierung - lwBild.dOffsetX)
-				ureX = dc_Offset[0] + CL_dc.GetSize().GetWidth() / m_skalierung - lwBild.dOffsetX ;
+				ureX = dc_Offset[0] + CL_dc.GetSize().GetWidth() / m_skalierung - lwBild.dOffsetX + 1/lwBild.dSkalierung;
 
 			ureY = (lwBild.iHoehe / lwBild.dSkalierung);
 			if(ureY > dc_Offset[1] + CL_dc.GetSize().GetHeight() / m_skalierung - lwBild.dOffsetY)
-				ureY = dc_Offset[1] + CL_dc.GetSize().GetHeight() / m_skalierung - lwBild.dOffsetY;
+				ureY = dc_Offset[1] + CL_dc.GetSize().GetHeight() / m_skalierung - lwBild.dOffsetY + 1/lwBild.dSkalierung;
 
 			if((oleX < ureX)&&(oleY < ureY))
 			{
@@ -5985,8 +5985,8 @@ void RUZmBIFrame::OnPaint(wxPaintEvent &event)
 					if(iB!=0 && iH!=0)
 					{
 						imBild.Rescale(iB, iH);
-						dc.DrawBitmap(wxBitmap(imBild, dc), (lwBild.dOffsetX + oleX - dc_Offset[0])*m_skalierung,
-							(lwBild.dOffsetY - dc_Offset[1])*m_skalierung + oleX*m_skalierung); // Problematische Zeile !!!
+						dc.DrawBitmap(wxBitmap(imBild, dc), (lwBild.dOffsetX - dc_Offset[0])*m_skalierung + (int)(oleX)*m_skalierung,
+							(lwBild.dOffsetY - dc_Offset[1])*m_skalierung + (int)(oleY)*m_skalierung); // Problematische Zeile !!!
 					}
 				}
 			}
