@@ -13,7 +13,9 @@ INCLUDES =  \
 
 DEFS =  \
 	-D__WXMSW__ \
-	-D_UNICODE
+	-D_UNICODE \
+	-DNDEBUG \
+	-DWXUSINGDLL
 
 LIBS = \
 	-lwxbase32u \
@@ -75,6 +77,7 @@ OBJS = \
 	$(OBJDIR)\RUZmBIMain.o \
 	$(OBJDIR)\RUZLayerDialoge.o \
 	$(OBJDIR)\RUZThCtrl.o \
+	$(OBJDIR)\RUZHgBild.o \
 	$(OBJDIR)\resource.res
 OUT = RUZ.exe
 
@@ -135,6 +138,10 @@ $(OBJDIR)\RUZmBIMain.o: source\RUZmBIMain.cpp
 	if not exist $(OBJDIR) mkdir $(OBJDIR)
 	$(CXX) $(CPPFLAGS) $(DEFS) $(INCLUDES) -c $< -o $@
 
+$(OBJDIR)\RUZHgBild.o: source\RUZHgBild.cpp
+	if not exist $(OBJDIR) mkdir $(OBJDIR)
+	$(CXX) $(CPPFLAGS) $(DEFS) $(INCLUDES) -c $< -o $@
+
 $(OBJDIR)\RUZLayerDialoge.o: source\RUZLayerDialoge.cpp
 	if not exist $(OBJDIR) mkdir $(OBJDIR)
 	$(CXX) $(CPPFLAGS) $(DEFS) $(INCLUDES) -c $< -o $@
@@ -148,4 +155,5 @@ $(OBJDIR)\resource.res: source\resource.rc
 	windres.exe $(INCLUDES) -J rc -O coff -i source\resource.rc -o $(OBJDIR)\resource.res
 
 clean:
-	del $(OBJS) $(OUT)
+	del /s /q $(OBJDIR)
+	del /s /q $(BIN)

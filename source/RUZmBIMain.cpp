@@ -54,6 +54,8 @@ BEGIN_EVENT_TABLE(RUZmBIFrame, wxFrame)
 	EVT_MENU(idMenuDxfImp_ohneLay_Pkt, RUZmBIFrame::OnOpenFile)
 	EVT_MENU(idMenuHintergrundEinlesen, RUZmBIFrame::OnHintergrundEinlesen)
 	EVT_MENU(idMenuHintergrundLoeschen, RUZmBIFrame::OnHintergrundLoeschen)
+	EVT_MENU(idMenuHintergrundBildEinlesen, RUZmBIFrame::OnHintergrundBildEinlesen)
+	EVT_MENU(idMenuHintergrundBildLoeschen, RUZmBIFrame::OnHintergrundBildLoeschen)
 	EVT_MENU(idMenuFileSave, RUZmBIFrame::OnSaveFile)
 	EVT_MENU(idMenuQuickSave, RUZmBIFrame::OnSaveFile)
 	EVT_MENU(idMenuExportPrismen, RUZmBIFrame::OnSaveFile)
@@ -106,6 +108,7 @@ BEGIN_EVENT_TABLE(RUZmBIFrame, wxFrame)
 	EVT_MENU(idMenuPunkteSkalieren, RUZmBIFrame::OnBearbeitungsBefehl)
 	EVT_MENU(idMenuLayerSkalieren, RUZmBIFrame::OnBearbeitungsBefehl)
 	EVT_MENU(idMenuHintergrundSkalieren, RUZmBIFrame::OnBearbeitungsBefehl)
+	EVT_MENU(idMenuHintergrundVerschieben, RUZmBIFrame::OnBearbeitungsBefehl)
 	EVT_MENU(idMenuAllesSkalieren, RUZmBIFrame::OnBearbeitungsBefehl)
 	EVT_MENU(idMenuViereckTeilen, RUZmBIFrame::OnBearbeitungsBefehl)
 	EVT_MENU(idMenuFlaechenVerschneiden, RUZmBIFrame::OnBearbeitungsBefehl)
@@ -249,8 +252,12 @@ RUZmBIFrame::RUZmBIFrame(wxFrame *frame, const wxString& title, const wxPoint &p
 
 	/*Menu: Hintergrund*/
 	backgroundMenu->Append(idMenuHintergrundEinlesen, wxT("&Hintergrund öffnen\tF6"), wxT("Öffnen einer Datei als Hintergrund"));
+	backgroundMenu->Append(idMenuHintergrundVerschieben, wxT("Hintergrund verschieben"), wxT("Verschiebt den Hintergrund"));
 	backgroundMenu->Append(idMenuHintergrundSkalieren, wxT("Hintergrund skalieren"), wxT("Skaliert den Hintergrund"));
 	backgroundMenu->Append(idMenuHintergrundLoeschen, wxT("Hintergrund löschen"), wxT("Löscht den Inhalt des Hintergrundlayers"));
+	backgroundMenu->AppendSeparator();
+	backgroundMenu->Append(idMenuHintergrundBildEinlesen, wxT("Hintergrund&bild öffnen\tF7"), wxT("Öffnen eines Bildes als Hintergrund"));
+	backgroundMenu->Append(idMenuHintergrundBildLoeschen, wxT("Hintergrundbild löschen"), wxT("Löscht das Hintergrundbild"));
 	backgroundMenu->AppendSeparator();
 	menuHintergrundMalen = new wxMenuItem(backgroundMenu, idMenuHintergrundMalen, wxT("Hintergrund anzeigen"), wxT("Zeigt den Hintergrund an"), wxITEM_CHECK);
 	backgroundMenu->Append(menuHintergrundMalen);
@@ -447,6 +454,8 @@ RUZmBIFrame::~RUZmBIFrame()
 	delete DoubleEingabe;
 	delete m_drehungAuswahlOrte;
 	delete m_verschubAuswahlOrte;
+	if (vVerschubStart)
+		delete vVerschubStart;
 }
 
 void RUZmBIFrame::AnfangMessen(double x, double y)
@@ -576,6 +585,8 @@ void RUZmBIFrame::AusdehnungFinden(void)
 	}
 	dc_Offset[0] = 0.5 * ((min_x + max_x) - abmessungCL_dc_X / m_skalierung);
 	dc_Offset[1] = 0.5 * ((min_y + max_y) - abmessungCL_dc_Y / m_skalierung);
+	hg_tempOffset[0] = 0;
+	hg_tempOffset[1] = 0;
 	SetStatusText(wxString::Format("Offset x, y: %1.5f, %1.5f - Skalierung: %5.5f", dc_Offset[0], dc_Offset[1], m_skalierung), 1);
 	Refresh();
 	return;
@@ -695,10 +706,10 @@ void RUZmBIFrame::BefehleZuruecksetzen(void)
 	MenuEntmarkieren();
 	AuswahlLeeren();
 
-	/*Verschieben*/
+	/* Verschieben | Hintergrund verschieben */
 	if(vVerschubStart)delete vVerschubStart;
 	vVerschubStart = NULL;
-	/*ENDE Verschieben*/
+	/* ENDE Verschieben | Hintergrund verschieben */
 
 	m_auswahl->ListeLeeren("");
 	if((aktBefehl == bef_ID_kreisZeichnen) && m_aktKreis)
@@ -1189,7 +1200,8 @@ void RUZmBIFrame::FangeDrehwinkel(aruDblEvent& event)
 		(this->*DrehungBefehlsketteVor)();
 		(this->*DrehungBefehlsketteVor)();
 		break;
-	default:;
+	default:
+		break;
 	}
 	Refresh();
 	return;
@@ -1261,84 +1273,97 @@ void RUZmBIFrame::FangeKoor(aruVektorEvent& event)
 		wxMessageDialog(this, wxT("Kein Layer ist aktiv!"), wxT("Layer prüfen")).ShowModal();
 		return;
 	}
-	if(aktBefehl == bef_ID_punktZeichnen)
-	{
-		Punkt *tempPunkt = new Punkt(vOrt, aktLayer);
-		if(tempPunkt)
-		{
-			if(aktLayer->PunktDoppeltVorhanden(tempPunkt))
+	
+	Punkt *tempPunkt;
+	RUZ_Objekt* obj;
+	Vektor t_vkt;
+	switch (aktBefehl) {
+		case bef_ID_punktZeichnen:
+			tempPunkt = new Punkt(vOrt, aktLayer);
+			if(tempPunkt)
 			{
-				delete tempPunkt;
-				wxMessageDialog(this, wxT("Punkt gab es schon!"), wxT("Achtung")).ShowModal();
-			}else{
+				if(aktLayer->PunktDoppeltVorhanden(tempPunkt))
+				{
+					delete tempPunkt;
+					wxMessageDialog(this, wxT("Punkt gab es schon!"), wxT("Achtung")).ShowModal();
+				}else{
+				}
 			}
-		}
-	}
-	if(aktBefehl == bef_ID_linieZeichnen)
-	{
-		if(!m_aktPunkt)
-		{
-			Punkt *pktPkt = new Punkt(vOrt, aktLayer);
-			if(pktPkt)
+			break;
+
+		case bef_ID_linieZeichnen:
+			if(!m_aktPunkt)
 			{
-				m_aktPunkt = pktPkt;
-				Linie::NeueLinie(m_aktPunkt, new Punkt(vOrt, aktLayer));
-				m_aktPosition = vOrt;
+				tempPunkt = new Punkt(vOrt, aktLayer);
+				if(tempPunkt)
+				{
+					m_aktPunkt = tempPunkt;
+					Linie::NeueLinie(m_aktPunkt, new Punkt(vOrt, aktLayer));
+					m_aktPosition = vOrt;
+				}
+			}else
+			{
+				m_aktPunkt->Positionieren(vOrt);
+				m_aktPunkt = NULL;
+				m_aktLinie = NULL;
 			}
-		}else
-		{
-			m_aktPunkt->Positionieren(vOrt);
-			m_aktPunkt = NULL;
-			m_aktLinie = NULL;
-		}
-	}
-	if(aktBefehl == bef_ID_verschieben)
-	{
-		Vschb_Punkt_Festlegen(vOrt);
-	}
-	if((aktBefehl == bef_ID_kopieren)||(aktBefehl == bef_ID_kopierenNachLayer))
-	{
-		Kop_Punkt_Festlegen(vOrt);
-	}
-	if(aktBefehl == bef_ID_versetzen)
-	{
-		RUZ_Objekt* obj = m_auswahl->GetErstesElement();
-		if(obj == NULL)return;
-		if(obj->HoleTyp() == RUZ_Punkt)
-		{
-			static_cast<Punkt*>(obj)->Positionieren(vOrt);
-		}
-		if(obj->HoleTyp() == RUZ_HoehenMarke)
-		{
-			static_cast<HoehenMarke*>(obj)->Positionieren(vOrt);
-		}
-	}
-	if(aktBefehl == bef_ID_punkteSkalieren)
-	{
-		SetStatusText(wxT("Skalierfaktoren eingeben"), 2);
-		SkalierungAusfuehren(Vektor(vOrt.x(), vOrt.y(), vOrt.z()));
-		SetStatusText(wxT("Objekte zum Skalieren auswählen"), 2);
-		m_markierModus = true;
-	}
-	if((aktBefehl == bef_ID_layerSkalieren)||
-	   (aktBefehl == bef_ID_hintergrundSkalieren)||
-	   (aktBefehl == bef_ID_allesSkalieren))
-	{
-		if(!SkalierFaktorenEingabe())
-		{
-			BefehleZuruecksetzen();
-			return;
-		}
-		LayerSkalieren(vOrt);
-	}
-	if(aktBefehl == bef_ID_drehen)
-	{
-		(this->*DrehungPktEingabe)(vOrt);
-	}
-	if(aktBefehl == bef_ID_kreisZeichnen)
-	{
-		Vektor t_vkt = Vektor(vOrt.x(), vOrt.y(), vOrt.z());
-		KreisPunktEingabe(t_vkt, true);
+			break;
+
+		case bef_ID_verschieben:
+			Vschb_Punkt_Festlegen(vOrt);
+			break;
+			
+		case bef_ID_hintergrundVerschieben:
+			(this->*hgVerschieben)(vOrt);
+			break;
+
+		case bef_ID_kopieren:
+		case bef_ID_kopierenNachLayer:
+			Kop_Punkt_Festlegen(vOrt);
+			break;
+		
+		case bef_ID_versetzen:
+			obj = m_auswahl->GetErstesElement();
+			if(obj == NULL)return;
+			if(obj->HoleTyp() == RUZ_Punkt)
+			{
+				static_cast<Punkt*>(obj)->Positionieren(vOrt);
+			}
+			if(obj->HoleTyp() == RUZ_HoehenMarke)
+			{
+				static_cast<HoehenMarke*>(obj)->Positionieren(vOrt);
+			}
+			break;
+
+		case bef_ID_punkteSkalieren:
+			SetStatusText(wxT("Skalierfaktoren eingeben"), 2);
+			SkalierungAusfuehren(Vektor(vOrt.x(), vOrt.y(), vOrt.z()));
+			SetStatusText(wxT("Objekte zum Skalieren auswählen"), 2);
+			m_markierModus = true;
+			break;
+
+
+		case bef_ID_layerSkalieren:
+		case bef_ID_hintergrundSkalieren:
+		case bef_ID_allesSkalieren:
+			if(!SkalierFaktorenEingabe())
+			{
+				BefehleZuruecksetzen();
+				return;
+			}
+			LayerSkalieren(vOrt);
+			break;
+
+		case bef_ID_drehen:
+			(this->*DrehungPktEingabe)(vOrt);
+			break;
+
+		case bef_ID_kreisZeichnen:
+			t_vkt = Vektor(vOrt.x(), vOrt.y(), vOrt.z());
+			KreisPunktEingabe(t_vkt, true);
+			break;
+		default:
+			break;
 	}
 	Refresh();
 	return;
@@ -1863,6 +1888,43 @@ void RUZmBIFrame::UWertMitGefaelle(void)
 			wxMessageDialog(this, wxString::Format("U-Wert = %.4f", uWert), "Ergebnis").ShowModal();
 		}
 	}
+	return;
+}
+
+void RUZmBIFrame::hgVerschieben_1(Vektor vkt)
+{
+	if (vVerschubStart)
+	{
+		delete vVerschubStart;
+		vVerschubStart = NULL;
+	}
+	vVerschubStart = new Vektor(vkt);
+	hg_tempOffset[0] = 0;
+	hg_tempOffset[1] = 0;
+	hgVerschieben = &RUZmBIFrame::hgVerschieben_2;
+	SetStatusText(wxT("Hintergrund verschieben: Endpunkt der Verschiebung wählen"), 2);
+	return;
+}
+
+void RUZmBIFrame::hgVerschieben_2(Vektor vkt)
+{
+	if (!m_hintergrundLayer || !vVerschubStart)
+		return;
+	Liste<Strich>* strLst = m_hintergrundLayer->HoleStriche();
+	for(Strich* aktSt = strLst->GetErstesElement(); aktSt != NULL; aktSt = strLst->GetNaechstesElement()) {
+		aktSt->Verschieben(vkt - *vVerschubStart);
+	}
+	
+	Liste<Bogen>* bgnLst = m_hintergrundLayer->HoleBoegen();
+	for(Bogen* aktBgn = bgnLst->GetErstesElement(); aktBgn != NULL; aktBgn = bgnLst->GetNaechstesElement()) {
+		aktBgn->Verschieben(vkt - *vVerschubStart);
+	}
+	delete vVerschubStart;
+	vVerschubStart = NULL;
+	hgVerschieben = &RUZmBIFrame::hgVerschieben_1;
+	hg_tempOffset[0] = 0;
+	hg_tempOffset[1] = 0;
+	SetStatusText(wxT("Hintergrund verschieben: Startpunkt der Verschiebung wählen"), 2);
 	return;
 }
 
@@ -3187,6 +3249,10 @@ void RUZmBIFrame::logSchreiben(const char* msg, ...)
 	FILE *Logbuch;
 	const char *pfad = "log/Debug.log";
 	Logbuch = fopen(pfad, "a");
+	if (!Logbuch) {
+		std::cout << "Logbuch konnte nicht geöffnet werden\n";
+		return;
+	}
 	va_list args;
 	va_start (args, msg);
 	vfprintf (Logbuch, msg, args);
@@ -3438,6 +3504,20 @@ void RUZmBIFrame::OnBearbeitungsBefehl(wxCommandEvent &event)
 		Layer_Auswahl_Dialog(this, m_layer, wxT("Zu skalierende Layer auswählen"), false).ShowModal();
 		break;
 
+	case idMenuHintergrundVerschieben:
+		if(letzterBefehl == bef_ID_hintergrundVerschieben)
+		{
+			BefehleZuruecksetzen();
+			break;
+		}
+		aktBefehl = bef_ID_hintergrundVerschieben;
+		SetStatusText(wxT("Hintergrund verschieben: Startpunkt der Verschiebung wählen"), 2);
+		KoordinatenMaske->Show();
+		/* Befehle einrichten */
+		hgVerschieben =  &RUZmBIFrame::hgVerschieben_1;
+		/* ENDE Befehle einrichten */
+		break;
+	
 	case idMenuHintergrundSkalieren:
 		if(letzterBefehl == bef_ID_hintergrundSkalieren)
 		{
@@ -3856,6 +3936,19 @@ void RUZmBIFrame::OnHintergrundLoeschen(wxCommandEvent &event)
 	return;
 }
 
+
+void RUZmBIFrame::OnHintergrundBildEinlesen(wxCommandEvent &event)
+{
+	HgBild_Init(HgBild, 0, 0, 0, 0);
+	return;
+}
+
+void RUZmBIFrame::OnHintergrundBildLoeschen(wxCommandEvent &event)
+{
+	HgBild_DeInit(HgBild);
+	return;
+}
+
 void RUZmBIFrame::OnHLEinstellen(wxCommandEvent &event)
 {
 	hlParameterDlg->ShowModal();
@@ -3917,216 +4010,233 @@ void RUZmBIFrame::OnKeyDown(wxKeyEvent& event)
 {
 	if(event.GetKeyCode() == WXK_ESCAPE)
 	{
-		if(aktBefehl == bef_ID_linieZeichnen)
-		{
-			if(!m_aktPunkt)//m_auswahl->GetListenGroesse() == 0)
-			{
+		switch (aktBefehl) {
+			case bef_ID_linieZeichnen:
+				if(!m_aktPunkt)//m_auswahl->GetListenGroesse() == 0)
+				{
+					BefehleZuruecksetzen();
+				}else{
+					//m_auswahl->ListeLeeren("");
+					delete m_aktPunkt;
+					m_aktPunkt = NULL;
+					m_aktLinie = NULL;
+				}
+				Refresh();
+				return;
+				break;
+			case bef_ID_drehen:
+				(this->*DrehungBefehlsketteZurueck)();
+				break;
+
+			case bef_ID_SchnittPunktFlaeche:
+				if(m_markierModus)
+				{
+					if(m_schP_OrgPkt || m_schP_Dr)
+					{
+						m_schP_OrgPkt = NULL;
+						m_schP_Dr = NULL;
+					}
+					else
+					{
+						BefehleZuruecksetzen();
+					}
+				}
+				else if(m_markierModus2)
+				{
+					if(m_schP_Obj)
+					{
+						m_schP_Obj = NULL;
+						if(m_schP_OrgPkt)m_schP_OrgPkt->Positionieren(m_schP_alterOrt);
+					}
+					else
+					{
+						m_markierModus2 = false;
+						m_markierModus = true;
+						SetStatusText(wxT("Schnittpunkt: Punkt und Fläche wählen"), 2);
+						if(alternativAktLayer)aktLayer = aktLayerBAK;
+					}
+				}
+				else
+				{
+					if(m_schP_Obj)
+					{
+						m_schP_Obj = NULL;
+						delete m_schP_Richtung_1;
+						delete m_schP_Richtung_2;
+						m_schP_Richtung_1 = m_schP_Richtung_2 = NULL;
+						m_schP_Ln = NULL;
+						markiertesObjekt = NULL;
+						if(m_schP_OrgPkt)m_schP_OrgPkt->Positionieren(m_schP_alterOrt);
+						m_markierModus = false;
+						m_markierModus2 = true;
+					}
+					else
+					{
+						m_schP_Richtung_1 = m_schP_Richtung_2 = NULL;
+						m_schP_Ln = NULL;
+						BefehleZuruecksetzen();
+					}
+				}
+				break;
+
+			case bef_ID_SchnittPunktLinie:
+				if(m_markierModus)
+				{
+					if(m_schP_OrgPkt || m_schP_Ln)
+					{
+						m_schP_OrgPkt = NULL;
+						m_schP_Ln = NULL;
+					}
+					else
+					{
+						BefehleZuruecksetzen();
+					}
+				}
+				else if(m_markierModus2)
+				{
+					if(m_schP_Obj)
+					{
+						m_schP_Obj = NULL;
+						if(m_schP_OrgPkt)m_schP_OrgPkt->Positionieren(m_schP_alterOrt);
+					}
+					else
+					{
+						m_markierModus = true;
+						m_markierModus2 = false;
+						SetStatusText(wxT("Schnittpunkt: Punkt und Linie wählen"), 2);
+						if(alternativAktLayer)aktLayer = aktLayerBAK;
+					}
+				}
+				else
+				{
+					if(m_schP_Obj)
+					{
+						m_schP_Obj = NULL;
+						m_markierModus = false;
+						m_markierModus2 = true;
+					}
+					else
+					{
+						BefehleZuruecksetzen();
+					}
+				}
+				break;
+
+			case bef_ID_verschieben:
+				Vschb_Abbrechen();
+				break;
+
+			case bef_ID_kopieren:
+			case bef_ID_kopierenNachLayer:
+				Kop_Abbrechen();
+				break;
+
+			case bef_ID_fangpunkteFinden:
+				if(m_auswahl->GetListenGroesse() == 0)
+					BefehleZuruecksetzen();
+				else
+					m_auswahl->ListeLeeren("");
+				break;
+
+			case bef_ID_linieParallel:
+				if(!m_markierModus)m_markierModus = true;
+				else BefehleZuruecksetzen();
+				break;
+
+			case bef_ID_hintergrundVerschieben:
+				if (hgVerschieben == &RUZmBIFrame::hgVerschieben_2) {
+					hgVerschieben = &RUZmBIFrame::hgVerschieben_1;
+				} else {
+					BefehleZuruecksetzen();
+				}
+				break;
+
+			default:
 				BefehleZuruecksetzen();
-			}else{
-				//m_auswahl->ListeLeeren("");
-				delete m_aktPunkt;
-				m_aktPunkt = NULL;
-				m_aktLinie = NULL;
-			}
-			Refresh();
-			return;
-		}
-		if(aktBefehl == bef_ID_drehen)
-		{
-			(this->*DrehungBefehlsketteZurueck)();
-		}else
-		if(aktBefehl == bef_ID_SchnittPunktFlaeche)
-		{
-			if(m_markierModus)
-			{
-				if(m_schP_OrgPkt || m_schP_Dr)
-				{
-					m_schP_OrgPkt = NULL;
-					m_schP_Dr = NULL;
-				}
-				else
-				{
-					BefehleZuruecksetzen();
-				}
-			}
-			else if(m_markierModus2)
-			{
-				if(m_schP_Obj)
-				{
-					m_schP_Obj = NULL;
-					if(m_schP_OrgPkt)m_schP_OrgPkt->Positionieren(m_schP_alterOrt);
-				}
-				else
-				{
-					m_markierModus2 = false;
-					m_markierModus = true;
-					SetStatusText(wxT("Schnittpunkt: Punkt und Fläche wählen"), 2);
-					if(alternativAktLayer)aktLayer = aktLayerBAK;
-				}
-			}
-			else
-			{
-				if(m_schP_Obj)
-				{
-					m_schP_Obj = NULL;
-					delete m_schP_Richtung_1;
-					delete m_schP_Richtung_2;
-					m_schP_Richtung_1 = m_schP_Richtung_2 = NULL;
-					m_schP_Ln = NULL;
-					markiertesObjekt = NULL;
-					if(m_schP_OrgPkt)m_schP_OrgPkt->Positionieren(m_schP_alterOrt);
-					m_markierModus = false;
-					m_markierModus2 = true;
-				}
-				else
-				{
-					m_schP_Richtung_1 = m_schP_Richtung_2 = NULL;
-					m_schP_Ln = NULL;
-					BefehleZuruecksetzen();
-				}
-			}
-		}else
-		if(aktBefehl == bef_ID_SchnittPunktLinie)
-		{
-			if(m_markierModus)
-			{
-				if(m_schP_OrgPkt || m_schP_Ln)
-				{
-					m_schP_OrgPkt = NULL;
-					m_schP_Ln = NULL;
-				}
-				else
-				{
-					BefehleZuruecksetzen();
-				}
-			}
-			else if(m_markierModus2)
-			{
-				if(m_schP_Obj)
-				{
-					m_schP_Obj = NULL;
-					if(m_schP_OrgPkt)m_schP_OrgPkt->Positionieren(m_schP_alterOrt);
-				}
-				else
-				{
-					m_markierModus = true;
-					m_markierModus2 = false;
-					SetStatusText(wxT("Schnittpunkt: Punkt und Linie wählen"), 2);
-					if(alternativAktLayer)aktLayer = aktLayerBAK;
-				}
-			}
-			else
-			{
-				if(m_schP_Obj)
-				{
-					m_schP_Obj = NULL;
-					m_markierModus = false;
-					m_markierModus2 = true;
-				}
-				else
-				{
-					BefehleZuruecksetzen();
-				}
-			}
-		}else
-		if((aktBefehl == bef_ID_verschieben))
-		{
-			Vschb_Abbrechen();
-		}else
-		if((aktBefehl == bef_ID_kopieren)||(aktBefehl == bef_ID_kopierenNachLayer))
-		{
-			Kop_Abbrechen();
-		}else
-		if(aktBefehl == bef_ID_fangpunkteFinden)
-		{
-			if(m_auswahl->GetListenGroesse() == 0)
-				BefehleZuruecksetzen();
-			else
-				m_auswahl->ListeLeeren("");
-		}else
-		if(aktBefehl == bef_ID_linieParallel)
-		{
-			if(!m_markierModus)m_markierModus = true;
-			else BefehleZuruecksetzen();
-		}
-		else{
-			BefehleZuruecksetzen();
+				break;
 		}
 		Refresh();
 	}
-	if((event.GetKeyCode() == WXK_RETURN)||(event.GetKeyCode() == WXK_NUMPAD_ENTER))
-	{
-		if(aktBefehl == bef_ID_linieParallel)
-		{
-			if(m_markierModus)
-			{
-				m_markierModus = false;
-			}else
-			if(m_auswahl->GetListenGroesse() != 0)
-			{
-				Vektor vPosition(0, 0, 0);
-				vPosition.SetKoordinaten(aktProjX, (double)MarkierMousePosition.x / m_skalierung + dc_Offset[0]);
-				vPosition.SetKoordinaten(aktProjY, (double)MarkierMousePosition.y / m_skalierung + dc_Offset[1]);
-				LinieParallel(vPosition);
-			}
-		} else if (aktBefehl == bef_ID_linieExtrudieren || aktBefehl == bef_ID_linieExtrudierenHoehe) {
-			if(m_markierModus)
-			{
-				m_markierModus = false;
-			}
-		}else if(aktBefehl == bef_ID_SchnittPunktFlaeche)
-		{
-			SchnittpunktFlaecheAbschliessen();
-		}else if(aktBefehl == bef_ID_SchnittPunktLinie)
-		{
-			SchnittpunktLinieAbschliessen();
-		}else if(aktBefehl == bef_ID_fangpunkteFinden)
-		{
-			FangpunkteFinden(m_auswahl);
-			m_auswahl->ListeLeeren("");
-		}else if(aktBefehl == bef_ID_verschieben)
-		{
-			Vschb_Auswahl_Bestaetigung();
-		}else if((aktBefehl == bef_ID_kopieren)||(aktBefehl == bef_ID_kopierenNachLayer))
-		{
-			Kop_Auswahl_Bestaetigung();
-		}else if(aktBefehl == bef_ID_drehen)
-		{
-			if(m_markierModus)
-			{
-				DrehungBestaetigung();
-				SetStatusText(wxT("Festpunkt der Drehung setzen"), 2);
-			}
+	if ((event.GetKeyCode() == WXK_RETURN)||(event.GetKeyCode() == WXK_NUMPAD_ENTER)) {
+		switch(aktBefehl) {
+			case bef_ID_linieParallel:
+				if(m_markierModus)
+				{
+					m_markierModus = false;
+				}else
+				if(m_auswahl->GetListenGroesse() != 0)
+				{
+					Vektor vPosition(0, 0, 0);
+					vPosition.SetKoordinaten(aktProjX, (double)MarkierMousePosition.x / m_skalierung + dc_Offset[0]);
+					vPosition.SetKoordinaten(aktProjY, (double)MarkierMousePosition.y / m_skalierung + dc_Offset[1]);
+					LinieParallel(vPosition);
+				}
+				break;
+
+			case bef_ID_linieExtrudieren:
+			case bef_ID_linieExtrudierenHoehe:
+				if(m_markierModus)
+				{
+					m_markierModus = false;
+				}
+				break;
+
+			case bef_ID_SchnittPunktFlaeche:
+				SchnittpunktFlaecheAbschliessen();
+				break;
+
+			case bef_ID_SchnittPunktLinie:
+				SchnittpunktLinieAbschliessen();
+				break;
+
+			case bef_ID_fangpunkteFinden:
+				FangpunkteFinden(m_auswahl);
+				m_auswahl->ListeLeeren("");
+				break;
+
+			case bef_ID_verschieben:
+				Vschb_Auswahl_Bestaetigung();
+				break;
+
+			case bef_ID_kopieren:
+			case bef_ID_kopierenNachLayer:
+				Kop_Auswahl_Bestaetigung();
+				break;
+
+			case bef_ID_drehen:
+				if(m_markierModus)
+				{
+					DrehungBestaetigung();
+					SetStatusText(wxT("Festpunkt der Drehung setzen"), 2);
+				}
+				break;
+			default:
+				break;
 		}
 		Refresh();
 		return;
 	}
-	if(event.GetKeyCode() == WXK_F12)
-	{
+	if (event.GetKeyCode() == WXK_F12) {
 		AusdehnungFinden();
 		Refresh();
 		return;
 	}
-	if(event.GetKeyCode() == WXK_DELETE)
-	{
+	if (event.GetKeyCode() == WXK_DELETE) {
 		AuswahlLoeschen();
 		SetStatusText(wxT("Objekte gelöscht"), 2);
 		Refresh();
 		return;
 	}
-	if(event.GetKeyCode() == WXK_SHIFT)
-	{
+	if (event.GetKeyCode() == WXK_SHIFT) {
 		wertFkt = 10;
 		m_kreuzen = true;
 		return;
 	}
-	if(event.GetKeyCode() == WXK_CONTROL)
-	{
+	if (event.GetKeyCode() == WXK_CONTROL) {
 		anzeigeSkalieren = true;
 		return;
 	}
-	if(event.GetKeyCode() == WXK_SPACE)
-	{
+	if (event.GetKeyCode() == WXK_SPACE) {
 		if(aktBefehl == bef_ID_SchnittPunktLinie)
 		{
 			if(!std::isnan(m_vktSchnittPkt1.x()) && !std::isnan(m_vktSchnittPkt2.x()))
@@ -4148,8 +4258,7 @@ void RUZmBIFrame::OnKeyDown(wxKeyEvent& event)
 		}
 		return;
 	}
-	if(event.GetKeyCode() == WXK_TAB)
-	{
+	if (event.GetKeyCode() == WXK_TAB) {
 		
 		if(DoubleEingabe->IsShown() && !DoubleEingabe->HasFocus())
 		{
@@ -4159,13 +4268,11 @@ void RUZmBIFrame::OnKeyDown(wxKeyEvent& event)
 		if(KoordinatenMaske->IsShown())KoordinatenMaske->SetFocus();
 		return;
 	}
-	if(event.GetKeyCode() == 'C')
-	{
+	if (event.GetKeyCode() == 'C') {
 		AuswahlKopieren();
 		return;
 	}
-	if(event.GetKeyCode() == 'A')
-	{
+	if (event.GetKeyCode() == 'A') {
 		bKeyADown = true;
 		return;
 	}
@@ -5008,6 +5115,10 @@ void RUZmBIFrame::OnMouseLeftClick(wxMouseEvent& event)
 		}
 		break;
 
+	case bef_ID_hintergrundVerschieben:
+		(this->*hgVerschieben)(vPosition);
+		break;
+
 	case bef_ID_layerSkalieren:
 	case bef_ID_hintergrundSkalieren:
 	case bef_ID_allesSkalieren:
@@ -5328,8 +5439,8 @@ void RUZmBIFrame::OnMouseMove(wxMouseEvent& event)
 	NeueMousePosition = event.GetLogicalPosition(dc);
 
 	double dX = NeueMousePosition.x / m_skalierung + dc_Offset[0];
-	double dY = -(NeueMousePosition.y / m_skalierung + dc_Offset[1]);
-	SetStatusText(wxString::Format("Cursor (x/y): %.3f/%.3f", dX, dY), 3);
+	double dY = NeueMousePosition.y / m_skalierung + dc_Offset[1];
+	SetStatusText(wxString::Format("Cursor (x/y): %.3f/%.3f", dX, -dY), 3);
 
 	if(event.Dragging() && event.MiddleIsDown())
 	{
@@ -5374,58 +5485,56 @@ void RUZmBIFrame::OnMouseMove(wxMouseEvent& event)
 	}else{
 		if(aktBefehl == bef_ID_verschieben)
 		{
-			Vschb_Verschieben(Vektor(((NeueMousePosition.x)/m_skalierung) + dc_Offset[0], ((NeueMousePosition.y)/m_skalierung) + dc_Offset[1], 0));
+			Vschb_Verschieben(Vektor(dX, dY, 0));
 		}
 		if((aktBefehl == bef_ID_kopieren)||(aktBefehl == bef_ID_kopierenNachLayer))
 		{
-			Kop_Verschieben(Vektor(((NeueMousePosition.x)/m_skalierung) + dc_Offset[0], ((NeueMousePosition.y)/m_skalierung) + dc_Offset[1], 0));
+			Kop_Verschieben(Vektor(dX, dY, 0));
 		}
 	}
 
 	MarkierMousePosition = NeueMousePosition;
 	if(aktLayer != NULL)
 	{
-		if(aktBefehl == bef_ID_drehen)
-		{
+		if (aktBefehl == bef_ID_drehen) {
 			(this->*DrehungMouseMove)(event);
 		}
-		if(aktBefehl == bef_ID_SchnittPunktFlaeche && !m_markierModus2)
-		{
-			if(m_schP_OrgPkt && m_schP_Dr && m_schP_Obj && m_schP_Richtung_2)
-			{
+		if (aktBefehl == bef_ID_SchnittPunktFlaeche && !m_markierModus2) {
+			if (m_schP_OrgPkt && m_schP_Dr && m_schP_Obj && m_schP_Richtung_2) {
 				int objTyp = m_schP_Obj->HoleTyp();
-				if(objTyp == RUZ_Dreieck || objTyp == RUZ_Viereck)
-				{
-					m_schP_Richtung_2->Positionieren(Vektor((NeueMousePosition.x / m_skalierung) + dc_Offset[0],
-														(NeueMousePosition.y / m_skalierung) + dc_Offset[1], 0));
+				if (objTyp == RUZ_Dreieck || objTyp == RUZ_Viereck) {
+					m_schP_Richtung_2->Positionieren(Vektor(dX, dY, 0));
 					Vektor t_r2 = m_schP_Richtung_2->HolePosition();
 
-					if(m_normale.GetKoordinaten(2) != 0.0)
-					{
+					if (m_normale.GetKoordinaten(2) != 0.0) {
 						double t_z = (m_Abstand - m_normale.GetKoordinaten(0) * t_r2.GetKoordinaten(0)
 									  - m_normale.GetKoordinaten(1) * t_r2.GetKoordinaten(1)) / m_normale.GetKoordinaten(2);
 						t_r2.SetKoordinaten(2, t_z);
 						m_schP_Richtung_2->Positionieren(t_r2);
-						if((static_cast<Flaeche*>(m_schP_Obj))->DurchstossPunkt(m_schP_Ln, m_vktSchnittPkt1, m_vktSchnittPkt2, true))
-						{
+						if ((static_cast<Flaeche*>(m_schP_Obj))->DurchstossPunkt(m_schP_Ln, m_vktSchnittPkt1, m_vktSchnittPkt2, true)) {
 							m_schP_OrgPkt->Positionieren(m_vktSchnittPkt1);
 						}
 					}
 				}
 			}
 		}
+		if (aktBefehl == bef_ID_hintergrundVerschieben) {
+			if (vVerschubStart) {
+				hg_tempOffset[0] = dX - vVerschubStart->GetKoordinaten(aktProjX);
+				hg_tempOffset[1] = dY - vVerschubStart->GetKoordinaten(aktProjY);
+			}
+		}
 		if(m_aktKreis)
 		{
-			Vektor t_vkt = Vektor(((NeueMousePosition.x) / m_skalierung) + dc_Offset[0],
-									 ((NeueMousePosition.y) / m_skalierung) + dc_Offset[1], 0.0);
+			Vektor t_vkt = Vektor(dX, dY, 0.0);
 			SetStatusText(wxString::Format("Kreis aktiv - Mouse bei %.3f - %.3f", t_vkt.x(), t_vkt.y()), 1);
 			KreisPunktEingabe(t_vkt, false);
 		}
 		if(m_aktPunkt)
 		{
 			Vektor t_vkt;
-			t_vkt.SetKoordinaten(aktProjX, NeueMousePosition.x / m_skalierung + dc_Offset[0]);
-			t_vkt.SetKoordinaten(aktProjY, NeueMousePosition.y / m_skalierung + dc_Offset[1]);
+			t_vkt.SetKoordinaten(aktProjX, dX);
+			t_vkt.SetKoordinaten(aktProjY, dY);
 			if(KoordinatenMaske->IsShown())
 			{
 				t_vkt.SetKoordinaten(aktProjZ, KoordinatenMaske->HoleKoordinaten(aktProjZ));
@@ -5472,8 +5581,7 @@ void RUZmBIFrame::OnMouseMove(wxMouseEvent& event)
 		{
 			if(gefaelleAnzeigen && (markiertesObjekt != NULL))
 			{
-				Vektor t_vkt((NeueMousePosition.x / m_skalierung) + dc_Offset[0],
-							 (NeueMousePosition.y / m_skalierung) + dc_Offset[1], 0);
+				Vektor t_vkt(dX, dY, 0);
 				if(markiertesObjekt->HoleTyp() == RUZ_Dreieck || markiertesObjekt->HoleTyp() == RUZ_Viereck)
 				{
 					if(!(static_cast<Flaeche*>(markiertesObjekt))->Gefaelle(t_vkt, m_aktGefaelle, aktProjZ))
@@ -5837,6 +5945,14 @@ void RUZmBIFrame::OnPaint(wxPaintEvent &event)
 	dc.SetBrush(wxBrush(col_ZeichenHintergrund));
 	dc.SetPen(wxPen(col_ZeichenHintergrund, 1));
 	dc.DrawRectangle(rect);
+	
+	wxImage HintergrundBild = HgBild_HoleHintergrund(HgBild);
+	if (HgBild.m_original.IsOk()) {
+		dc.DrawBitmap(wxBitmap(HgBild.m_original.Scale(HgBild.m_original.GetWidth() * m_skalierung,
+														HgBild.m_original.GetHeight() * m_skalierung), dc), 
+														(HgBild.posX - dc_Offset[0]) * m_skalierung,
+														(HgBild.posY - dc_Offset[1]) * m_skalierung);
+	}
 
 	if(lwBild.ucLeinwand)//Wenn die Leinwand Daten enthaelt, zeichnen!
 	{
@@ -5844,17 +5960,21 @@ void RUZmBIFrame::OnPaint(wxPaintEvent &event)
 		{
 			wxImage imBild = wxImage(lwBild.iBreite, lwBild.iHoehe, lwBild.ucLeinwand, true);
 
-			double oleX, oleY, ureX, ureY;//obere Linke und untere rechte Ecke des Zuschnitts
+			double oleX, oleY, ureX, ureY; /* obere Linke und untere rechte Ecke des Zuschnitts */
+			int iOleX, iOleY; /* obere linke Ecke in Bildschirmkoordinaten */
 			oleX = (lwBild.dOffsetX > dc_Offset[0]) ? 0.0 : (dc_Offset[0] - lwBild.dOffsetX);
 			oleY = (lwBild.dOffsetY > dc_Offset[1]) ? 0.0 : (dc_Offset[1] - lwBild.dOffsetY);
+			
+			iOleX = (int)(oleX * lwBild.dSkalierung) / lwBild.dSkalierung;
+			iOleY = (int)(oleY * lwBild.dSkalierung) / lwBild.dSkalierung;
 
 			ureX = (lwBild.iBreite / lwBild.dSkalierung);
 			if(ureX > dc_Offset[0]+ CL_dc.GetSize().GetWidth() / m_skalierung - lwBild.dOffsetX)
-				ureX = dc_Offset[0] + CL_dc.GetSize().GetWidth() / m_skalierung - lwBild.dOffsetX ;
+				ureX = dc_Offset[0] + CL_dc.GetSize().GetWidth() / m_skalierung - lwBild.dOffsetX + 1/lwBild.dSkalierung;
 
 			ureY = (lwBild.iHoehe / lwBild.dSkalierung);
 			if(ureY > dc_Offset[1] + CL_dc.GetSize().GetHeight() / m_skalierung - lwBild.dOffsetY)
-				ureY = dc_Offset[1] + CL_dc.GetSize().GetHeight() / m_skalierung - lwBild.dOffsetY;
+				ureY = dc_Offset[1] + CL_dc.GetSize().GetHeight() / m_skalierung - lwBild.dOffsetY + 1/lwBild.dSkalierung;
 
 			if((oleX < ureX)&&(oleY < ureY))
 			{
@@ -5864,13 +5984,12 @@ void RUZmBIFrame::OnPaint(wxPaintEvent &event)
 				if(iB!=0 && iH!=0)
 				{
 					imBild = imBild.Resize(wxSize(iB, iH), wxPoint(-(oleX)*lwBild.dSkalierung, -(oleY)*lwBild.dSkalierung), 128, 0,76);
-					iB = (ureX-oleX)*m_skalierung;
-					iH = (ureY-oleY)*m_skalierung;
+					iB = (iB)*(m_skalierung / lwBild.dSkalierung);
+					iH = (iH)*(m_skalierung / lwBild.dSkalierung);
 					if(iB!=0 && iH!=0)
 					{
 						imBild.Rescale(iB, iH);
-						dc.DrawBitmap(wxBitmap(imBild, dc), (lwBild.dOffsetX + oleX - dc_Offset[0])*m_skalierung,
-							(lwBild.dOffsetY + oleY - dc_Offset[1])*m_skalierung);
+						dc.DrawBitmap(wxBitmap(imBild, dc), (iOleX + lwBild.dOffsetX - dc_Offset[0]) * m_skalierung, (iOleY + lwBild.dOffsetY - dc_Offset[1]) * m_skalierung); // Problematische Zeile !!!
 					}
 				}
 			}
@@ -6110,17 +6229,17 @@ void RUZmBIFrame::OnPaint(wxPaintEvent &event)
 			{
 				for(tempStrich = strSammlung->GetErstesElement(); tempStrich != NULL; tempStrich = strSammlung->GetNaechstesElement())
 				{
-					dc.DrawLine((tempStrich->Xa()-dc_Offset[0])*m_skalierung, (tempStrich->Ya()-dc_Offset[1])*m_skalierung,
-								(tempStrich->Xe()-dc_Offset[0])*m_skalierung, (tempStrich->Ye()-dc_Offset[1])*m_skalierung);
+					dc.DrawLine((tempStrich->Xa()-dc_Offset[0]+hg_tempOffset[0])*m_skalierung, (tempStrich->Ya()-dc_Offset[1]+hg_tempOffset[1])*m_skalierung,
+								(tempStrich->Xe()-dc_Offset[0]+hg_tempOffset[0])*m_skalierung, (tempStrich->Ye()-dc_Offset[1]+hg_tempOffset[1])*m_skalierung);
 				}
 			}
 			if(m_zeigeBogen)
 			{
 				for(Bogen* tempBogen = bogSammlung->GetErstesElement(); tempBogen != NULL; tempBogen = bogSammlung->GetNaechstesElement())
 				{
-					dc.DrawArc((tempBogen->Xa()-dc_Offset[0])*m_skalierung, (tempBogen->Ya()-dc_Offset[1])*m_skalierung,
-							   (tempBogen->Xe()-dc_Offset[0])*m_skalierung, (tempBogen->Ye()-dc_Offset[1])*m_skalierung,
-							   (tempBogen->Xm()-dc_Offset[0])*m_skalierung, (tempBogen->Ym()-dc_Offset[1])*m_skalierung);
+					dc.DrawArc((tempBogen->Xa()-dc_Offset[0]+hg_tempOffset[0])*m_skalierung, (tempBogen->Ya()-dc_Offset[1]+hg_tempOffset[1])*m_skalierung,
+							   (tempBogen->Xe()-dc_Offset[0]+hg_tempOffset[0])*m_skalierung, (tempBogen->Ye()-dc_Offset[1]+hg_tempOffset[1])*m_skalierung,
+							   (tempBogen->Xm()-dc_Offset[0]+hg_tempOffset[0])*m_skalierung, (tempBogen->Ym()-dc_Offset[1]+hg_tempOffset[1])*m_skalierung);
 				}
 			}
 		}

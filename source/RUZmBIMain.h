@@ -60,6 +60,7 @@
 #include "RUZLayerDialoge.h"
 #include "RUZThCtrl.h"
 #include "Vektor\Vektor.h"
+#include "RUZHgBild.h"
 
 using namespace std;
 
@@ -225,7 +226,8 @@ class RUZmBIFrame: public wxFrame
         {
             idMenuQuit = 1000,
             idMenuAbout, idMenuFileSave, idMenuQuickSave, idMenuExportPrismen, idMenuExportPunkte, idMenuDeleteLayer, idMenuLayerAuswahl, idMenuLayerKopieren,
-            idMenuHintergrundEinlesen, idMenuHintergrundLoeschen,
+            idMenuHintergrundEinlesen, idMenuHintergrundLoeschen,idMenuHintergrundVerschieben,
+			idMenuHintergrundBildEinlesen, idMenuHintergrundBildLoeschen,
             idMenuDxfImp_mitLay_Pkt, idMenuDxfImp_mitLay_Ln_Pkt, idMenuDxfImp_ohneLay_Pkt, idMenuDxfImp_ohneLay_Ln_Pkt,
             idMenuRuzImport, idMenuD45Import, idMenuD58Import,
             idMenuKantenWandeln, idMenuVernetzen, idMenuDreieckeFinden, idMenuViereckeFinden, idMenuViereckTeilen, idMenuKomplettVernetzen, idMenuDoppeltePunkteLoeschen,
@@ -250,6 +252,7 @@ class RUZmBIFrame: public wxFrame
             bef_ID_hoehenMarkeZeichnen, bef_ID_StreckeMessen, bef_ID_versetzen, bef_ID_punktEinfuegen,
             bef_ID_linieExtrudieren, bef_ID_linieExtrudierenHoehe, bef_ID_linieParallel, bef_ID_punkteVereinigen, bef_ID_SchnittPunktLinie, bef_ID_SchnittPunktFlaeche,
             bef_ID_punkteSkalieren, bef_ID_layerSkalieren, bef_ID_hintergrundSkalieren, bef_ID_allesSkalieren,
+			bef_ID_hintergrundVerschieben
         };
 
         enum ansichtID{
@@ -257,12 +260,16 @@ class RUZmBIFrame: public wxFrame
         }aktuelleAnsicht;
 
     private:
-        Achse aktProjX, aktProjY, aktProjZ; /*aktuelle Projektionsrichtung in orthogonaler Projektion*/
+        Achse aktProjX, aktProjY, aktProjZ; /* aktuelle Projektionsrichtung in orthogonaler Projektion */
 		void ProjektionsrichtungFestlegen(int neueXRichtung);
 
         void ParamIni(void);
+		
+		/* Hintergrundbild */
+		wxImage hgBild;
+		/* ENDE Hintergrundbild */
 
-        /*wxObjekte*/
+        /* wxObjekte */
         wxFileDialog *FileOpener, *FileSaver;
         DXF_Parameter_Dialog *dxfParameterDlg;
         HL_Parameter_Dialog *hlParameterDlg;
@@ -271,13 +278,13 @@ class RUZmBIFrame: public wxFrame
         Koordinaten_Eingabe_Dialog *KoordinatenMaske;
         Double_Eingabe_Dialog *DoubleEingabe;
         Objekt_Anzeige_Auswahl_Dialog *ObjAnzAuswDlg;
-        /*ENDE wxObjekte*/
+        /* ENDE wxObjekte */
 
         wxString strAktuellerSpeicherpfad;
 
-        /*wxMenus wxCheck*/
+        /* wxMenus wxCheck */
         wxMenuItem
-            /*Gruppe 0*/
+            /* Gruppe 0 */
             *menuLoeschen,
             *menuVerschieben,
             *menuKopieren,
@@ -301,19 +308,19 @@ class RUZmBIFrame: public wxFrame
             *menuSchnittPunktFlaeche,
             *menuSchnittPunktLinie,
             *menuFangpunkteFinden,
-            /*ENDE Gruppe 0*/
+            /* ENDE Gruppe 0 */
             *menuHLZeigen,
             *menuGefaelleZeigen,
             *menuGefaelleRasterZeigen,
             *menuHintergrundMalen;
-        /*ENDE wxMenus*/
+        /* ENDE wxMenus */
 
-        /*Farben*/
+        /* Farben */
         wxColour col_Pkt_Ln, col_HoehenMarke, col_Hoehenlinie,
                 col_markiert_Obj, col_ausgewaehlt_Obj, col_HintergrundLayer,
                 col_ZeichenHintergrund, col_AuswahlRechteck, col_Strich,
                 col_Flaeche_darueber, col_Flaeche_darunter, col_Gefaelle, col_Fangpunkt;
-        /*ENDE Farben*/
+        /* ENDE Farben */
 
         /*Eventhandling*/
         void OnClose(wxCloseEvent& event);
@@ -322,6 +329,8 @@ class RUZmBIFrame: public wxFrame
         void OnOpenFile(wxCommandEvent &event);
         void OnHintergrundEinlesen(wxCommandEvent &event);
         void OnHintergrundLoeschen(wxCommandEvent &event);
+		void OnHintergrundBildEinlesen(wxCommandEvent &event);
+		void OnHintergrundBildLoeschen(wxCommandEvent &event);
         void OnSaveFile(wxCommandEvent &event);
         void OnLoescheLayer(wxCommandEvent &event);
         void OnLoescheStriche(wxCommandEvent &event);
@@ -442,7 +451,7 @@ class RUZmBIFrame: public wxFrame
 		void SkalierungSetzen(double t_skal);
 
         double m_skalierung, m_pseudoSchattenFkt;
-        double dc_Offset[2];
+        double dc_Offset[2], hg_tempOffset[2]; /* Verschub der Zeichenfläche; Verschub von Hintergründen */
         wxPoint AlteMousePosition, NeueMousePosition, MarkierMousePosition;
         bool m_hintergrundMalen, anzeigeSkalieren;
         Vektor m_sonnenRichtung;
@@ -539,6 +548,14 @@ class RUZmBIFrame: public wxFrame
         Liste<RUZ_Layer>* m_skalierListe;
         double m_skalFkt[3];
         /*ENDE Skalieren*/
+		
+		/* Hintergrund */
+		void (RUZmBIFrame::*hgVerschieben)(Vektor);
+			void hgVerschieben_1(Vektor);
+			void hgVerschieben_2(Vektor);
+		
+		RUZHgBild HgBild;
+		/* ENDE Hintergrund */
 
         /*Gefaelle verfolgen*/
         void GefaelleVerfolgen(Vektor);

@@ -101,6 +101,7 @@ public:
     double Xe(void);
     double Ye(void);
     void Skalieren(const Vektor&, double fktX, double fktY, double fktZ);
+    void Verschieben(const Vektor);
 private:
     double m_AnfangX, m_AnfangY, m_EndeX, m_EndeY;
 };
@@ -113,6 +114,7 @@ public:
     double Xm(void);
     double Ym(void);
     void Skalieren(const Vektor&, double fktX, double fktY, double fktZ);
+    void Verschieben(const Vektor);
 private:
     double m_MitteX, m_MitteY;
 };
