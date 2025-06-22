@@ -1675,14 +1675,12 @@ void RUZmBIFrame::HoehenkarteZeichnen(thread_info_integral *thInf)
 			Refresh();
 			
 			/*thread Integrieren*/
-			std::cout<<"Anzahl der zu integrierenden Flaechen: "<<lstFl->GetListenGroesse()<<"\n";
 			//lstFl->ListenInfo("Vor Integration");
 			Flaeche *aktFl;
 			// for(Flaeche* aktFl = lstFl->GetErstesElement(); aktFl != NULL; aktFl = lstFl->GetNaechstesElement())
 			for(Listenelement<Flaeche> *aktFlLE = lstFl->GetErstesListenelement(); aktFlLE != NULL; aktFlLE = aktFlLE->GetNachfolger())
 			{
 				aktFl = aktFlLE->GetElement();
-				std::cout<<"Flaeche: "<<aktFl<<"\n";
 				tempIntegral->thIntegriereFlaeche(aktFl, thInf);
 				if(thInf->BeendenAngefragt())
 				{
@@ -5979,8 +5977,8 @@ void RUZmBIFrame::OnPaint(wxPaintEvent &event)
 			if((oleX < ureX)&&(oleY < ureY))
 			{
 				int iB, iH;
-				iB = (ureX-oleX)*lwBild.dSkalierung;
-				iH = (ureY-oleY)*lwBild.dSkalierung;
+				iB = (int)(ureX*lwBild.dSkalierung) - (int)(oleX*lwBild.dSkalierung);
+				iH = (int)(ureY*lwBild.dSkalierung) - (int)(oleY*lwBild.dSkalierung);
 				if(iB!=0 && iH!=0)
 				{
 					imBild = imBild.Resize(wxSize(iB, iH), wxPoint(-(oleX)*lwBild.dSkalierung, -(oleY)*lwBild.dSkalierung), 128, 0,76);
