@@ -156,4 +156,4 @@ $(OBJDIR)\resource.res: source\resource.rc
 
 clean:
 	del /s /q $(OBJDIR)
-	del /s /q $(BIN)
+	del /s /q $(OUT)
