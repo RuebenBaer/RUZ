@@ -54,6 +54,8 @@ BEGIN_EVENT_TABLE(RUZmBIFrame, wxFrame)
 	EVT_MENU(idMenuDxfImp_ohneLay_Pkt, RUZmBIFrame::OnOpenFile)
 	EVT_MENU(idMenuHintergrundEinlesen, RUZmBIFrame::OnHintergrundEinlesen)
 	EVT_MENU(idMenuHintergrundLoeschen, RUZmBIFrame::OnHintergrundLoeschen)
+	EVT_MENU(idMenuHintergrundBildEinlesen, RUZmBIFrame::OnHintergrundBildEinlesen)
+	EVT_MENU(idMenuHintergrundBildLoeschen, RUZmBIFrame::OnHintergrundBildLoeschen)
 	EVT_MENU(idMenuFileSave, RUZmBIFrame::OnSaveFile)
 	EVT_MENU(idMenuQuickSave, RUZmBIFrame::OnSaveFile)
 	EVT_MENU(idMenuExportPrismen, RUZmBIFrame::OnSaveFile)
@@ -253,6 +255,9 @@ RUZmBIFrame::RUZmBIFrame(wxFrame *frame, const wxString& title, const wxPoint &p
 	backgroundMenu->Append(idMenuHintergrundVerschieben, wxT("Hintergrund verschieben"), wxT("Verschiebt den Hintergrund"));
 	backgroundMenu->Append(idMenuHintergrundSkalieren, wxT("Hintergrund skalieren"), wxT("Skaliert den Hintergrund"));
 	backgroundMenu->Append(idMenuHintergrundLoeschen, wxT("Hintergrund löschen"), wxT("Löscht den Inhalt des Hintergrundlayers"));
+	backgroundMenu->AppendSeparator();
+	backgroundMenu->Append(idMenuHintergrundBildEinlesen, wxT("Hintergrund&bild öffnen\tF7"), wxT("Öffnen eines Bildes als Hintergrund"));
+	backgroundMenu->Append(idMenuHintergrundBildLoeschen, wxT("Hintergrundbild löschen"), wxT("Löscht das Hintergrundbild"));
 	backgroundMenu->AppendSeparator();
 	menuHintergrundMalen = new wxMenuItem(backgroundMenu, idMenuHintergrundMalen, wxT("Hintergrund anzeigen"), wxT("Zeigt den Hintergrund an"), wxITEM_CHECK);
 	backgroundMenu->Append(menuHintergrundMalen);
@@ -1670,14 +1675,12 @@ void RUZmBIFrame::HoehenkarteZeichnen(thread_info_integral *thInf)
 			Refresh();
 			
 			/*thread Integrieren*/
-			std::cout<<"Anzahl der zu integrierenden Flaechen: "<<lstFl->GetListenGroesse()<<"\n";
 			//lstFl->ListenInfo("Vor Integration");
 			Flaeche *aktFl;
 			// for(Flaeche* aktFl = lstFl->GetErstesElement(); aktFl != NULL; aktFl = lstFl->GetNaechstesElement())
 			for(Listenelement<Flaeche> *aktFlLE = lstFl->GetErstesListenelement(); aktFlLE != NULL; aktFlLE = aktFlLE->GetNachfolger())
 			{
 				aktFl = aktFlLE->GetElement();
-				std::cout<<"Flaeche: "<<aktFl<<"\n";
 				tempIntegral->thIntegriereFlaeche(aktFl, thInf);
 				if(thInf->BeendenAngefragt())
 				{
@@ -3931,6 +3934,19 @@ void RUZmBIFrame::OnHintergrundLoeschen(wxCommandEvent &event)
 	return;
 }
 
+
+void RUZmBIFrame::OnHintergrundBildEinlesen(wxCommandEvent &event)
+{
+	HgBild_Init(HgBild, 0, 0, 0, 0);
+	return;
+}
+
+void RUZmBIFrame::OnHintergrundBildLoeschen(wxCommandEvent &event)
+{
+	HgBild_DeInit(HgBild);
+	return;
+}
+
 void RUZmBIFrame::OnHLEinstellen(wxCommandEvent &event)
 {
 	hlParameterDlg->ShowModal();
@@ -5927,6 +5943,14 @@ void RUZmBIFrame::OnPaint(wxPaintEvent &event)
 	dc.SetBrush(wxBrush(col_ZeichenHintergrund));
 	dc.SetPen(wxPen(col_ZeichenHintergrund, 1));
 	dc.DrawRectangle(rect);
+	
+	wxImage HintergrundBild = HgBild_HoleHintergrund(HgBild);
+	if (HgBild.m_original.IsOk()) {
+		dc.DrawBitmap(wxBitmap(HgBild.m_original.Scale(HgBild.m_original.GetWidth() * m_skalierung,
+														HgBild.m_original.GetHeight() * m_skalierung), dc), 
+														(HgBild.posX - dc_Offset[0]) * m_skalierung,
+														(HgBild.posY - dc_Offset[1]) * m_skalierung);
+	}
 
 	if(lwBild.ucLeinwand)//Wenn die Leinwand Daten enthaelt, zeichnen!
 	{
@@ -5934,33 +5958,36 @@ void RUZmBIFrame::OnPaint(wxPaintEvent &event)
 		{
 			wxImage imBild = wxImage(lwBild.iBreite, lwBild.iHoehe, lwBild.ucLeinwand, true);
 
-			double oleX, oleY, ureX, ureY;//obere Linke und untere rechte Ecke des Zuschnitts
+			double oleX, oleY, ureX, ureY; /* obere Linke und untere rechte Ecke des Zuschnitts */
+			int iOleX, iOleY; /* obere linke Ecke in Bildschirmkoordinaten */
 			oleX = (lwBild.dOffsetX > dc_Offset[0]) ? 0.0 : (dc_Offset[0] - lwBild.dOffsetX);
 			oleY = (lwBild.dOffsetY > dc_Offset[1]) ? 0.0 : (dc_Offset[1] - lwBild.dOffsetY);
+			
+			iOleX = (int)(oleX * lwBild.dSkalierung) / lwBild.dSkalierung;
+			iOleY = (int)(oleY * lwBild.dSkalierung) / lwBild.dSkalierung;
 
 			ureX = (lwBild.iBreite / lwBild.dSkalierung);
 			if(ureX > dc_Offset[0]+ CL_dc.GetSize().GetWidth() / m_skalierung - lwBild.dOffsetX)
-				ureX = dc_Offset[0] + CL_dc.GetSize().GetWidth() / m_skalierung - lwBild.dOffsetX ;
+				ureX = dc_Offset[0] + CL_dc.GetSize().GetWidth() / m_skalierung - lwBild.dOffsetX + 1/lwBild.dSkalierung;
 
 			ureY = (lwBild.iHoehe / lwBild.dSkalierung);
 			if(ureY > dc_Offset[1] + CL_dc.GetSize().GetHeight() / m_skalierung - lwBild.dOffsetY)
-				ureY = dc_Offset[1] + CL_dc.GetSize().GetHeight() / m_skalierung - lwBild.dOffsetY;
+				ureY = dc_Offset[1] + CL_dc.GetSize().GetHeight() / m_skalierung - lwBild.dOffsetY + 1/lwBild.dSkalierung;
 
 			if((oleX < ureX)&&(oleY < ureY))
 			{
 				int iB, iH;
-				iB = (ureX-oleX)*lwBild.dSkalierung;
-				iH = (ureY-oleY)*lwBild.dSkalierung;
+				iB = (int)(ureX*lwBild.dSkalierung) - (int)(oleX*lwBild.dSkalierung);
+				iH = (int)(ureY*lwBild.dSkalierung) - (int)(oleY*lwBild.dSkalierung);
 				if(iB!=0 && iH!=0)
 				{
 					imBild = imBild.Resize(wxSize(iB, iH), wxPoint(-(oleX)*lwBild.dSkalierung, -(oleY)*lwBild.dSkalierung), 128, 0,76);
-					iB = (ureX-oleX)*m_skalierung;
-					iH = (ureY-oleY)*m_skalierung;
+					iB = (iB)*(m_skalierung / lwBild.dSkalierung);
+					iH = (iH)*(m_skalierung / lwBild.dSkalierung);
 					if(iB!=0 && iH!=0)
 					{
 						imBild.Rescale(iB, iH);
-						dc.DrawBitmap(wxBitmap(imBild, dc), (lwBild.dOffsetX + oleX - dc_Offset[0])*m_skalierung,
-							(lwBild.dOffsetY + oleY - dc_Offset[1])*m_skalierung);
+						dc.DrawBitmap(wxBitmap(imBild, dc), (iOleX + lwBild.dOffsetX - dc_Offset[0]) * m_skalierung, (iOleY + lwBild.dOffsetY - dc_Offset[1]) * m_skalierung); // Problematische Zeile !!!
 					}
 				}
 			}

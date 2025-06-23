@@ -60,6 +60,7 @@
 #include "RUZLayerDialoge.h"
 #include "RUZThCtrl.h"
 #include "Vektor\Vektor.h"
+#include "RUZHgBild.h"
 
 using namespace std;
 
@@ -226,6 +227,7 @@ class RUZmBIFrame: public wxFrame
             idMenuQuit = 1000,
             idMenuAbout, idMenuFileSave, idMenuQuickSave, idMenuExportPrismen, idMenuExportPunkte, idMenuDeleteLayer, idMenuLayerAuswahl, idMenuLayerKopieren,
             idMenuHintergrundEinlesen, idMenuHintergrundLoeschen,idMenuHintergrundVerschieben,
+			idMenuHintergrundBildEinlesen, idMenuHintergrundBildLoeschen,
             idMenuDxfImp_mitLay_Pkt, idMenuDxfImp_mitLay_Ln_Pkt, idMenuDxfImp_ohneLay_Pkt, idMenuDxfImp_ohneLay_Ln_Pkt,
             idMenuRuzImport, idMenuD45Import, idMenuD58Import,
             idMenuKantenWandeln, idMenuVernetzen, idMenuDreieckeFinden, idMenuViereckeFinden, idMenuViereckTeilen, idMenuKomplettVernetzen, idMenuDoppeltePunkteLoeschen,
@@ -327,6 +329,8 @@ class RUZmBIFrame: public wxFrame
         void OnOpenFile(wxCommandEvent &event);
         void OnHintergrundEinlesen(wxCommandEvent &event);
         void OnHintergrundLoeschen(wxCommandEvent &event);
+		void OnHintergrundBildEinlesen(wxCommandEvent &event);
+		void OnHintergrundBildLoeschen(wxCommandEvent &event);
         void OnSaveFile(wxCommandEvent &event);
         void OnLoescheLayer(wxCommandEvent &event);
         void OnLoescheStriche(wxCommandEvent &event);
@@ -549,6 +553,8 @@ class RUZmBIFrame: public wxFrame
 		void (RUZmBIFrame::*hgVerschieben)(Vektor);
 			void hgVerschieben_1(Vektor);
 			void hgVerschieben_2(Vektor);
+		
+		RUZHgBild HgBild;
 		/* ENDE Hintergrund */
 
         /*Gefaelle verfolgen*/

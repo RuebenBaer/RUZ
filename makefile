@@ -77,6 +77,7 @@ OBJS = \
 	$(OBJDIR)\RUZmBIMain.o \
 	$(OBJDIR)\RUZLayerDialoge.o \
 	$(OBJDIR)\RUZThCtrl.o \
+	$(OBJDIR)\RUZHgBild.o \
 	$(OBJDIR)\resource.res
 OUT = RUZ.exe
 
@@ -137,6 +138,10 @@ $(OBJDIR)\RUZmBIMain.o: source\RUZmBIMain.cpp
 	if not exist $(OBJDIR) mkdir $(OBJDIR)
 	$(CXX) $(CPPFLAGS) $(DEFS) $(INCLUDES) -c $< -o $@
 
+$(OBJDIR)\RUZHgBild.o: source\RUZHgBild.cpp
+	if not exist $(OBJDIR) mkdir $(OBJDIR)
+	$(CXX) $(CPPFLAGS) $(DEFS) $(INCLUDES) -c $< -o $@
+
 $(OBJDIR)\RUZLayerDialoge.o: source\RUZLayerDialoge.cpp
 	if not exist $(OBJDIR) mkdir $(OBJDIR)
 	$(CXX) $(CPPFLAGS) $(DEFS) $(INCLUDES) -c $< -o $@
@@ -151,4 +156,4 @@ $(OBJDIR)\resource.res: source\resource.rc
 
 clean:
 	del /s /q $(OBJDIR)
-	del /s /q $(BIN)
+	del /s /q $(OUT)
